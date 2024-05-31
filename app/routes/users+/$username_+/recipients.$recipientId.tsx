@@ -83,7 +83,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 	await prisma.recipient.delete({ where: { id: recipient.id } })
 
-	return redirectWithToast(`/users/${recipient.user.username}/notes`, {
+	return redirectWithToast(`/users/${recipient.user.username}/recipients`, {
 		type: 'success',
 		title: 'Success',
 		description: 'Your recipient has been deleted.',
@@ -184,7 +184,7 @@ export const meta: MetaFunction<
 	const recipientTitle =
 		data?.recipient.name ?? data?.recipient.phoneNumber ?? 'Recipient'
 	return [
-		{ title: `${recipientTitle} | ${displayName}'s Notes | GratiText` },
+		{ title: `${recipientTitle} | ${displayName}'s Recipients | GratiText` },
 		{
 			name: 'description',
 			content: `GratiTexts sent to ${recipientTitle} from ${displayName}'s`,

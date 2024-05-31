@@ -29,7 +29,7 @@ test('The user profile when not logged in as self', async () => {
 	render(<App initialEntries={[routeUrl]} />)
 
 	await screen.findByRole('heading', { level: 1, name: user.name! })
-	await screen.findByRole('link', { name: `${user.name}'s notes` })
+	await screen.findByRole('link', { name: `${user.name}'s recipients` })
 })
 
 test('The user profile when logged in as self', async () => {
@@ -81,6 +81,6 @@ test('The user profile when logged in as self', async () => {
 
 	await screen.findByRole('heading', { level: 1, name: user.name! })
 	await screen.findByRole('button', { name: /logout/i })
-	await screen.findByRole('link', { name: /my notes/i })
+	await screen.findByRole('link', { name: /my recipients/i })
 	await screen.findByRole('link', { name: /edit profile/i })
 })

@@ -242,16 +242,7 @@ function App() {
 }
 
 function Logo() {
-	return (
-		<Link to="/" className="group grid leading-snug">
-			<span className="font-light transition group-hover:-translate-x-1">
-				epic
-			</span>
-			<span className="font-bold transition group-hover:translate-x-1">
-				notes
-			</span>
-		</Link>
-	)
+	return <Link to="/">GratiText</Link>
 }
 
 function AppWithProviders() {
@@ -295,9 +286,9 @@ function UserDropdown() {
 						</Link>
 					</DropdownMenuItem>
 					<DropdownMenuItem asChild>
-						<Link prefetch="intent" to={`/users/${user.username}/notes`}>
+						<Link prefetch="intent" to={`/users/${user.username}/recipients`}>
 							<Icon className="text-body-md" name="pencil-2">
-								Notes
+								Recipients
 							</Icon>
 						</Link>
 					</DropdownMenuItem>
