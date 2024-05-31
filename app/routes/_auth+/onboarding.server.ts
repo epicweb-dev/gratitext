@@ -1,7 +1,7 @@
 import { invariant } from '@epic-web/invariant'
 import { redirect } from '@remix-run/node'
 import { verifySessionStorage } from '#app/utils/verification.server.ts'
-import { onboardingEmailSessionKey } from './onboarding.tsx'
+import { onboardingPhoneNumberSessionKey } from './onboarding.tsx'
 import { type VerifyFunctionArgs } from './verify.server.ts'
 
 export async function handleVerification({ submission }: VerifyFunctionArgs) {
@@ -10,7 +10,7 @@ export async function handleVerification({ submission }: VerifyFunctionArgs) {
 		'Submission should be successful by now',
 	)
 	const verifySession = await verifySessionStorage.getSession()
-	verifySession.set(onboardingEmailSessionKey, submission.value.target)
+	verifySession.set(onboardingPhoneNumberSessionKey, submission.value.target)
 	return redirect('/onboarding', {
 		headers: {
 			'set-cookie': await verifySessionStorage.commitSession(verifySession),

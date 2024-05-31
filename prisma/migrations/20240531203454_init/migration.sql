@@ -1,7 +1,7 @@
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL PRIMARY KEY,
-    "email" TEXT NOT NULL,
+    "phoneNumber" TEXT NOT NULL,
     "username" TEXT NOT NULL,
     "name" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -85,17 +85,6 @@ CREATE TABLE "Message" (
 );
 
 -- CreateTable
-CREATE TABLE "ControllerPhoneNumber" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "number" TEXT NOT NULL,
-    "verified" BOOLEAN NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    "userId" TEXT NOT NULL,
-    CONSTRAINT "ControllerPhoneNumber_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
-);
-
--- CreateTable
 CREATE TABLE "SourceNumber" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "phoneNumber" TEXT NOT NULL,
@@ -120,7 +109,7 @@ CREATE TABLE "_RoleToUser" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+CREATE UNIQUE INDEX "User_phoneNumber_key" ON "User"("phoneNumber");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
@@ -145,9 +134,6 @@ CREATE INDEX "Recipient_userId_idx" ON "Recipient"("userId");
 
 -- CreateIndex
 CREATE INDEX "Message_recipientId_idx" ON "Message"("recipientId");
-
--- CreateIndex
-CREATE INDEX "ControllerPhoneNumber_userId_idx" ON "ControllerPhoneNumber"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_PermissionToRole_AB_unique" ON "_PermissionToRole"("A", "B");

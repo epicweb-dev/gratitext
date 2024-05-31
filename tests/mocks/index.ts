@@ -1,8 +1,8 @@
 import closeWithGrace from 'close-with-grace'
 import { setupServer } from 'msw/node'
-import { handlers as resendHandlers } from './resend.ts'
+import { handlers as twilioHandlers } from './twilio.ts'
 
-export const server = setupServer(...resendHandlers)
+export const server = setupServer(...twilioHandlers)
 
 server.listen({
 	onUnhandledRequest(request, print) {

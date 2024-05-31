@@ -26,7 +26,7 @@ export function createUser() {
 	return {
 		username,
 		name: `${firstName} ${lastName}`,
-		email: `${username}@example.com`,
+		phoneNumber: faker.phone.number(),
 	}
 }
 

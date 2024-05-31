@@ -6,6 +6,12 @@
 			"directory": "./other/svg-icons",
 			"postinstall": ["npm", "run", "build:icons"],
 			"transformers": ["transform-icon.ts"]
+		},
+		{
+			"name": "tailwindlabs/heroicons",
+			"directory": "./other/svg-icons",
+			"postinstall": ["npm", "run", "build:icons"],
+			"transformers": ["transform-icon.ts"]
 		}
 	]
 }

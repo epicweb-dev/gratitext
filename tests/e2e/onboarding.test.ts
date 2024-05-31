@@ -1,11 +1,11 @@
 import { invariant } from '@epic-web/invariant'
 import { faker } from '@faker-js/faker'
 import { prisma } from '#app/utils/db.server.ts'
-import { readEmail } from '#tests/mocks/utils.ts'
+import { readText } from '#tests/mocks/utils.ts'
 import { createUser, expect, test as base } from '#tests/playwright-utils.ts'
 
 const URL_REGEX = /(?<url>https?:\/\/[^\s$.?#].[^\s]*)/
-const CODE_REGEX = /Here's your verification code: (?<code>[\d\w]+)/
+const CODE_REGEX = /code: (?<code>[\d\w]+)/
 function extractUrl(text: string) {
 	const match = text.match(URL_REGEX)
 	return match?.groups?.url
@@ -15,7 +15,7 @@ const test = base.extend<{
 	getOnboardingData(): {
 		username: string
 		name: string
-		email: string
+		phoneNumber: string
 		password: string
 	}
 }>({
@@ -47,22 +47,24 @@ test('onboarding with link', async ({ page, getOnboardingData }) => {
 
 	await expect(page).toHaveURL(`/signup`)
 
-	const emailTextbox = page.getByRole('textbox', { name: /email/i })
-	await emailTextbox.click()
-	await emailTextbox.fill(onboardingData.email)
+	const phoneNumberTextbox = page.getByRole('textbox', {
+		name: /phone number/i,
+	})
+	await phoneNumberTextbox.click()
+	await phoneNumberTextbox.fill(onboardingData.phoneNumber)
 
 	await page.getByRole('button', { name: /submit/i }).click()
 	await expect(
 		page.getByRole('button', { name: /submit/i, disabled: true }),
 	).toBeVisible()
-	await expect(page.getByText(/check your email/i)).toBeVisible()
+	await expect(page.getByText(/check your texts/i)).toBeVisible()
 
-	const email = await readEmail(onboardingData.email)
-	invariant(email, 'Email not found')
-	expect(email.to).toBe(onboardingData.email.toLowerCase())
-	expect(email.from).toBe('hello@epicstack.dev')
-	expect(email.subject).toMatch(/welcome/i)
-	const onboardingUrl = extractUrl(email.text)
+	const textMessage = await readText(onboardingData.phoneNumber)
+	invariant(textMessage, 'Text message not found')
+	expect(textMessage.To).toBe(onboardingData.phoneNumber.toLowerCase())
+	expect(textMessage.From).toBe('555-555-5555')
+	expect(textMessage.Body).toMatch(/welcome/i)
+	const onboardingUrl = extractUrl(textMessage.Body)
 	invariant(onboardingUrl, 'Onboarding URL not found')
 	await page.goto(onboardingUrl)
 
@@ -107,22 +109,24 @@ test('onboarding with a short code', async ({ page, getOnboardingData }) => {
 
 	await page.goto('/signup')
 
-	const emailTextbox = page.getByRole('textbox', { name: /email/i })
-	await emailTextbox.click()
-	await emailTextbox.fill(onboardingData.email)
+	const phoneNumberTextbox = page.getByRole('textbox', {
+		name: /phone number/i,
+	})
+	await phoneNumberTextbox.click()
+	await phoneNumberTextbox.fill(onboardingData.phoneNumber)
 
 	await page.getByRole('button', { name: /submit/i }).click()
 	await expect(
 		page.getByRole('button', { name: /submit/i, disabled: true }),
 	).toBeVisible()
-	await expect(page.getByText(/check your email/i)).toBeVisible()
+	await expect(page.getByText(/Check your texts/i)).toBeVisible()
 
-	const email = await readEmail(onboardingData.email)
-	invariant(email, 'Email not found')
-	expect(email.to).toBe(onboardingData.email.toLowerCase())
-	expect(email.from).toBe('hello@epicstack.dev')
-	expect(email.subject).toMatch(/welcome/i)
-	const codeMatch = email.text.match(CODE_REGEX)
+	const textMessage = await readText(onboardingData.phoneNumber)
+	invariant(textMessage, 'Text message not found')
+	expect(textMessage.To).toBe(onboardingData.phoneNumber)
+	expect(textMessage.From).toBe('555-555-5555')
+	expect(textMessage.Body).toMatch(/welcome/i)
+	const codeMatch = textMessage.Body.match(CODE_REGEX)
 	const code = codeMatch?.groups?.code
 	invariant(code, 'Onboarding code not found')
 	await page.getByRole('textbox', { name: /code/i }).fill(code)
@@ -161,14 +165,14 @@ test('reset password with a link', async ({ page, insertNewUser }) => {
 	await expect(
 		page.getByRole('button', { name: /recover password/i, disabled: true }),
 	).toBeVisible()
-	await expect(page.getByText(/check your email/i)).toBeVisible()
+	await expect(page.getByText(/check your texts/i)).toBeVisible()
 
-	const email = await readEmail(user.email)
-	invariant(email, 'Email not found')
-	expect(email.subject).toMatch(/password reset/i)
-	expect(email.to).toBe(user.email.toLowerCase())
-	expect(email.from).toBe('hello@epicstack.dev')
-	const resetPasswordUrl = extractUrl(email.text)
+	const textMessage = await readText(user.phoneNumber)
+	invariant(textMessage, 'Text message not found')
+	expect(textMessage.Body).toMatch(/password reset/i)
+	expect(textMessage.To).toBe(user.phoneNumber)
+	expect(textMessage.From).toBe('555-555-5555')
+	const resetPasswordUrl = extractUrl(textMessage.Body)
 	invariant(resetPasswordUrl, 'Reset password URL not found')
 	await page.goto(resetPasswordUrl)
 
@@ -219,14 +223,14 @@ test('reset password with a short code', async ({ page, insertNewUser }) => {
 	await expect(
 		page.getByRole('button', { name: /recover password/i, disabled: true }),
 	).toBeVisible()
-	await expect(page.getByText(/check your email/i)).toBeVisible()
+	await expect(page.getByText(/Check your texts/i)).toBeVisible()
 
-	const email = await readEmail(user.email)
-	invariant(email, 'Email not found')
-	expect(email.subject).toMatch(/password reset/i)
-	expect(email.to).toBe(user.email)
-	expect(email.from).toBe('hello@epicstack.dev')
-	const codeMatch = email.text.match(CODE_REGEX)
+	const textMessage = await readText(user.phoneNumber)
+	invariant(textMessage, 'Text message not found')
+	expect(textMessage.Body).toMatch(/password reset/i)
+	expect(textMessage.To).toBe(user.phoneNumber)
+	expect(textMessage.From).toBe('555-555-5555')
+	const codeMatch = textMessage.Body.match(CODE_REGEX)
 	const code = codeMatch?.groups?.code
 	invariant(code, 'Reset Password code not found')
 	await page.getByRole('textbox', { name: /code/i }).fill(code)

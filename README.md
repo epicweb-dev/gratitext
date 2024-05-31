@@ -1,5 +1,5 @@
 <div align="center">
-  <h1 align="center"><a href="https://www.gratitexts.app">GratiTexts</a></h1>
+  <h1 align="center"><a href="https://www.gratitext.app">GratiText</a></h1>
   <strong align="center">
     Express gratitude and send nice notes to your loved ones
   </strong>

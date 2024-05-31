@@ -16,7 +16,12 @@ export const codeQueryParam = 'code'
 export const targetQueryParam = 'target'
 export const typeQueryParam = 'type'
 export const redirectToQueryParam = 'redirectTo'
-const types = ['onboarding', 'reset-password', 'change-email', '2fa'] as const
+const types = [
+	'onboarding',
+	'reset-password',
+	'change-phone-number',
+	'2fa',
+] as const
 const VerificationTypeSchema = z.enum(types)
 export type VerificationTypes = z.infer<typeof VerificationTypeSchema>
 
@@ -42,19 +47,19 @@ export default function VerifyRoute() {
 	)
 	const type = parseWithZoddType.success ? parseWithZoddType.data : null
 
-	const checkEmail = (
+	const checkPhoneNumber = (
 		<>
-			<h1 className="text-h1">Check your email</h1>
+			<h1 className="text-h1">Check your texts</h1>
 			<p className="mt-3 text-body-md text-muted-foreground">
-				We've sent you a code to verify your email address.
+				We've texted you a code to verify your phone number.
 			</p>
 		</>
 	)
 
 	const headings: Record<VerificationTypes, React.ReactNode> = {
-		onboarding: checkEmail,
-		'reset-password': checkEmail,
-		'change-email': checkEmail,
+		onboarding: checkPhoneNumber,
+		'reset-password': checkPhoneNumber,
+		'change-phone-number': checkPhoneNumber,
 		'2fa': (
 			<>
 				<h1 className="text-h1">Check your 2FA app</h1>

@@ -16,12 +16,12 @@ type GetOrInsertUserOptions = {
 	id?: string
 	username?: UserModel['username']
 	password?: string
-	email?: UserModel['email']
+	phoneNumber?: UserModel['phoneNumber']
 }
 
 type User = {
 	id: string
-	email: string
+	phoneNumber: string
 	username: string
 	name: string | null
 }
@@ -30,9 +30,9 @@ async function getOrInsertUser({
 	id,
 	username,
 	password,
-	email,
+	phoneNumber,
 }: GetOrInsertUserOptions = {}): Promise<User> {
-	const select = { id: true, email: true, username: true, name: true }
+	const select = { id: true, phoneNumber: true, username: true, name: true }
 	if (id) {
 		return await prisma.user.findUniqueOrThrow({
 			select,
@@ -42,12 +42,12 @@ async function getOrInsertUser({
 		const userData = createUser()
 		username ??= userData.username
 		password ??= userData.username
-		email ??= userData.email
+		phoneNumber ??= userData.phoneNumber
 		return await prisma.user.create({
 			select,
 			data: {
 				...userData,
-				email,
+				phoneNumber,
 				username,
 				roles: { connect: { name: 'user' } },
 				password: { create: { hash: await getPasswordHash(password) } },
@@ -98,7 +98,7 @@ export const test = base.extend<{
 export const { expect } = test
 
 /**
- * This allows you to wait for something (like an email to be available).
+ * This allows you to wait for something (like a text to be available).
  *
  * It calls the callback every 50ms until it returns a value (and does not throw
  * an error). After the timeout, it will throw the last error that was thrown or

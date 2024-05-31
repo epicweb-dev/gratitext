@@ -52,7 +52,7 @@ export default function Index() {
 						data-heading
 						className="mt-8 animate-slide-top text-4xl font-medium text-foreground [animation-delay:0.3s] [animation-fill-mode:backwards] md:text-5xl xl:mt-4 xl:animate-slide-left xl:text-6xl xl:[animation-delay:0.8s] xl:[animation-fill-mode:backwards]"
 					>
-						<a href="https://www.epicweb.dev/stack">GratiTexts</a>
+						<a href="https://www.gratitext.app">GratiText</a>
 					</h1>
 					<p
 						data-paragraph

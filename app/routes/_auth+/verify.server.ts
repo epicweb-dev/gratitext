@@ -2,7 +2,7 @@ import { type Submission } from '@conform-to/react'
 import { parseWithZod } from '@conform-to/zod'
 import { json } from '@remix-run/node'
 import { z } from 'zod'
-import { handleVerification as handleChangeEmailVerification } from '#app/routes/settings+/profile.change-email.server.tsx'
+import { handleVerification as handleChangePhoneNumberVerification } from '#app/routes/settings+/profile.change-number.server.tsx'
 import { twoFAVerificationType } from '#app/routes/settings+/profile.two-factor.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
@@ -106,7 +106,7 @@ export async function prepareVerification({
 		update: verificationData,
 	})
 
-	// add the otp to the url we'll email the user.
+	// add the otp to the url we'll text the user.
 	verifyUrl.searchParams.set(codeQueryParam, otp)
 
 	return { otp, redirectTo, verifyUrl }
@@ -194,9 +194,9 @@ export async function validateRequest(
 			await deleteVerification()
 			return handleOnboardingVerification({ request, body, submission })
 		}
-		case 'change-email': {
+		case 'change-phone-number': {
 			await deleteVerification()
-			return handleChangeEmailVerification({ request, body, submission })
+			return handleChangePhoneNumberVerification({ request, body, submission })
 		}
 		case '2fa': {
 			return handleLoginTwoFactorVerification({ request, body, submission })

@@ -187,7 +187,7 @@ export const meta: MetaFunction<
 		{ title: `${recipientTitle} | ${displayName}'s Recipients | GratiText` },
 		{
 			name: 'description',
-			content: `GratiTexts sent to ${recipientTitle} from ${displayName}'s`,
+			content: `GratiText sent to ${recipientTitle} from ${displayName}'s`,
 		},
 	]
 }

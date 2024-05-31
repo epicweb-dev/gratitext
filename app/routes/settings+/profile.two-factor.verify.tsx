@@ -64,12 +64,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	}
 	const user = await prisma.user.findUniqueOrThrow({
 		where: { id: userId },
-		select: { email: true },
+		select: { phoneNumber: true },
 	})
 	const issuer = new URL(getDomainUrl(request)).host
 	const otpUri = getTOTPAuthUri({
 		...verification,
-		accountName: user.email,
+		accountName: user.phoneNumber,
 		issuer,
 	})
 	const qrCode = await QRCode.toDataURL(otpUri)

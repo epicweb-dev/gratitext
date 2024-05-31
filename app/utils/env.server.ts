@@ -10,9 +10,10 @@ const schema = z.object({
 	CACHE_DATABASE_PATH: z.string(),
 	// If you plan on using Sentry, uncomment this line
 	// SENTRY_DSN: z.string(),
-	// If you plan to use Resend, uncomment this line
-	// RESEND_API_KEY: z.string(),
 	ALLOW_INDEXING: z.enum(['true', 'false']).optional(),
+
+	TWILIO_TOKEN: z.string(),
+	TWILIO_SID: z.string(),
 
 	AWS_ACCESS_KEY_ID: z.string(),
 	AWS_REGION: z.string(),

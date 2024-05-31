@@ -99,12 +99,12 @@ export async function resetUserPassword({
 }
 
 export async function signup({
-	email,
+	phoneNumber,
 	username,
 	password,
 	name,
 }: {
-	email: User['email']
+	phoneNumber: User['phoneNumber']
 	username: User['username']
 	name: User['name']
 	password: string
@@ -116,7 +116,7 @@ export async function signup({
 			expirationDate: getSessionExpirationDate(),
 			user: {
 				create: {
-					email: email.toLowerCase(),
+					phoneNumber: phoneNumber,
 					username: username.toLowerCase(),
 					name,
 					roles: { connect: { name: 'user' } },

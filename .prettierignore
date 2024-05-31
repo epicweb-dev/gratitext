@@ -8,7 +8,7 @@ node_modules
 /test-results/
 /playwright-report/
 /playwright/.cache/
-/tests/fixtures/email/*.json
+/tests/fixtures/texts/*.json
 /coverage
 /prisma/migrations
 

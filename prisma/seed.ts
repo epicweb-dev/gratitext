@@ -9,6 +9,13 @@ async function seed() {
 	await cleanupDb(prisma)
 	console.timeEnd('🧹 Cleaned up the database...')
 
+	console.time('📱 Creating Source Number')
+	await prisma.sourceNumber.create({
+		data: { phoneNumber: '555-555-5555' },
+		select: { id: true },
+	})
+	console.timeEnd('📱 Creating Source Number')
+
 	console.time('🔑 Created permissions...')
 	const entities = ['user', 'note']
 	const actions = ['create', 'read', 'update', 'delete']
@@ -62,7 +69,7 @@ async function seed() {
 					...userData,
 					password: { create: createPassword(userData.username) },
 					roles: { connect: { name: 'user' } },
-					// TODO: Add control numbers etc.
+					// TODO: Add recipients etc.
 				},
 			})
 			.catch(e => {
@@ -77,12 +84,12 @@ async function seed() {
 	await prisma.user.create({
 		select: { id: true },
 		data: {
-			email: 'kody@kcd.dev',
 			username: 'kody',
 			name: 'Kody',
+			phoneNumber: '555-555-5639',
 			password: { create: createPassword('kodylovesyou') },
 			roles: { connect: [{ name: 'admin' }, { name: 'user' }] },
-			// TODO: Add control numbers etc.
+			// TODO: add recipients etc...
 		},
 	})
 	console.timeEnd(`🐨 Created admin user "kody"`)

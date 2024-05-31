@@ -1,6 +1,5 @@
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import * as E from '@react-email/components'
 import {
 	json,
 	redirect,
@@ -14,13 +13,16 @@ import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { ErrorList, Field } from '#app/components/forms.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { prisma } from '#app/utils/db.server.ts'
-import { sendEmail } from '#app/utils/email.server.ts'
 import { checkHoneypot } from '#app/utils/honeypot.server.ts'
-import { EmailSchema, UsernameSchema } from '#app/utils/user-validation.ts'
+import { sendText } from '#app/utils/text.server.js'
+import {
+	PhoneNumberSchema,
+	UsernameSchema,
+} from '#app/utils/user-validation.ts'
 import { prepareVerification } from './verify.server.ts'
 
 const ForgotPasswordSchema = z.object({
-	usernameOrEmail: z.union([EmailSchema, UsernameSchema]),
+	usernameOrPhoneNumber: z.union([PhoneNumberSchema, UsernameSchema]),
 })
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -31,17 +33,17 @@ export async function action({ request }: ActionFunctionArgs) {
 			const user = await prisma.user.findFirst({
 				where: {
 					OR: [
-						{ email: data.usernameOrEmail },
-						{ username: data.usernameOrEmail },
+						{ phoneNumber: data.usernameOrPhoneNumber },
+						{ username: data.usernameOrPhoneNumber },
 					],
 				},
 				select: { id: true },
 			})
 			if (!user) {
 				ctx.addIssue({
-					path: ['usernameOrEmail'],
+					path: ['usernameOrPhoneNumber'],
 					code: z.ZodIssueCode.custom,
-					message: 'No user exists with this username or email',
+					message: 'No user exists with this username or phone number',
 				})
 				return
 			}
@@ -54,63 +56,38 @@ export async function action({ request }: ActionFunctionArgs) {
 			{ status: submission.status === 'error' ? 400 : 200 },
 		)
 	}
-	const { usernameOrEmail } = submission.value
+	const { usernameOrPhoneNumber } = submission.value
 
 	const user = await prisma.user.findFirstOrThrow({
-		where: { OR: [{ email: usernameOrEmail }, { username: usernameOrEmail }] },
-		select: { email: true, username: true },
+		where: {
+			OR: [
+				{ phoneNumber: usernameOrPhoneNumber },
+				{ username: usernameOrPhoneNumber },
+			],
+		},
+		select: { phoneNumber: true, username: true },
 	})
 
 	const { verifyUrl, redirectTo, otp } = await prepareVerification({
 		period: 10 * 60,
 		request,
 		type: 'reset-password',
-		target: usernameOrEmail,
+		target: usernameOrPhoneNumber,
 	})
 
-	const response = await sendEmail({
-		to: user.email,
-		subject: `GratiText Password Reset`,
-		react: (
-			<ForgotPasswordEmail onboardingUrl={verifyUrl.toString()} otp={otp} />
-		),
+	const response = await sendText({
+		to: user.phoneNumber,
+		message: `GratiText Password reset confirmation code: ${otp}\n\nOr open this link: ${verifyUrl}`,
 	})
 
 	if (response.status === 'success') {
 		return redirect(redirectTo.toString())
 	} else {
 		return json(
-			{ result: submission.reply({ formErrors: [response.error.message] }) },
+			{ result: submission.reply({ formErrors: [response.error] }) },
 			{ status: 500 },
 		)
 	}
-}
-
-function ForgotPasswordEmail({
-	onboardingUrl,
-	otp,
-}: {
-	onboardingUrl: string
-	otp: string
-}) {
-	return (
-		<E.Html lang="en" dir="ltr">
-			<E.Container>
-				<h1>
-					<E.Text>GratiText Password Reset</E.Text>
-				</h1>
-				<p>
-					<E.Text>
-						Here's your verification code: <strong>{otp}</strong>
-					</E.Text>
-				</p>
-				<p>
-					<E.Text>Or click the link:</E.Text>
-				</p>
-				<E.Link href={onboardingUrl}>{onboardingUrl}</E.Link>
-			</E.Container>
-		</E.Html>
-	)
 }
 
 export const meta: MetaFunction = () => {
@@ -145,14 +122,16 @@ export default function ForgotPasswordRoute() {
 						<div>
 							<Field
 								labelProps={{
-									htmlFor: fields.usernameOrEmail.id,
-									children: 'Username or Email',
+									htmlFor: fields.usernameOrPhoneNumber.id,
+									children: 'Username or Phone Number',
 								}}
 								inputProps={{
 									autoFocus: true,
-									...getInputProps(fields.usernameOrEmail, { type: 'text' }),
+									...getInputProps(fields.usernameOrPhoneNumber, {
+										type: 'text',
+									}),
 								}}
-								errors={fields.usernameOrEmail.errors}
+								errors={fields.usernameOrPhoneNumber.errors}
 							/>
 						</div>
 						<ErrorList errors={form.errors} id={form.errorId} />

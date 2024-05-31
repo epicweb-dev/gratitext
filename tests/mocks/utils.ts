@@ -20,32 +20,30 @@ export async function createFixture(
 	return fsExtra.writeJSON(path.join(dir, `./${name}.json`), data)
 }
 
-export const EmailSchema = z.object({
-	to: z.string(),
-	from: z.string(),
-	subject: z.string(),
-	text: z.string(),
-	html: z.string(),
+export const TextMessageSchema = z.object({
+	To: z.string(),
+	From: z.string(),
+	Body: z.string(),
 })
 
-export async function writeEmail(rawEmail: unknown) {
-	const email = EmailSchema.parse(rawEmail)
-	await createFixture('email', email.to, email)
-	return email
+export async function writeText(rawText: unknown) {
+	const textMessage = TextMessageSchema.parse(rawText)
+	await createFixture('texts', textMessage.To, textMessage)
+	return textMessage
 }
 
-export async function requireEmail(recipient: string) {
-	const email = await readEmail(recipient)
-	if (!email) throw new Error(`Email to ${recipient} not found`)
-	return email
+export async function requireText(recipient: string) {
+	const textMessage = await readText(recipient)
+	if (!textMessage) throw new Error(`Text message to ${recipient} not found`)
+	return textMessage
 }
 
-export async function readEmail(recipient: string) {
+export async function readText(recipient: string) {
 	try {
-		const email = await readFixture('email', recipient)
-		return EmailSchema.parse(email)
+		const textMessage = await readFixture('texts', recipient)
+		return TextMessageSchema.parse(textMessage)
 	} catch (error) {
-		console.error(`Error reading email`, error)
+		console.error(`Error reading text message to ${recipient}`, error)
 		return null
 	}
 }

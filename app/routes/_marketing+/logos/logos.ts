@@ -8,9 +8,7 @@ import playwright from './playwright.svg'
 import prettier from './prettier.svg'
 import prisma from './prisma.svg'
 import radixUI from './radix.svg'
-import reactEmail from './react-email.svg'
 import remix from './remix.svg'
-import resend from './resend.svg'
 import sentry from './sentry.svg'
 import shadcnUI from './shadcn-ui.svg'
 import sqlite from './sqlite.svg'
@@ -64,20 +62,6 @@ export const logos = [
 		href: 'https://github.com',
 		column: 2,
 		row: 4,
-	},
-	{
-		src: resend,
-		alt: 'Resend',
-		href: 'https://resend.com',
-		column: 2,
-		row: 5,
-	},
-	{
-		src: reactEmail,
-		alt: 'React Email',
-		href: 'https://react.email',
-		column: 2,
-		row: 6,
 	},
 	{
 		src: tailwind,

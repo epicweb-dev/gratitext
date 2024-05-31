@@ -32,7 +32,7 @@ import {
 } from '#app/utils/user-validation.ts'
 import { verifySessionStorage } from '#app/utils/verification.server.ts'
 
-export const onboardingEmailSessionKey = 'onboardingEmail'
+export const onboardingPhoneNumberSessionKey = 'onboardingPhoneNumber'
 
 const SignupFormSchema = z
 	.object({
@@ -47,25 +47,25 @@ const SignupFormSchema = z
 	})
 	.and(PasswordAndConfirmPasswordSchema)
 
-async function requireOnboardingEmail(request: Request) {
+async function requireOnboardingPhoneNumber(request: Request) {
 	await requireAnonymous(request)
 	const verifySession = await verifySessionStorage.getSession(
 		request.headers.get('cookie'),
 	)
-	const email = verifySession.get(onboardingEmailSessionKey)
-	if (typeof email !== 'string' || !email) {
+	const phoneNumber = verifySession.get(onboardingPhoneNumberSessionKey)
+	if (typeof phoneNumber !== 'string' || !phoneNumber) {
 		throw redirect('/signup')
 	}
-	return email
+	return phoneNumber
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-	const email = await requireOnboardingEmail(request)
-	return json({ email })
+	const phoneNumber = await requireOnboardingPhoneNumber(request)
+	return json({ phoneNumber })
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-	const email = await requireOnboardingEmail(request)
+	const phoneNumber = await requireOnboardingPhoneNumber(request)
 	const formData = await request.formData()
 	checkHoneypot(formData)
 	const submission = await parseWithZod(formData, {
@@ -86,7 +86,7 @@ export async function action({ request }: ActionFunctionArgs) {
 			}).transform(async data => {
 				if (intent !== null) return { ...data, session: null }
 
-				const session = await signup({ ...data, email })
+				const session = await signup({ ...data, phoneNumber })
 				return { ...data, session }
 			}),
 		async: true,
@@ -151,7 +151,7 @@ export default function SignupRoute() {
 		<div className="container flex min-h-full flex-col justify-center pb-32 pt-20">
 			<div className="mx-auto w-full max-w-lg">
 				<div className="flex flex-col gap-3 text-center">
-					<h1 className="text-h1">Welcome aboard {data.email}!</h1>
+					<h1 className="text-h1">Welcome aboard {data.phoneNumber}!</h1>
 					<p className="text-body-md text-muted-foreground">
 						Please enter your details.
 					</p>

@@ -12,7 +12,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		// want to send back the entire blob of the image. We'll send a URL they can
 		// use to download it instead.
 		include: {
-			controllerPhoneNumbers: true,
 			recipients: true,
 			password: false, // <-- intentionally omit password
 			sessions: true,

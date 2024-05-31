@@ -38,7 +38,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			id: true,
 			name: true,
 			username: true,
-			email: true,
+			phoneNumber: true,
 			_count: {
 				select: {
 					sessions: {
@@ -102,32 +102,14 @@ export default function EditUserProfile() {
 
 	return (
 		<div className="flex flex-col gap-12">
-			<div className="flex justify-center">
-				<div className="relative h-52 w-52">
-					<Button
-						asChild
-						variant="outline"
-						className="absolute -right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full p-0"
-					>
-						<Link
-							preventScrollReset
-							to="photo"
-							title="Change profile photo"
-							aria-label="Change profile photo"
-						>
-							<Icon name="camera" className="h-4 w-4" />
-						</Link>
-					</Button>
-				</div>
-			</div>
 			<UpdateProfile />
 
 			<div className="col-span-6 my-6 h-1 border-b-[1.5px] border-foreground" />
 			<div className="col-span-full flex flex-col gap-6">
 				<div>
-					<Link to="change-email">
-						<Icon name="envelope-closed">
-							Change email from {data.user.email}
+					<Link to="change-number">
+						<Icon name="device-phone-mobile-outline">
+							Change number from {data.user.phoneNumber}
 						</Icon>
 					</Link>
 				</div>
@@ -145,11 +127,6 @@ export default function EditUserProfile() {
 						<Icon name="dots-horizontal">
 							{data.hasPassword ? 'Change Password' : 'Create a Password'}
 						</Icon>
-					</Link>
-				</div>
-				<div>
-					<Link to="connections">
-						<Icon name="link-2">Manage connections</Icon>
 					</Link>
 				</div>
 				<div>
