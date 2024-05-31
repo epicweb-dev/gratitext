@@ -4,7 +4,7 @@ import { Link, NavLink, Outlet, useLoaderData } from '@remix-run/react'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { prisma } from '#app/utils/db.server.ts'
-import { cn, getUserImgSrc } from '#app/utils/misc.tsx'
+import { cn } from '#app/utils/misc.tsx'
 import { useOptionalUser } from '#app/utils/user.ts'
 
 export async function loader({ params }: LoaderFunctionArgs) {
@@ -13,8 +13,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
 			id: true,
 			name: true,
 			username: true,
-			image: { select: { id: true } },
-			notes: { select: { id: true, title: true } },
+			recipients: { select: { id: true, name: true } },
 		},
 		where: { username: params.username },
 	})
@@ -24,7 +23,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
 	return json({ owner })
 }
 
-export default function NotesRoute() {
+export default function RecipientsRoute() {
 	const data = useLoaderData<typeof loader>()
 	const user = useOptionalUser()
 	const isOwner = user?.id === data.owner.id
@@ -40,13 +39,8 @@ export default function NotesRoute() {
 							to={`/users/${data.owner.username}`}
 							className="flex flex-col items-center justify-center gap-2 bg-muted pb-4 pl-8 pr-4 pt-12 lg:flex-row lg:justify-start lg:gap-4"
 						>
-							<img
-								src={getUserImgSrc(data.owner.image?.id)}
-								alt={ownerDisplayName}
-								className="h-16 w-16 rounded-full object-cover lg:h-24 lg:w-24"
-							/>
 							<h1 className="text-center text-base font-bold md:text-lg lg:text-left lg:text-2xl">
-								{ownerDisplayName}'s Notes
+								{ownerDisplayName}'s Recipients
 							</h1>
 						</Link>
 						<ul className="overflow-y-auto overflow-x-hidden pb-12">
@@ -58,21 +52,21 @@ export default function NotesRoute() {
 											cn(navLinkDefaultClassName, isActive && 'bg-accent')
 										}
 									>
-										<Icon name="plus">New Note</Icon>
+										<Icon name="plus">New Recipient</Icon>
 									</NavLink>
 								</li>
 							) : null}
-							{data.owner.notes.map(note => (
-								<li key={note.id} className="p-1 pr-0">
+							{data.owner.recipients.map(recipient => (
+								<li key={recipient.id} className="p-1 pr-0">
 									<NavLink
-										to={note.id}
+										to={recipient.id}
 										preventScrollReset
 										prefetch="intent"
 										className={({ isActive }) =>
 											cn(navLinkDefaultClassName, isActive && 'bg-accent')
 										}
 									>
-										{note.title}
+										{recipient.name}
 									</NavLink>
 								</li>
 							))}

@@ -15,7 +15,7 @@ import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { requireUserId, sessionKey } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
-import { getUserImgSrc, useDoubleCheck } from '#app/utils/misc.tsx'
+import { useDoubleCheck } from '#app/utils/misc.tsx'
 import { authSessionStorage } from '#app/utils/session.server.ts'
 import { redirectWithToast } from '#app/utils/toast.server.ts'
 import { NameSchema, UsernameSchema } from '#app/utils/user-validation.ts'
@@ -39,9 +39,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			name: true,
 			username: true,
 			email: true,
-			image: {
-				select: { id: true },
-			},
 			_count: {
 				select: {
 					sessions: {
@@ -107,11 +104,6 @@ export default function EditUserProfile() {
 		<div className="flex flex-col gap-12">
 			<div className="flex justify-center">
 				<div className="relative h-52 w-52">
-					<img
-						src={getUserImgSrc(data.user.image?.id)}
-						alt={data.user.username}
-						className="h-full w-full rounded-full object-cover"
-					/>
 					<Button
 						asChild
 						variant="outline"

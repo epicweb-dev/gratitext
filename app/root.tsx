@@ -41,7 +41,7 @@ import { ClientHintCheck, getHints } from './utils/client-hints.tsx'
 import { prisma } from './utils/db.server.ts'
 import { getEnv } from './utils/env.server.ts'
 import { honeypot } from './utils/honeypot.server.ts'
-import { combineHeaders, getDomainUrl, getUserImgSrc } from './utils/misc.tsx'
+import { combineHeaders, getDomainUrl } from './utils/misc.tsx'
 import { useNonce } from './utils/nonce-provider.ts'
 import { type Theme, getTheme } from './utils/theme.server.ts'
 import { makeTimings, time } from './utils/timing.server.ts'
@@ -73,7 +73,7 @@ export const links: LinksFunction = () => {
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
 	return [
-		{ title: data ? 'Epic Notes' : 'Error | Epic Notes' },
+		{ title: data ? 'GratiText' : 'Error | GratiText' },
 		{ name: 'description', content: `Your own captain's log` },
 	]
 }
@@ -94,7 +94,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 							id: true,
 							name: true,
 							username: true,
-							image: { select: { id: true } },
 							roles: {
 								select: {
 									name: true,
@@ -280,11 +279,6 @@ function UserDropdown() {
 						onClick={e => e.preventDefault()}
 						className="flex items-center gap-2"
 					>
-						<img
-							className="h-8 w-8 rounded-full object-cover"
-							alt={user.name ?? user.username}
-							src={getUserImgSrc(user.image?.id)}
-						/>
 						<span className="text-body-sm font-bold">
 							{user.name ?? user.username}
 						</span>

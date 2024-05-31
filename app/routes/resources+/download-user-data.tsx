@@ -1,7 +1,6 @@
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
-import { getDomainUrl } from '#app/utils/misc.tsx'
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const userId = await requireUserId(request)
@@ -13,50 +12,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		// want to send back the entire blob of the image. We'll send a URL they can
 		// use to download it instead.
 		include: {
-			image: {
-				select: {
-					id: true,
-					createdAt: true,
-					updatedAt: true,
-					contentType: true,
-				},
-			},
-			notes: {
-				include: {
-					images: {
-						select: {
-							id: true,
-							createdAt: true,
-							updatedAt: true,
-							contentType: true,
-						},
-					},
-				},
-			},
+			controllerPhoneNumbers: true,
+			recipients: true,
 			password: false, // <-- intentionally omit password
 			sessions: true,
 			roles: true,
 		},
 	})
 
-	const domain = getDomainUrl(request)
-
-	return json({
-		user: {
-			...user,
-			image: user.image
-				? {
-						...user.image,
-						url: `${domain}/resources/user-images/${user.image.id}`,
-					}
-				: null,
-			notes: user.notes.map(note => ({
-				...note,
-				images: note.images.map(image => ({
-					...image,
-					url: `${domain}/resources/note-images/${image.id}`,
-				})),
-			})),
-		},
-	})
+	return json({ user })
 }

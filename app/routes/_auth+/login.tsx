@@ -14,10 +14,6 @@ import { CheckboxField, ErrorList, Field } from '#app/components/forms.tsx'
 import { Spacer } from '#app/components/spacer.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { login, requireAnonymous } from '#app/utils/auth.server.ts'
-import {
-	ProviderConnectionForm,
-	providerNames,
-} from '#app/utils/connections.tsx'
 import { checkHoneypot } from '#app/utils/honeypot.server.ts'
 import { useIsPending } from '#app/utils/misc.tsx'
 import { PasswordSchema, UsernameSchema } from '#app/utils/user-validation.ts'
@@ -166,17 +162,6 @@ export default function LoginPage() {
 								</StatusButton>
 							</div>
 						</Form>
-						<ul className="mt-5 flex flex-col gap-5 border-b-2 border-t-2 border-border py-3">
-							{providerNames.map(providerName => (
-								<li key={providerName}>
-									<ProviderConnectionForm
-										type="Login"
-										providerName={providerName}
-										redirectTo={redirectTo}
-									/>
-								</li>
-							))}
-						</ul>
 						<div className="flex items-center justify-center gap-2 pt-6">
 							<span className="text-muted-foreground">New here?</span>
 							<Link
@@ -197,7 +182,7 @@ export default function LoginPage() {
 }
 
 export const meta: MetaFunction = () => {
-	return [{ title: 'Login to Epic Notes' }]
+	return [{ title: 'Login to GratiText' }]
 }
 
 export function ErrorBoundary() {

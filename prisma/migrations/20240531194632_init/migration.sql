@@ -9,41 +9,6 @@ CREATE TABLE "User" (
 );
 
 -- CreateTable
-CREATE TABLE "Note" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "title" TEXT NOT NULL,
-    "content" TEXT NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    "ownerId" TEXT NOT NULL,
-    CONSTRAINT "Note_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
-);
-
--- CreateTable
-CREATE TABLE "NoteImage" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "altText" TEXT,
-    "contentType" TEXT NOT NULL,
-    "blob" BLOB NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    "noteId" TEXT NOT NULL,
-    CONSTRAINT "NoteImage_noteId_fkey" FOREIGN KEY ("noteId") REFERENCES "Note" ("id") ON DELETE CASCADE ON UPDATE CASCADE
-);
-
--- CreateTable
-CREATE TABLE "UserImage" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "altText" TEXT,
-    "contentType" TEXT NOT NULL,
-    "blob" BLOB NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL,
-    "userId" TEXT NOT NULL,
-    CONSTRAINT "UserImage_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
-);
-
--- CreateTable
 CREATE TABLE "Password" (
     "hash" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
@@ -95,14 +60,47 @@ CREATE TABLE "Verification" (
 );
 
 -- CreateTable
-CREATE TABLE "Connection" (
+CREATE TABLE "Recipient" (
     "id" TEXT NOT NULL PRIMARY KEY,
-    "providerName" TEXT NOT NULL,
-    "providerId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "phoneNumber" TEXT NOT NULL,
+    "verified" BOOLEAN NOT NULL,
+    "scheduleCron" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
     "userId" TEXT NOT NULL,
-    CONSTRAINT "Connection_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT "Recipient_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Message" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "content" TEXT NOT NULL,
+    "sentAt" DATETIME,
+    "order" REAL NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    "recipientId" TEXT NOT NULL,
+    CONSTRAINT "Message_recipientId_fkey" FOREIGN KEY ("recipientId") REFERENCES "Recipient" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "ControllerPhoneNumber" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "number" TEXT NOT NULL,
+    "verified" BOOLEAN NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    "userId" TEXT NOT NULL,
+    CONSTRAINT "ControllerPhoneNumber_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "SourceNumber" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "phoneNumber" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
 );
 
 -- CreateTable
@@ -128,18 +126,6 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
 
 -- CreateIndex
-CREATE INDEX "Note_ownerId_idx" ON "Note"("ownerId");
-
--- CreateIndex
-CREATE INDEX "Note_ownerId_updatedAt_idx" ON "Note"("ownerId", "updatedAt");
-
--- CreateIndex
-CREATE INDEX "NoteImage_noteId_idx" ON "NoteImage"("noteId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "UserImage_userId_key" ON "UserImage"("userId");
-
--- CreateIndex
 CREATE UNIQUE INDEX "Password_userId_key" ON "Password"("userId");
 
 -- CreateIndex
@@ -155,7 +141,13 @@ CREATE UNIQUE INDEX "Role_name_key" ON "Role"("name");
 CREATE UNIQUE INDEX "Verification_target_type_key" ON "Verification"("target", "type");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Connection_providerName_providerId_key" ON "Connection"("providerName", "providerId");
+CREATE INDEX "Recipient_userId_idx" ON "Recipient"("userId");
+
+-- CreateIndex
+CREATE INDEX "Message_recipientId_idx" ON "Message"("recipientId");
+
+-- CreateIndex
+CREATE INDEX "ControllerPhoneNumber_userId_idx" ON "ControllerPhoneNumber"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_PermissionToRole_AB_unique" ON "_PermissionToRole"("A", "B");
@@ -168,6 +160,7 @@ CREATE UNIQUE INDEX "_RoleToUser_AB_unique" ON "_RoleToUser"("A", "B");
 
 -- CreateIndex
 CREATE INDEX "_RoleToUser_B_index" ON "_RoleToUser"("B");
+
 
 --------------------------------- Manual Seeding --------------------------
 -- Hey there, Kent here! This is how you can reliably seed your database with

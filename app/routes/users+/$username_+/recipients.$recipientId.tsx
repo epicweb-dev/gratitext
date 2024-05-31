@@ -13,7 +13,6 @@ import {
 	useLoaderData,
 	type MetaFunction,
 } from '@remix-run/react'
-import { formatDistanceToNow } from 'date-fns'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { floatingToolbarClassName } from '#app/components/floating-toolbar.tsx'
@@ -23,39 +22,31 @@ import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
-import { getNoteImgSrc, useIsPending } from '#app/utils/misc.tsx'
+import { cn, useDoubleCheck, useIsPending } from '#app/utils/misc.tsx'
 import { requireUserWithPermission } from '#app/utils/permissions.server.ts'
 import { redirectWithToast } from '#app/utils/toast.server.ts'
 import { userHasPermission, useOptionalUser } from '#app/utils/user.ts'
-import { type loader as notesLoader } from './notes.tsx'
+import { type loader as recipientsLoader } from './receipients.tsx'
 
 export async function loader({ params }: LoaderFunctionArgs) {
-	const note = await prisma.note.findUnique({
-		where: { id: params.noteId },
+	const recipient = await prisma.recipient.findUnique({
+		where: { id: params.recipientId },
 		select: {
 			id: true,
-			title: true,
-			content: true,
-			ownerId: true,
-			updatedAt: true,
-			images: {
-				select: {
-					id: true,
-					altText: true,
-				},
+			name: true,
+			phoneNumber: true,
+			userId: true,
+			messages: {
+				select: { id: true, content: true },
+				orderBy: { order: 'asc' },
+				where: { sentAt: undefined },
 			},
 		},
 	})
 
-	invariantResponse(note, 'Not found', { status: 404 })
+	invariantResponse(recipient, 'Not found', { status: 404 })
 
-	const date = new Date(note.updatedAt)
-	const timeAgo = formatDistanceToNow(date)
-
-	return json({
-		note,
-		timeAgo,
-	})
+	return json({ recipient })
 }
 
 const DeleteFormSchema = z.object({
@@ -78,31 +69,31 @@ export async function action({ request }: ActionFunctionArgs) {
 
 	const { noteId } = submission.value
 
-	const note = await prisma.note.findFirst({
-		select: { id: true, ownerId: true, owner: { select: { username: true } } },
+	const recipient = await prisma.recipient.findFirst({
+		select: { id: true, userId: true, user: { select: { username: true } } },
 		where: { id: noteId },
 	})
-	invariantResponse(note, 'Not found', { status: 404 })
+	invariantResponse(recipient, 'Not found', { status: 404 })
 
-	const isOwner = note.ownerId === userId
+	const isOwner = recipient.userId === userId
 	await requireUserWithPermission(
 		request,
 		isOwner ? `delete:note:own` : `delete:note:any`,
 	)
 
-	await prisma.note.delete({ where: { id: note.id } })
+	await prisma.recipient.delete({ where: { id: recipient.id } })
 
-	return redirectWithToast(`/users/${note.owner.username}/notes`, {
+	return redirectWithToast(`/users/${recipient.user.username}/notes`, {
 		type: 'success',
 		title: 'Success',
-		description: 'Your note has been deleted.',
+		description: 'Your recipient has been deleted.',
 	})
 }
 
-export default function NoteRoute() {
+export default function RecipientRoute() {
 	const data = useLoaderData<typeof loader>()
 	const user = useOptionalUser()
-	const isOwner = user?.id === data.note.ownerId
+	const isOwner = user?.id === data.recipient.userId
 	const canDelete = userHasPermission(
 		user,
 		isOwner ? `delete:note:own` : `delete:note:any`,
@@ -111,34 +102,21 @@ export default function NoteRoute() {
 
 	return (
 		<div className="absolute inset-0 flex flex-col px-10">
-			<h2 className="mb-2 pt-12 text-h2 lg:mb-6">{data.note.title}</h2>
+			<h2 className="mb-2 pt-12 text-h2 lg:mb-6">
+				{data.recipient.name}
+				<small className="block text-sm text-secondary-foreground">
+					{data.recipient.phoneNumber}
+				</small>
+			</h2>
 			<div className={`${displayBar ? 'pb-24' : 'pb-12'} overflow-y-auto`}>
-				<ul className="flex flex-wrap gap-5 py-5">
-					{data.note.images.map(image => (
-						<li key={image.id}>
-							<a href={getNoteImgSrc(image.id)}>
-								<img
-									src={getNoteImgSrc(image.id)}
-									alt={image.altText ?? ''}
-									className="h-32 w-32 rounded-lg object-cover"
-								/>
-							</a>
-						</li>
-					))}
-				</ul>
 				<p className="whitespace-break-spaces text-sm md:text-lg">
-					{data.note.content}
+					{data.recipient.phoneNumber}
 				</p>
 			</div>
 			{displayBar ? (
 				<div className={floatingToolbarClassName}>
-					<span className="text-sm text-foreground/90 max-[524px]:hidden">
-						<Icon name="clock" className="scale-125">
-							{data.timeAgo} ago
-						</Icon>
-					</span>
 					<div className="grid flex-1 grid-cols-2 justify-end gap-2 min-[525px]:flex md:gap-4">
-						{canDelete ? <DeleteNote id={data.note.id} /> : null}
+						{canDelete ? <DeleteRecipient id={data.recipient.id} /> : null}
 						<Button
 							asChild
 							className="min-[525px]:max-md:aspect-square min-[525px]:max-md:px-0"
@@ -156,9 +134,10 @@ export default function NoteRoute() {
 	)
 }
 
-export function DeleteNote({ id }: { id: string }) {
+export function DeleteRecipient({ id }: { id: string }) {
 	const actionData = useActionData<typeof action>()
 	const isPending = useIsPending()
+	const dc = useDoubleCheck()
 	const [form] = useForm({
 		id: 'delete-note',
 		lastResult: actionData?.result,
@@ -176,8 +155,17 @@ export function DeleteNote({ id }: { id: string }) {
 				disabled={isPending}
 				className="w-full max-md:aspect-square max-md:px-0"
 			>
-				<Icon name="trash" className="scale-125 max-md:scale-150">
-					<span className="max-md:hidden">Delete</span>
+				<Icon
+					name="trash"
+					className={cn(
+						'scale-125 max-md:scale-150',
+						// TODO: this probably doesn't work. Fix this later...
+						dc.doubleCheck ? 'mix-blend-darken' : '',
+					)}
+				>
+					<span className="max-md:hidden">
+						{dc.doubleCheck ? `Confirm` : `Delete`}
+					</span>
 				</Icon>
 			</StatusButton>
 			<ErrorList errors={form.errors} id={form.errorId} />
@@ -187,22 +175,19 @@ export function DeleteNote({ id }: { id: string }) {
 
 export const meta: MetaFunction<
 	typeof loader,
-	{ 'routes/users+/$username_+/notes': typeof notesLoader }
+	{ 'routes/users+/$username_+/recipients': typeof recipientsLoader }
 > = ({ data, params, matches }) => {
-	const notesMatch = matches.find(
-		m => m.id === 'routes/users+/$username_+/notes',
+	const recipientssMatch = matches.find(
+		m => m.id === 'routes/users+/$username_+/recipients',
 	)
-	const displayName = notesMatch?.data?.owner.name ?? params.username
-	const noteTitle = data?.note.title ?? 'Note'
-	const noteContentsSummary =
-		data && data.note.content.length > 100
-			? data?.note.content.slice(0, 97) + '...'
-			: 'No content'
+	const displayName = recipientssMatch?.data?.owner.name ?? params.username
+	const recipientTitle =
+		data?.recipient.name ?? data?.recipient.phoneNumber ?? 'Recipient'
 	return [
-		{ title: `${noteTitle} | ${displayName}'s Notes | Epic Notes` },
+		{ title: `${recipientTitle} | ${displayName}'s Notes | GratiText` },
 		{
 			name: 'description',
-			content: noteContentsSummary,
+			content: `GratiTexts sent to ${recipientTitle} from ${displayName}'s`,
 		},
 	]
 }

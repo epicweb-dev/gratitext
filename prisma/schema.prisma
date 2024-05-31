@@ -19,60 +19,11 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  image       UserImage?
-  password    Password?
-  notes       Note[]
-  roles       Role[]
-  sessions    Session[]
-  connections Connection[]
-}
-
-model Note {
-  id      String @id @default(cuid())
-  title   String
-  content String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  ownerId String
-
-  images NoteImage[]
-
-  // non-unique foreign key
-  @@index([ownerId])
-  // This helps our order by in the user search a LOT
-  @@index([ownerId, updatedAt])
-}
-
-model NoteImage {
-  id          String  @id @default(cuid())
-  altText     String?
-  contentType String
-  blob        Bytes
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  note   Note   @relation(fields: [noteId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  noteId String
-
-  // non-unique foreign key
-  @@index([noteId])
-}
-
-model UserImage {
-  id          String  @id @default(cuid())
-  altText     String?
-  contentType String
-  blob        Bytes
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  userId String @unique
+  password               Password?
+  roles                  Role[]
+  sessions               Session[]
+  recipients             Recipient[]
+  controllerPhoneNumbers ControllerPhoneNumber[]
 }
 
 model Password {
@@ -154,10 +105,12 @@ model Verification {
   @@unique([target, type])
 }
 
-model Connection {
-  id           String @id @default(cuid())
-  providerName String
-  providerId   String
+model Recipient {
+  id           String  @id @default(cuid())
+  name         String
+  phoneNumber  String
+  verified     Boolean
+  scheduleCron String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -165,5 +118,47 @@ model Connection {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId String
 
-  @@unique([providerName, providerId])
+  messages Message[]
+
+  // non-unique foreign key
+  @@index([userId])
+}
+
+model Message {
+  id      String    @id @default(cuid())
+  content String
+  sentAt  DateTime?
+  order   Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  recipient   Recipient @relation(fields: [recipientId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  recipientId String
+
+  // non-unique foreign key
+  @@index([recipientId])
+}
+
+model ControllerPhoneNumber {
+  id       String  @id @default(cuid())
+  number   String
+  verified Boolean
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId String
+
+  // non-unique foreign key
+  @@index([userId])
+}
+
+model SourceNumber {
+  id          String @id @default(cuid())
+  phoneNumber String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
