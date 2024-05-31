@@ -141,7 +141,9 @@ jobs:
     runs-on: ubuntu-22.04
     needs: [lint, typecheck, vitest, playwright]
     # only build/deploy branches on pushes
-    if: ${{ github.event_name == 'push' }}
+    # if: ${{ github.event_name == 'push' }}
+    # enable this when we're ready to deploy
+    if: false
 
     steps:
       - name: ⬇️ Checkout repo
