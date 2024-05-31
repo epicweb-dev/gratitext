@@ -26,7 +26,7 @@ import { cn, useDoubleCheck, useIsPending } from '#app/utils/misc.tsx'
 import { requireUserWithPermission } from '#app/utils/permissions.server.ts'
 import { redirectWithToast } from '#app/utils/toast.server.ts'
 import { userHasPermission, useOptionalUser } from '#app/utils/user.ts'
-import { type loader as recipientsLoader } from './receipients.tsx'
+import { type loader as recipientsLoader } from './recipients.tsx'
 
 export async function loader({ params }: LoaderFunctionArgs) {
 	const recipient = await prisma.recipient.findUnique({

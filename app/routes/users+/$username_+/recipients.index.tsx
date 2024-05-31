@@ -1,5 +1,5 @@
 import { type MetaFunction } from '@remix-run/react'
-import { type loader as recipientsLoader } from './receipients.tsx'
+import { type loader as recipientsLoader } from './recipients.tsx'
 
 export default function RecipientsIndexRoute() {
 	return (
