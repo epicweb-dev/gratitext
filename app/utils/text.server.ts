@@ -51,6 +51,13 @@ export async function sendText({
 		}
 	}
 
+	if (process.env.DISABLE_TEXTS === 'true') {
+		return {
+			status: 'error',
+			error: 'Texts are disabled... Stay tuned!',
+		}
+	}
+
 	// TODO: maybe we'll have more of these in the future?
 	const sourceNumber = await prisma.sourceNumber.findFirst({
 		select: { phoneNumber: true },
