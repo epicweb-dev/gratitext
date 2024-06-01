@@ -7,12 +7,10 @@ import {
 	useMatches,
 	useNavigate,
 	useOutlet,
-	useSearchParams,
 } from '@remix-run/react'
 import { useEffect, useRef } from 'react'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.js'
 import { floatingToolbarClassName } from '#app/components/floating-toolbar.js'
-import { Spacer } from '#app/components/spacer.js'
 import { Button } from '#app/components/ui/button.js'
 import { Icon } from '#app/components/ui/icon.js'
 import {
