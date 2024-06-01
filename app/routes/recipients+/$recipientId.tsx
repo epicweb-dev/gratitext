@@ -18,6 +18,7 @@ import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.js'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
+import { sendText } from '#app/utils/text.server.js'
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
 	const userId = await requireUserId(request)
@@ -47,7 +48,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 		recipient: recipientProps,
 		pastMessages: messages
 			.filter(m => m.sentAt)
-			.sort((m1, m2) => m1.sentAt!.getTime() - m2.sentAt!.getTime())
+			.sort((m1, m2) => m2.sentAt!.getTime() - m1.sentAt!.getTime())
 			.map(m => ({
 				id: m.id,
 				sentAtDisplay: m.sentAt!.toLocaleDateString('en-US', {
@@ -97,6 +98,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 }
 
 const MessageSchema = z.object({
+	intent: z.string().optional(),
 	id: z.string(),
 	content: z.string().min(1).max(5000),
 	order: z.number().min(0).optional(),
@@ -105,6 +107,7 @@ const MessageSchema = z.object({
 export async function action({ request }: ActionFunctionArgs) {
 	const userId = await requireUserId(request)
 	const formData = await request.formData()
+
 	const submission = await parseWithZod(formData, {
 		async: true,
 		schema: MessageSchema,
@@ -118,20 +121,48 @@ export async function action({ request }: ActionFunctionArgs) {
 
 	const data = submission.value
 
-	const updatedMessage = await prisma.message.update({
+	const message = await prisma.message.findFirst({
 		where: { id: data.id, recipient: { userId } },
-		select: { id: true },
-		data: { content: data.content, order: data.order ? data.order : undefined },
-	})
-
-	return json(
-		{
-			result: submission.reply({
-				formErrors: updatedMessage ? [] : ['Message not found'],
-			}),
+		select: {
+			id: true,
+			content: true,
+			recipient: { select: { phoneNumber: true } },
 		},
-		{ status: updatedMessage ? 200 : 400 },
-	)
+	})
+	if (!message) {
+		return json(
+			{ result: submission.reply({ formErrors: ['Message not found'] }) },
+			{ status: 400 },
+		)
+	}
+	if (data.intent === 'send') {
+		const response = await sendText({
+			message: message.content,
+			to: message.recipient.phoneNumber,
+		})
+		if (response.status === 'success') {
+			await prisma.message.update({
+				where: { id: data.id, recipient: { userId } },
+				select: { id: true },
+				data: { sentAt: new Date() },
+			})
+		} else {
+			return json({
+				result: submission.reply({ formErrors: [response.error] }),
+			})
+		}
+	} else {
+		await prisma.message.update({
+			where: { id: data.id, recipient: { userId } },
+			select: { id: true },
+			data: {
+				content: data.content,
+				order: data.order ? data.order : undefined,
+			},
+		})
+	}
+
+	return json({ result: submission.reply() })
 }
 
 export default function RecipientRoute() {
@@ -257,17 +288,33 @@ function MessageForm({
 					}}
 					errors={fields.content.errors}
 				/>
-				<StatusButton
-					status={
-						fetcher.state !== 'idle' &&
-						fetcher.formData?.get('content') !== message.content
-							? 'pending'
-							: 'idle'
-					}
-					type="submit"
-				>
-					Save
-				</StatusButton>
+				<div className="flex flex-col gap-2">
+					<StatusButton
+						status={
+							fetcher.state !== 'idle' &&
+							fetcher.formData?.get('content') !== message.content
+								? 'pending'
+								: 'idle'
+						}
+						type="submit"
+					>
+						Save
+					</StatusButton>
+					<StatusButton
+						variant="secondary"
+						status={
+							fetcher.state !== 'idle' &&
+							fetcher.formData?.get('content') !== message.content
+								? 'pending'
+								: 'idle'
+						}
+						type="submit"
+						name="intent"
+						value="send"
+					>
+						Send Now
+					</StatusButton>
+				</div>
 			</div>
 			<ErrorList id={form.errorId} errors={form.errors} />
 		</fetcher.Form>

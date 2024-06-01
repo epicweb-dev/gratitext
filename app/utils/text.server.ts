@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { prisma } from './db.server.ts'
 
-const { TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN } = process.env
+const { TWILIO_SID, TWILIO_TOKEN } = process.env
 
 const TwilioResponseSchema = z.union([
 	z.object({
@@ -55,12 +55,12 @@ export async function sendText({
 		Body: message,
 	})
 	const response = await fetch(
-		`https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`,
+		`https://api.twilio.com/2010-04-01/Accounts/${TWILIO_SID}/Messages.json`,
 		{
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/x-www-form-urlencoded',
-				Authorization: `Basic ${Buffer.from(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`).toString('base64')}`,
+				Authorization: `Basic ${Buffer.from(`${TWILIO_SID}:${TWILIO_TOKEN}`).toString('base64')}`,
 			},
 			body: params.toString(),
 		},

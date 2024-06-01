@@ -2,13 +2,13 @@ import { faker } from '@faker-js/faker'
 import { HttpResponse, http, type HttpHandler } from 'msw'
 import { requireHeader, writeText } from './utils.ts'
 
-const { TWILIO_ACCOUNT_SID } = process.env
+const { TWILIO_SID } = process.env
 
 const { json } = HttpResponse
 
 export const handlers: Array<HttpHandler> = [
 	http.post(
-		`https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`,
+		`https://api.twilio.com/2010-04-01/Accounts/${TWILIO_SID}/Messages.json`,
 		async ({ request }) => {
 			requireHeader(request.headers, 'Authorization')
 			const body = Object.fromEntries(await request.formData())
