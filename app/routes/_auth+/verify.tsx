@@ -21,6 +21,7 @@ const types = [
 	'reset-password',
 	'change-phone-number',
 	'2fa',
+	'validate-recipient',
 ] as const
 const VerificationTypeSchema = z.enum(types)
 export type VerificationTypes = z.infer<typeof VerificationTypeSchema>
@@ -60,6 +61,16 @@ export default function VerifyRoute() {
 		onboarding: checkPhoneNumber,
 		'reset-password': checkPhoneNumber,
 		'change-phone-number': checkPhoneNumber,
+		'validate-recipient': (
+			<>
+				<h1 className="text-h1">Check your texts</h1>
+				<p className="mt-3 text-body-md text-muted-foreground">
+					We've texted you a code to verify the phone number you gave us. Please
+					inform your recipient of what you're up to and ask your recipient to
+					provide you with that code.
+				</p>
+			</>
+		),
 		'2fa': (
 			<>
 				<h1 className="text-h1">Check your 2FA app</h1>

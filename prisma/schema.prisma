@@ -146,3 +146,10 @@ model SourceNumber {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model OptOut {
+  id          String   @id @default(cuid())
+  phoneNumber String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

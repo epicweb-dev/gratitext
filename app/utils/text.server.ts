@@ -40,6 +40,17 @@ export async function sendText({
 	| { status: 'success'; data: z.infer<typeof TwilioResponseSchema> }
 	| { status: 'error'; error: string }
 > {
+	const optOut = await prisma.optOut.findFirst({
+		where: { phoneNumber: to },
+		select: { id: true },
+	})
+	if (optOut) {
+		return {
+			status: 'error',
+			error: 'The destination phone number has opted out of all text messages',
+		}
+	}
+
 	// TODO: maybe we'll have more of these in the future?
 	const sourceNumber = await prisma.sourceNumber.findFirst({
 		select: { phoneNumber: true },

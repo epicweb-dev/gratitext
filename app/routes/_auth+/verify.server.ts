@@ -10,6 +10,7 @@ import { ensurePrimary } from '#app/utils/litefs.server.ts'
 import { getDomainUrl } from '#app/utils/misc.tsx'
 import { redirectWithToast } from '#app/utils/toast.server.ts'
 import { generateTOTP, verifyTOTP } from '#app/utils/totp.server.ts'
+import { handleVerification as handleRecipientPhoneNumberVerification } from '../recipients+/__editor.server.tsx'
 import { type twoFAVerifyVerificationType } from '../settings+/profile.two-factor.verify.tsx'
 import {
 	handleVerification as handleLoginTwoFactorVerification,
@@ -200,6 +201,13 @@ export async function validateRequest(
 		}
 		case '2fa': {
 			return handleLoginTwoFactorVerification({ request, body, submission })
+		}
+		case 'validate-recipient': {
+			return handleRecipientPhoneNumberVerification({
+				request,
+				body,
+				submission,
+			})
 		}
 	}
 }

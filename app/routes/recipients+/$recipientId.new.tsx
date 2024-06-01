@@ -1,7 +1,12 @@
 import { getFormProps, useForm, getTextareaProps } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { invariantResponse } from '@epic-web/invariant'
-import { type ActionFunctionArgs, json } from '@remix-run/node'
+import {
+	type ActionFunctionArgs,
+	json,
+	type LoaderFunctionArgs,
+	type MetaFunction,
+} from '@remix-run/node'
 import { Form, useActionData } from '@remix-run/react'
 import { z } from 'zod'
 import { ErrorList, TextareaField } from '#app/components/forms.js'
@@ -10,6 +15,17 @@ import { requireUserId } from '#app/utils/auth.server.js'
 import { prisma } from '#app/utils/db.server.js'
 import { useIsPending } from '#app/utils/misc.js'
 import { redirectWithToast } from '#app/utils/toast.server.js'
+
+export async function loader({ request, params }: LoaderFunctionArgs) {
+	await requireUserId(request)
+	const { recipientId } = params
+	invariantResponse(recipientId, 'Invalid recipient', { status: 400 })
+	const recipient = await prisma.recipient.findUnique({
+		where: { id: recipientId },
+		select: { name: true, phoneNumber: true },
+	})
+	return json({ recipient })
+}
 
 const NewMessageSchema = z.object({
 	content: z.string().min(1).max(5000),
@@ -49,6 +65,14 @@ export async function action({ request, params }: ActionFunctionArgs) {
 		title: 'Message created',
 		description: 'Your message has been created',
 	})
+}
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+	return [
+		{
+			title: `New Message | ${data?.recipient?.name ?? data?.recipient?.phoneNumber} | GratiText`,
+		},
+	]
 }
 
 export default function RecipientIdNew() {

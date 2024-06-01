@@ -1,5 +1,9 @@
 import { invariantResponse } from '@epic-web/invariant'
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
+import {
+	type MetaFunction,
+	json,
+	type LoaderFunctionArgs,
+} from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
@@ -10,6 +14,8 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 	const recipient = await prisma.recipient.findUnique({
 		where: { id: params.recipientId, userId },
 		select: {
+			name: true,
+			phoneNumber: true,
 			messages: {
 				select: { id: true, content: true, sentAt: true, order: true },
 				orderBy: { order: 'asc' },
@@ -20,9 +26,10 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 
 	invariantResponse(recipient, 'Not found', { status: 404 })
 
-	const { messages } = recipient
+	const { messages, ...recipientProps } = recipient
 
 	return json({
+		recipient: recipientProps,
 		pastMessages: messages
 			.filter(m => m.sentAt)
 			.sort((m1, m2) => m2.sentAt!.getTime() - m1.sentAt!.getTime())
@@ -39,6 +46,14 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 				content: m.content,
 			})),
 	})
+}
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+	return [
+		{
+			title: `Past Messages | ${data?.recipient.name ?? data?.recipient.phoneNumber} | GratiText`,
+		},
+	]
 }
 
 export default function RecipientRoute() {

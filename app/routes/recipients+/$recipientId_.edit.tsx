@@ -1,5 +1,9 @@
 import { invariantResponse } from '@epic-web/invariant'
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
+import {
+	type MetaFunction,
+	json,
+	type LoaderFunctionArgs,
+} from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
@@ -24,6 +28,14 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 	})
 	invariantResponse(recipient, 'Not found', { status: 404 })
 	return json({ recipient: recipient })
+}
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+	return [
+		{
+			title: `Edit | ${data?.recipient.name ?? data?.recipient.phoneNumber} | GratiText`,
+		},
+	]
 }
 
 export default function NoteEdit() {

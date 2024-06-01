@@ -1,5 +1,5 @@
 import { invariantResponse } from '@epic-web/invariant'
-import { type LoaderFunctionArgs } from '@remix-run/node'
+import { type MetaFunction, type LoaderFunctionArgs } from '@remix-run/node'
 import {
 	Link,
 	json,
@@ -36,6 +36,14 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 	invariantResponse(recipient, 'Not found', { status: 404 })
 
 	return json({ recipient })
+}
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+	return [
+		{
+			title: `${data?.recipient.name ?? data?.recipient.phoneNumber} | GratiText`,
+		},
+	]
 }
 
 export default function RecipientRoute() {
