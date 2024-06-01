@@ -36,6 +36,14 @@ export function createPassword(password: string = faker.internet.password()) {
 	}
 }
 
+export function createMessage() {
+	return {
+		content: faker.lorem.sentence(),
+		sentAt: Math.random() > 0.5 ? faker.date.recent() : undefined,
+		order: faker.number.float({ min: 0, max: 100, multipleOf: 0.0000000001 }),
+	}
+}
+
 export async function cleanupDb(prisma: PrismaClient) {
 	const tables = await prisma.$queryRaw<
 		{ name: string }[]

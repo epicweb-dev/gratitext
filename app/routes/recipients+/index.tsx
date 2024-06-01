@@ -1,8 +1,7 @@
-import { useMatches, type MetaFunction } from '@remix-run/react'
+import { type MetaFunction } from '@remix-run/react'
 import { type loader as rootLoader } from '#app/root.tsx'
 
 export default function RecipientsIndexRoute() {
-	console.log(useMatches())
 	return (
 		<div className="container pt-12">
 			<p className="text-body-md">Select a recipient</p>

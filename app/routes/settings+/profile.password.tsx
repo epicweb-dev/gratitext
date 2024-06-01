@@ -3,7 +3,6 @@ import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import {
 	json,
-	redirect,
 	type LoaderFunctionArgs,
 	type ActionFunctionArgs,
 } from '@remix-run/node'
@@ -45,25 +44,14 @@ const ChangePasswordForm = z
 		}
 	})
 
-async function requirePassword(userId: string) {
-	const password = await prisma.password.findUnique({
-		select: { userId: true },
-		where: { userId },
-	})
-	if (!password) {
-		throw redirect('/settings/profile/password/create')
-	}
-}
-
 export async function loader({ request }: LoaderFunctionArgs) {
-	const userId = await requireUserId(request)
-	await requirePassword(userId)
+	await requireUserId(request)
 	return json({})
 }
 
 export async function action({ request }: ActionFunctionArgs) {
 	const userId = await requireUserId(request)
-	await requirePassword(userId)
+
 	const formData = await request.formData()
 	const submission = await parseWithZod(formData, {
 		async: true,

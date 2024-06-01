@@ -32,6 +32,10 @@ export const extendedTheme = {
 			DEFAULT: 'hsl(var(--muted))',
 			foreground: 'hsl(var(--muted-foreground))',
 		},
+		'muted-secondary': {
+			DEFAULT: 'hsl(var(--muted-secondary))',
+			foreground: 'hsl(var(--muted-secondary-foreground))',
+		},
 		accent: {
 			DEFAULT: 'hsl(var(--accent))',
 			foreground: 'hsl(var(--accent-foreground))',
