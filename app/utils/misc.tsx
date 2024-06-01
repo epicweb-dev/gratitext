@@ -198,10 +198,11 @@ function callAll<Args extends Array<unknown>>(
  *   useful if you want to avoid accidental double clicks on the button. Keep in
  *   mind that power users will be annoyed if you set this on buttons where the
  *   user may want to quickly go through and delete a bunch of items or
- *   something. But it's a good protection in uncommon scenarios. Defaults to 50
+ *   something. But it's a good protection in uncommon scenarios. Defaults to
+ *   150
  */
 export function useDoubleCheck({
-	safeDelayMs = 50,
+	safeDelayMs = 150,
 }: { safeDelayMs?: number } = {}) {
 	const [doubleCheck, setDoubleCheck] = useState(false)
 	const [canClick, setCanClick] = useState(false)

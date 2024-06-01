@@ -10,15 +10,18 @@ import * as Sentry from '@sentry/remix'
 import chalk from 'chalk'
 import { isbot } from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
-import { getEnv, init } from './utils/env.server.ts'
+import { init as initCron } from './utils/cron.server.ts'
+import { getEnv, init as initEnv } from './utils/env.server.ts'
 import { getInstanceInfo } from './utils/litefs.server.ts'
 import { NonceProvider } from './utils/nonce-provider.ts'
 import { makeTimings } from './utils/timing.server.ts'
 
 const ABORT_DELAY = 5000
 
-init()
+initEnv()
 global.ENV = getEnv()
+
+initCron()
 
 if (ENV.MODE === 'production' && ENV.SENTRY_DSN) {
 	import('./utils/monitoring.server.ts').then(({ init }) => init())
