@@ -1,17 +1,17 @@
 /**
  * @vitest-environment jsdom
  */
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import { useState } from 'react'
 import { expect, test } from 'vitest'
 import { useDoubleCheck } from './misc.tsx'
 
-function TestComponent() {
+function TestComponent({ safeDelayMs = 0 }: { safeDelayMs?: number }) {
 	const [defaultPrevented, setDefaultPrevented] = useState<
 		'idle' | 'no' | 'yes'
 	>('idle')
-	const dc = useDoubleCheck()
+	const dc = useDoubleCheck({ safeDelayMs })
 	return (
 		<div>
 			<output>Default Prevented: {defaultPrevented}</output>
@@ -28,7 +28,7 @@ function TestComponent() {
 
 test('prevents default on the first click, and does not on the second', async () => {
 	const user = userEvent.setup()
-	render(<TestComponent />)
+	render(<TestComponent safeDelayMs={50} />)
 
 	const status = screen.getByRole('status')
 	const button = screen.getByRole('button')
@@ -39,6 +39,17 @@ test('prevents default on the first click, and does not on the second', async ()
 	await user.click(button)
 	expect(button).toHaveTextContent('You sure?')
 	expect(status).toHaveTextContent('Default Prevented: yes')
+	expect(button).toHaveAttribute('data-safe-delay', 'true')
+
+	// clicking it during the safe delay does nothing
+	await user.click(button)
+	expect(button).toHaveTextContent('You sure?')
+	expect(status).toHaveTextContent('Default Prevented: yes')
+	expect(button).toHaveAttribute('data-safe-delay', 'true')
+
+	await waitFor(() =>
+		expect(button).toHaveAttribute('data-safe-delay', 'false'),
+	)
 
 	await user.click(button)
 	expect(button).toHaveTextContent('You sure?')

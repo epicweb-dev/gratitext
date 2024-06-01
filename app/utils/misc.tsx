@@ -192,9 +192,30 @@ function callAll<Args extends Array<unknown>>(
  * `doubleCheck` state to true, and the second click will actually trigger the
  * `onClick` handler. This allows you to have a button that can be like a
  * "are you sure?" experience for the user before doing destructive operations.
+ *
+ * @param [param0={}] {safeDelayMs} the amount of time (in milliseconds) to wait
+ *   before allowing the second click to trigger the `onClick` handler. This is
+ *   useful if you want to avoid accidental double clicks on the button. Keep in
+ *   mind that power users will be annoyed if you set this on buttons where the
+ *   user may want to quickly go through and delete a bunch of items or
+ *   something. But it's a good protection in uncommon scenarios. Defaults to 50
  */
-export function useDoubleCheck() {
+export function useDoubleCheck({
+	safeDelayMs = 50,
+}: { safeDelayMs?: number } = {}) {
 	const [doubleCheck, setDoubleCheck] = useState(false)
+	const [canClick, setCanClick] = useState(false)
+
+	useEffect(() => {
+		if (doubleCheck) {
+			const timeout = setTimeout(() => {
+				setCanClick(true)
+			}, safeDelayMs)
+			return () => clearTimeout(timeout)
+		} else {
+			setCanClick(false)
+		}
+	}, [safeDelayMs, doubleCheck])
 
 	function getButtonProps(
 		props?: React.ButtonHTMLAttributes<HTMLButtonElement>,
@@ -203,7 +224,7 @@ export function useDoubleCheck() {
 			() => setDoubleCheck(false)
 
 		const onClick: React.ButtonHTMLAttributes<HTMLButtonElement>['onClick'] =
-			doubleCheck
+			doubleCheck && canClick
 				? undefined
 				: e => {
 						e.preventDefault()
@@ -219,6 +240,7 @@ export function useDoubleCheck() {
 
 		return {
 			...props,
+			'data-safe-delay': doubleCheck && !canClick,
 			onBlur: callAll(onBlur, props?.onBlur),
 			onClick: callAll(onClick, props?.onClick),
 			onKeyUp: callAll(onKeyUp, props?.onKeyUp),

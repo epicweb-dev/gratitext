@@ -1,33 +1,23 @@
-import { invariantResponse } from '@epic-web/invariant'
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
-import { Link, NavLink, Outlet, useLoaderData } from '@remix-run/react'
+import { NavLink, Outlet, useLoaderData } from '@remix-run/react'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
+import { requireUserId } from '#app/utils/auth.server.js'
 import { prisma } from '#app/utils/db.server.ts'
 import { cn } from '#app/utils/misc.tsx'
-import { useOptionalUser } from '#app/utils/user.ts'
 
-export async function loader({ params }: LoaderFunctionArgs) {
-	const owner = await prisma.user.findFirst({
-		select: {
-			id: true,
-			name: true,
-			username: true,
-			recipients: { select: { id: true, name: true } },
-		},
-		where: { username: params.username },
+export async function loader({ request }: LoaderFunctionArgs) {
+	const userId = await requireUserId(request)
+	const recipients = await prisma.recipient.findMany({
+		select: { id: true, name: true },
+		where: { userId },
 	})
 
-	invariantResponse(owner, 'Owner not found', { status: 404 })
-
-	return json({ owner })
+	return json({ recipients })
 }
 
 export default function RecipientsRoute() {
 	const data = useLoaderData<typeof loader>()
-	const user = useOptionalUser()
-	const isOwner = user?.id === data.owner.id
-	const ownerDisplayName = data.owner.name ?? data.owner.username
 	const navLinkDefaultClassName =
 		'line-clamp-2 block rounded-l-full py-2 pl-8 pr-6 text-base lg:text-xl'
 	return (
@@ -35,28 +25,23 @@ export default function RecipientsRoute() {
 			<div className="grid w-full grid-cols-4 bg-muted pl-2 md:container md:rounded-3xl md:pr-0">
 				<div className="relative col-span-1">
 					<div className="absolute inset-0 flex flex-col">
-						<Link
-							to={`/users/${data.owner.username}`}
-							className="flex flex-col items-center justify-center gap-2 bg-muted pb-4 pl-8 pr-4 pt-12 lg:flex-row lg:justify-start lg:gap-4"
-						>
+						<div className="pb-4 pl-8 pr-4 pt-12">
 							<h1 className="text-center text-base font-bold md:text-lg lg:text-left lg:text-2xl">
-								{ownerDisplayName}'s Recipients
+								Your Recipients
 							</h1>
-						</Link>
+						</div>
 						<ul className="overflow-y-auto overflow-x-hidden pb-12">
-							{isOwner ? (
-								<li className="p-1 pr-0">
-									<NavLink
-										to="new"
-										className={({ isActive }) =>
-											cn(navLinkDefaultClassName, isActive && 'bg-accent')
-										}
-									>
-										<Icon name="plus">New Recipient</Icon>
-									</NavLink>
-								</li>
-							) : null}
-							{data.owner.recipients.map(recipient => (
+							<li className="p-1 pr-0">
+								<NavLink
+									to="new"
+									className={({ isActive }) =>
+										cn(navLinkDefaultClassName, isActive && 'bg-accent')
+									}
+								>
+									<Icon name="plus">New Recipient</Icon>
+								</NavLink>
+							</li>
+							{data.recipients.map(recipient => (
 								<li key={recipient.id} className="p-1 pr-0">
 									<NavLink
 										to={recipient.id}

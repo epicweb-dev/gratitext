@@ -39,9 +39,11 @@ export function Icon({
 	size = 'font',
 	className,
 	children,
+	title,
 	...props
 }: SVGProps<SVGSVGElement> & {
 	name: IconName
+	title?: string
 	size?: Size
 }) {
 	if (children) {
@@ -49,7 +51,13 @@ export function Icon({
 			<span
 				className={`inline-flex items-center ${childrenSizeClassName[size]}`}
 			>
-				<Icon name={name} size={size} className={className} {...props} />
+				<Icon
+					name={name}
+					size={size}
+					className={className}
+					title={title}
+					{...props}
+				/>
 				{children}
 			</span>
 		)
@@ -59,6 +67,7 @@ export function Icon({
 			{...props}
 			className={cn(sizeClassName[size], 'inline self-center', className)}
 		>
+			{title ? <title>{title}</title> : null}
 			<use href={`${href}#${name}`} />
 		</svg>
 	)
