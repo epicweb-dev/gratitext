@@ -51,6 +51,17 @@ export async function action({ request }: ActionFunctionArgs) {
 			{ status: submission.status === 'error' ? 400 : 200 },
 		)
 	}
+
+	if (process.env.PRE_LAUNCH === 'true') {
+		return json({
+			result: submission.reply({
+				formErrors: [
+					`This app is still in the pre-launch phase and you cannot sign up yet. Please check back later!`,
+				],
+			}),
+		})
+	}
+
 	const { phoneNumber } = submission.value
 	const { verifyUrl, redirectTo, otp } = await prepareVerification({
 		period: 10 * 60,

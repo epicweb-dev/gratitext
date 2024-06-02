@@ -49,7 +49,7 @@ RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN \
 # Finally, build the production image with minimal footprint
 FROM base
 
-ENV DISABLE_TEXTS="true"
+ENV PRE_LAUNCH="true"
 ENV FLY="true"
 ENV LITEFS_DIR="/litefs/data"
 ENV DATABASE_FILENAME="sqlite.db"

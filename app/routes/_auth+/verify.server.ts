@@ -80,11 +80,13 @@ export async function prepareVerification({
 	request,
 	type,
 	target,
+	charSet = 'ABCDEFGHIJKLMNPQRSTUVWXYZ123456789',
 }: {
 	period: number
 	request: Request
 	type: VerificationTypes
 	target: string
+	charSet?: string
 }) {
 	const verifyUrl = getRedirectToUrl({ request, type, target })
 	const redirectTo = new URL(verifyUrl.toString())
@@ -92,7 +94,7 @@ export async function prepareVerification({
 	const { otp, ...verificationConfig } = generateTOTP({
 		algorithm: 'SHA256',
 		// Leaving off 0 and O on purpose to avoid confusing users.
-		charSet: 'ABCDEFGHIJKLMNPQRSTUVWXYZ123456789',
+		charSet,
 		period,
 	})
 	const verificationData = {
@@ -203,6 +205,7 @@ export async function validateRequest(
 			return handleLoginTwoFactorVerification({ request, body, submission })
 		}
 		case 'validate-recipient': {
+			await deleteVerification()
 			return handleRecipientPhoneNumberVerification({
 				request,
 				body,

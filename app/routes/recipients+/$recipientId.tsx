@@ -30,6 +30,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 			id: true,
 			name: true,
 			phoneNumber: true,
+			verified: true,
 		},
 	})
 
@@ -84,7 +85,17 @@ export default function RecipientRoute() {
 				<h2 className="mb-2 h-36 pt-12 text-h2 lg:mb-6">
 					{data.recipient.name}
 					<small className="block text-sm text-secondary-foreground">
-						{data.recipient.phoneNumber}
+						{data.recipient.phoneNumber}{' '}
+						{data.recipient.verified ? (
+							''
+						) : (
+							<Link
+								to="edit"
+								className="text-body-2xs text-destructive underline"
+							>
+								(unverified)
+							</Link>
+						)}
 					</small>
 				</h2>
 				<div className="absolute left-3 right-3 top-[8.7rem] rounded-lg bg-muted/80 px-2 py-2 shadow-xl shadow-accent backdrop-blur-sm">

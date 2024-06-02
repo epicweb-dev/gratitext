@@ -17,7 +17,7 @@ import { StatusButton } from '#app/components/ui/status-button.js'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { useDoubleCheck } from '#app/utils/misc.js'
-import { sendText } from '#app/utils/text.server.js'
+import { sendTextToRecipient } from '#app/utils/text.server.js'
 
 type FutureMessage = SerializeFrom<typeof loader>['futureMessages'][number]
 
@@ -135,7 +135,7 @@ async function sendMessageAction({ formData, userId }: MessageActionArgs) {
 		select: {
 			id: true,
 			content: true,
-			recipient: { select: { phoneNumber: true } },
+			recipient: { select: { id: true } },
 		},
 	})
 	if (!message) {
@@ -144,9 +144,9 @@ async function sendMessageAction({ formData, userId }: MessageActionArgs) {
 		})
 	}
 
-	const response = await sendText({
+	const response = await sendTextToRecipient({
 		message: message.content,
-		to: message.recipient.phoneNumber,
+		recipientId: message.recipient.id,
 	})
 	if (response.status === 'success') {
 		await prisma.message.update({
@@ -342,6 +342,7 @@ function SendNowForm({ message }: { message: FutureMessage }) {
 
 	return (
 		<fetcher.Form method="POST" {...getFormProps(form)}>
+			<input type="hidden" name="id" value={message.id} />
 			<StatusButton
 				variant="secondary"
 				className="w-full"

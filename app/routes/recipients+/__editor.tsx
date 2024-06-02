@@ -1,13 +1,8 @@
-import {
-	FormProvider,
-	getFormProps,
-	getInputProps,
-	useForm,
-} from '@conform-to/react'
+import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { type Recipient } from '@prisma/client'
 import { type SerializeFrom } from '@remix-run/node'
-import { Form, useActionData } from '@remix-run/react'
+import { Form, useActionData, useFetcher } from '@remix-run/react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { floatingToolbarClassName } from '#app/components/floating-toolbar.tsx'
@@ -15,7 +10,15 @@ import { ErrorList, Field } from '#app/components/forms.tsx'
 import { Icon } from '#app/components/ui/icon.js'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { useDoubleCheck, useIsPending } from '#app/utils/misc.tsx'
-import { type action } from './__editor.server.tsx'
+import {
+	type deleteRecipientAction,
+	type sendVerificationAction,
+	type updateRecipientAction,
+} from './__editor.server.tsx'
+
+export const deleteRecipientActionIntent = 'delete-recipient'
+export const updateRecipientActionIntent = 'update-recipient'
+export const sendVerificationActionIntent = 'send-verification'
 
 export const RecipientEditorSchema = z.object({
 	id: z.string().optional(),
@@ -33,10 +36,10 @@ export function RecipientEditor({
 	recipient,
 }: {
 	recipient?: SerializeFrom<
-		Pick<Recipient, 'id' | 'name' | 'phoneNumber' | 'scheduleCron'>
+		Pick<Recipient, 'id' | 'name' | 'phoneNumber' | 'scheduleCron' | 'verified'>
 	>
 }) {
-	const actionData = useActionData<typeof action>()
+	const actionData = useActionData<typeof updateRecipientAction>()
 	const isPending = useIsPending()
 
 	const [form, fields] = useForm({
@@ -46,64 +49,67 @@ export function RecipientEditor({
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: RecipientEditorSchema })
 		},
-		defaultValue: {
-			...recipient,
-		},
+		defaultValue: recipient,
 		shouldRevalidate: 'onBlur',
 	})
 
 	return (
 		<div className="absolute inset-0">
-			<FormProvider context={form.context}>
-				<Form
-					method="POST"
-					className="flex h-full flex-col gap-y-4 overflow-y-auto overflow-x-hidden px-10 pb-28 pt-12"
-					{...getFormProps(form)}
-					encType="multipart/form-data"
-				>
-					{/*
+			<Form
+				method="POST"
+				className="flex h-full flex-col gap-y-4 overflow-y-auto overflow-x-hidden px-10 pb-28 pt-12"
+				{...getFormProps(form)}
+			>
+				{/*
 					This hidden submit button is here to ensure that when the user hits
 					"enter" on an input field, the primary form function is submitted
 					rather than the first button in the form (which is delete/add image).
 				*/}
-					<button type="submit" className="hidden" />
-					{recipient ? (
-						<input type="hidden" name="id" value={recipient.id} />
-					) : null}
-					<div className="flex flex-col gap-1">
-						<Field
-							labelProps={{ children: 'Name' }}
-							inputProps={{
-								autoFocus: true,
-								...getInputProps(fields.name, { type: 'text' }),
-							}}
-							errors={fields.name.errors}
-						/>
-						<Field
-							labelProps={{ children: 'Number' }}
-							inputProps={{
-								...getInputProps(fields.phoneNumber, { type: 'tel' }),
-							}}
-							errors={fields.phoneNumber.errors}
-						/>
-						<Field
-							labelProps={{ children: 'Schedule Cron' }}
-							inputProps={{
-								...getInputProps(fields.scheduleCron, { type: 'text' }),
-							}}
-							errors={fields.scheduleCron.errors}
-						/>
-					</div>
-					<ErrorList id={form.errorId} errors={form.errors} />
-				</Form>
-			</FormProvider>
+				<button
+					type="submit"
+					className="hidden"
+					name="intent"
+					value={updateRecipientActionIntent}
+				/>
+				{recipient ? (
+					<input type="hidden" name="id" value={recipient.id} />
+				) : null}
+				<div className="flex flex-col gap-1">
+					<Field
+						labelProps={{ children: 'Name' }}
+						inputProps={{
+							autoFocus: true,
+							...getInputProps(fields.name, { type: 'text' }),
+						}}
+						errors={fields.name.errors}
+					/>
+					<Field
+						labelProps={{ children: 'Number' }}
+						inputProps={{
+							...getInputProps(fields.phoneNumber, { type: 'tel' }),
+						}}
+						errors={fields.phoneNumber.errors}
+					/>
+					<Field
+						labelProps={{ children: 'Schedule Cron' }}
+						inputProps={{
+							...getInputProps(fields.scheduleCron, { type: 'text' }),
+						}}
+						errors={fields.scheduleCron.errors}
+					/>
+				</div>
+				<ErrorList id={form.errorId} errors={form.errors} />
+			</Form>
 			<div className={floatingToolbarClassName}>
+				{recipient?.verified ? null : <VerifyForm />}
 				{recipient?.id ? <DeleteRecipient id={recipient.id} /> : null}
 				<StatusButton
 					form={form.id}
 					type="submit"
 					disabled={isPending}
 					status={isPending ? 'pending' : 'idle'}
+					name="intent"
+					value={updateRecipientActionIntent}
 				>
 					Submit
 				</StatusButton>
@@ -112,17 +118,33 @@ export function RecipientEditor({
 	)
 }
 
+function VerifyForm() {
+	const fetcher = useFetcher<typeof sendVerificationAction>()
+	return (
+		<fetcher.Form method="POST">
+			<StatusButton
+				type="submit"
+				status={fetcher.state !== 'idle' ? 'pending' : 'idle'}
+				name="intent"
+				value={sendVerificationActionIntent}
+			>
+				<Icon name="check">Verify</Icon>
+			</StatusButton>
+		</fetcher.Form>
+	)
+}
+
 function DeleteRecipient({ id }: { id: string }) {
-	const actionData = useActionData<typeof action>()
+	const fetcher = useFetcher<typeof deleteRecipientAction>()
 	const isPending = useIsPending()
 	const dc = useDoubleCheck({ safeDelayMs: 300 })
 	const [form] = useForm({
 		id: 'delete-recipient',
-		lastResult: actionData?.result,
+		lastResult: fetcher.data?.result,
 	})
 
 	return (
-		<Form method="POST" {...getFormProps(form)}>
+		<fetcher.Form method="POST" {...getFormProps(form)}>
 			<input type="hidden" name="recipientId" value={id} />
 			<StatusButton
 				variant="destructive"
@@ -131,7 +153,7 @@ function DeleteRecipient({ id }: { id: string }) {
 					type: 'submit',
 					title: dc.doubleCheck ? 'Are you sure?' : 'Delete recipient',
 					name: 'intent',
-					value: 'delete-recipient',
+					value: deleteRecipientActionIntent,
 					disabled: isPending,
 					className:
 						'w-full max-md:aspect-square max-md:px-0 data-[safe-delay=true]:opacity-50',
@@ -151,7 +173,7 @@ function DeleteRecipient({ id }: { id: string }) {
 				)}
 			</StatusButton>
 			<ErrorList errors={form.errors} id={form.errorId} />
-		</Form>
+		</fetcher.Form>
 	)
 }
 

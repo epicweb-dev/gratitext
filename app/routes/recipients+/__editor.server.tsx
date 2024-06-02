@@ -1,16 +1,23 @@
 import { parseWithZod } from '@conform-to/zod'
 import { invariant, invariantResponse } from '@epic-web/invariant'
 import { json, redirect, type ActionFunctionArgs } from '@remix-run/node'
-import { z } from 'zod'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { sendText } from '#app/utils/text.server.js'
 import { redirectWithToast } from '#app/utils/toast.server.js'
 import {
-	type VerifyFunctionArgs,
+	getRedirectToUrl,
 	prepareVerification,
+	type VerifyFunctionArgs,
 } from '../_auth+/verify.server.ts'
-import { DeleteRecipientSchema, RecipientEditorSchema } from './__editor.tsx'
+import { type VerificationTypes } from '../_auth+/verify.tsx'
+import {
+	DeleteRecipientSchema,
+	RecipientEditorSchema,
+	deleteRecipientActionIntent,
+	sendVerificationActionIntent,
+	updateRecipientActionIntent,
+} from './__editor.tsx'
 
 export async function handleVerification({ submission }: VerifyFunctionArgs) {
 	invariant(
@@ -42,35 +49,52 @@ export async function handleVerification({ submission }: VerifyFunctionArgs) {
 	})
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+type RecipientActionArgs = {
+	recipient: { id: string; phoneNumber: string; verified: boolean }
+	formData: FormData
+	request: Request
+	userId: string
+}
+
+export async function action({ request, params }: ActionFunctionArgs) {
 	const userId = await requireUserId(request)
-	const user = await prisma.user.findUnique({
-		where: { id: userId },
-		select: { name: true, username: true, phoneNumber: true },
+	const { recipientId } = params
+
+	invariantResponse(recipientId, 'Invalid recipient id')
+
+	const recipient = await prisma.recipient.findUnique({
+		where: { id: recipientId, userId },
+		select: { id: true, phoneNumber: true, verified: true },
 	})
-	invariantResponse(user, 'User not found')
+
+	invariantResponse(recipient, 'Recipient not found', { status: 404 })
 
 	const formData = await request.formData()
 
-	if (formData.get('intent') === 'delete-recipient') {
-		return await deleteRecipient({ formData, userId })
+	switch (formData.get('intent')) {
+		case deleteRecipientActionIntent: {
+			return deleteRecipientAction({ formData, userId, request, recipient })
+		}
+		case updateRecipientActionIntent: {
+			return updateRecipientAction({ formData, userId, request, recipient })
+		}
+		case sendVerificationActionIntent: {
+			return sendVerificationAction({ formData, userId, request, recipient })
+		}
+		default: {
+			throw new Response('Invalid intent', { status: 400 })
+		}
 	}
+}
 
+export async function updateRecipientAction({
+	formData,
+	userId,
+	request,
+	recipient,
+}: RecipientActionArgs) {
 	const submission = await parseWithZod(formData, {
-		schema: RecipientEditorSchema.superRefine(async (data, ctx) => {
-			if (!data.id) return
-
-			const recipient = await prisma.recipient.findUnique({
-				select: { id: true },
-				where: { id: data.id, userId },
-			})
-			if (!recipient) {
-				ctx.addIssue({
-					code: z.ZodIssueCode.custom,
-					message: 'Recipient not found',
-				})
-			}
-		}),
+		schema: RecipientEditorSchema,
 		async: true,
 	})
 
@@ -83,18 +107,33 @@ export async function action({ request }: ActionFunctionArgs) {
 
 	const { id: recipientId, name, phoneNumber, scheduleCron } = submission.value
 
+	const user = await prisma.user.findUnique({
+		where: { id: userId },
+		select: { name: true, username: true, phoneNumber: true },
+	})
+	invariantResponse(user, 'User not found')
+
 	if (recipientId) {
+		invariantResponse(recipient, 'Recipient not found')
+		const verified = phoneNumber === recipient?.phoneNumber
 		const updatedRecipient = await prisma.recipient.update({
 			select: { id: true },
 			where: { id: recipientId },
 			data: {
 				name,
+				// only change the verified state to unverified if the phone number has changed
+				// if it's unchanged, then don't change the verified state because you could
+				// accidentally change it from false to true.
+				verified: phoneNumber !== recipient?.phoneNumber ? false : undefined,
 				phoneNumber,
 				scheduleCron,
 			},
 		})
-
-		return redirect(`/recipients/${updatedRecipient.id}`)
+		if (verified) {
+			return redirect(`/recipients/${updatedRecipient.id}`)
+		} else {
+			return sendVerificationAction({ formData, userId, request, recipient })
+		}
 	} else {
 		await prisma.recipient.create({
 			select: { id: true },
@@ -107,30 +146,14 @@ export async function action({ request }: ActionFunctionArgs) {
 			},
 		})
 
-		const { redirectTo, otp } = await prepareVerification({
-			period: 10 * 60,
-			request,
-			type: 'validate-recipient',
-			target: phoneNumber,
-		})
-
-		await sendText({
-			to: phoneNumber,
-			// TODO: support receiving messages for opt out.
-			message: `Hello,\nYou have been added as a recipient to GratiText messages fom ${user.name ?? user.username} (${user.phoneNumber}). You can expect regular, thoughtful texts from them. However, they need your consent first. Please provide them with the following code to provide your consent: ${otp}.\nLearn more at https://www.GratiText.app.\n\nTo opt-out of all text messages from GratiText, reply STOP to this message.`,
-		})
-
-		return redirect(redirectTo.toString())
+		return sendVerificationAction({ formData, userId, request, recipient })
 	}
 }
 
-async function deleteRecipient({
+export async function deleteRecipientAction({
 	formData,
 	userId,
-}: {
-	formData: FormData
-	userId: string
-}) {
+}: RecipientActionArgs) {
 	const submission = parseWithZod(formData, {
 		schema: DeleteRecipientSchema,
 	})
@@ -157,4 +180,57 @@ async function deleteRecipient({
 		title: 'Success',
 		description: 'Your recipient has been deleted.',
 	})
+}
+
+export async function sendVerificationAction({
+	recipient,
+	request,
+	userId,
+}: RecipientActionArgs) {
+	const type: VerificationTypes = 'validate-recipient'
+	const target = recipient.phoneNumber
+	const existingVerification = await prisma.verification.findUnique({
+		where: { target_type: { type, target } },
+		select: { id: true, createdAt: true },
+	})
+	if (
+		existingVerification?.createdAt &&
+		Date.now() - existingVerification.createdAt.getTime() < 1000 * 60
+	) {
+		const reqUrl = new URL(request.url)
+		const redirectTo = getRedirectToUrl({
+			request,
+			type,
+			target,
+			redirectTo: reqUrl.pathname + reqUrl.search,
+		}).toString()
+
+		return redirectWithToast(redirectTo, {
+			type: 'message',
+			description:
+				'A verification code was sent recently. Please enter that one here, or wait a minute before requesting a new one.',
+		})
+	} else {
+		const { redirectTo, otp } = await prepareVerification({
+			period: 10 * 60,
+			request,
+			// leaving off 0 and only using numbers to reduce confusion
+			charSet: '123456789',
+			type: 'validate-recipient',
+			target: recipient.phoneNumber,
+		})
+
+		const user = await prisma.user.findUniqueOrThrow({
+			where: { id: userId },
+			select: { name: true, username: true, phoneNumber: true },
+		})
+
+		await sendText({
+			to: recipient.phoneNumber,
+			// TODO: support receiving messages for opt out.
+			message: `Hello,\nYou have been added as a recipient to GratiText messages fom ${user.name ?? user.username} (${user.phoneNumber}). You can expect regular, thoughtful texts from them. However, they need your consent first. Please provide them with the following code to provide your consent: ${otp}.\nLearn more at https://www.GratiText.app.\n\nTo opt-out of all text messages from GratiText, reply STOP to this message.`,
+		})
+
+		return redirect(redirectTo.toString())
+	}
 }

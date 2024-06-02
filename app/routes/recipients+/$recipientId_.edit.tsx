@@ -1,8 +1,8 @@
 import { invariantResponse } from '@epic-web/invariant'
 import {
-	type MetaFunction,
 	json,
 	type LoaderFunctionArgs,
+	type MetaFunction,
 } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
@@ -20,6 +20,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 			name: true,
 			phoneNumber: true,
 			scheduleCron: true,
+			verified: true,
 		},
 		where: {
 			id: params.recipientId,
@@ -27,7 +28,8 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 		},
 	})
 	invariantResponse(recipient, 'Not found', { status: 404 })
-	return json({ recipient: recipient })
+
+	return json({ recipient })
 }
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {

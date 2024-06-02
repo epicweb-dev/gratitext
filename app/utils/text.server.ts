@@ -30,6 +30,28 @@ const TwilioResponseSchema = z.union([
 	}),
 ])
 
+export async function sendTextToRecipient({
+	recipientId,
+	message,
+}: {
+	recipientId: string
+	message: string
+}): ReturnType<typeof sendText> {
+	const recipient = await prisma.recipient.findUnique({
+		where: { id: recipientId },
+		select: { phoneNumber: true, verified: true },
+	})
+	if (!recipient) {
+		return { status: 'error', error: 'Recipient not found' }
+	}
+	if (!recipient.verified) {
+		return { status: 'error', error: 'Recipient not verified' }
+	}
+
+	const result = await sendText({ to: recipient.phoneNumber, message })
+	return result
+}
+
 export async function sendText({
 	to,
 	message,
@@ -51,20 +73,13 @@ export async function sendText({
 		}
 	}
 
-	if (process.env.DISABLE_TEXTS === 'true') {
-		return {
-			status: 'error',
-			error: 'Texts are disabled... Stay tuned!',
-		}
-	}
-
 	// TODO: maybe we'll have more of these in the future?
 	const sourceNumber = await prisma.sourceNumber.findFirst({
 		select: { phoneNumber: true },
 	})
 
 	if (!sourceNumber) {
-		throw new Error('No source number found')
+		return { status: 'error', error: 'No source number found' }
 	}
 
 	const params = new URLSearchParams({

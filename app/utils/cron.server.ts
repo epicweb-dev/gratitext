@@ -10,7 +10,7 @@ import {
 	clearIntervalAsync,
 } from 'set-interval-async/dynamic'
 import { prisma } from './db.server.ts'
-import { sendText } from './text.server.ts'
+import { sendText, sendTextToRecipient } from './text.server.ts'
 
 const cronIntervalRef = remember<{
 	current: ReturnType<typeof setIntervalAsync> | null
@@ -30,7 +30,6 @@ async function sendNextTexts() {
 			id: true,
 			name: true,
 			scheduleCron: true,
-			phoneNumber: true,
 			messages: { orderBy: { sentAt: 'desc' }, take: 1 },
 			user: {
 				select: { phoneNumber: true, name: true },
@@ -60,8 +59,8 @@ async function sendNextTexts() {
 			orderBy: { order: 'asc' },
 		})
 		if (nextMessage) {
-			await sendText({
-				to: recipient.phoneNumber,
+			await sendTextToRecipient({
+				recipientId: recipient.id,
 				message: nextMessage.content,
 			})
 			await prisma.message.update({
