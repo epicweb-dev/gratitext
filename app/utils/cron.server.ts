@@ -20,16 +20,20 @@ export function init() {
 	console.log('initializing cron interval')
 	if (cronIntervalRef.current) clearIntervalAsync(cronIntervalRef.current)
 
-	cronIntervalRef.current = setIntervalAsync(sendNextTexts, 1000 * 5)
+	cronIntervalRef.current = setIntervalAsync(
+		() => sendNextTexts().catch(err => console.error(err)),
+		1000 * 5,
+	)
 }
 
-async function sendNextTexts() {
+export async function sendNextTexts() {
 	const recipients = await prisma.recipient.findMany({
 		where: { verified: true },
 		select: {
 			id: true,
 			name: true,
 			scheduleCron: true,
+			lastRemindedAt: true,
 			messages: { orderBy: { sentAt: 'desc' }, take: 1 },
 			user: {
 				select: { phoneNumber: true, name: true },
@@ -37,28 +41,61 @@ async function sendNextTexts() {
 		},
 	})
 
-	const recipientsDue = recipients.filter(r => {
-		const { scheduleCron } = r
-		const { messages } = r
-		const lastMessage = messages[0]
-		if (!lastMessage) return false
-		const interval = cronParser.parseExpression(scheduleCron)
-		const lastSent = new Date(lastMessage.sentAt ?? 0)
-		const prev = interval.prev().toDate()
-		return lastSent < prev
-	})
+	const messagesToSend = recipients
+		.map(recipient => {
+			const { scheduleCron, messages, lastRemindedAt } = recipient
+			const lastMessage = messages[0]
+			const interval = cronParser.parseExpression(scheduleCron)
+			const lastSent = new Date(lastMessage?.sentAt ?? 0)
+			const prev = interval.prev().toDate()
+			const next = interval.next().toDate()
+			const nextIsSoon = next.getTime() - Date.now() < 1000 * 60 * 10
+			const due = lastSent < prev
+			const remind =
+				nextIsSoon && (lastRemindedAt?.getTime() ?? 0) < prev.getTime()
 
-	if (!recipientsDue.length) return
+			return {
+				recipient,
+				due,
+				remind,
+				prev,
+			}
+		})
+		.filter(r => r.due || r.remind)
 
-	console.log(`Sending texts to ${recipientsDue.length} recipients`)
+	if (!messagesToSend.length) return
 
-	for (const recipient of recipientsDue) {
+	let dueSentCount = 0
+	let reminderSentCount = 0
+	for (const { recipient, due, remind, prev } of messagesToSend) {
 		const nextMessage = await prisma.message.findFirst({
-			select: { id: true, content: true },
+			select: { id: true, content: true, updatedAt: true },
 			where: { recipientId: recipient.id, sentAt: null },
 			orderBy: { order: 'asc' },
 		})
-		if (nextMessage) {
+
+		if (!nextMessage && remind) {
+			await sendText({
+				to: recipient.user.phoneNumber,
+				// TODO: don't hardcode the domain somehow...
+				message: `Hello ${recipient.user.name}, you forgot to set up a message for ${recipient.name} and the sending time is coming up.\n\nAdd a thoughtful personal message here: https://www.gratitext.app/recipients/${recipient.id}`,
+			})
+			await prisma.recipient.update({
+				where: { id: recipient.id },
+				data: { lastRemindedAt: new Date() },
+			})
+			reminderSentCount++
+		}
+
+		// if the message was last updated after the previous time to send then it's
+		// overdue and we don't send it automatically
+		const overDueTimeMs = Date.now() - prev.getTime()
+		const tooLongOverdue = overDueTimeMs > 1000 * 60 * 10
+		const nextMessageWasReady = nextMessage
+			? nextMessage.updatedAt < prev
+			: false
+
+		if (nextMessage && due && nextMessageWasReady && !tooLongOverdue) {
 			await sendTextToRecipient({
 				recipientId: recipient.id,
 				message: nextMessage.content,
@@ -68,12 +105,10 @@ async function sendNextTexts() {
 				where: { id: nextMessage.id },
 				data: { sentAt: new Date() },
 			})
-		} else {
-			await sendText({
-				to: recipient.user.phoneNumber,
-				// TODO: don't hardcode the domain somehow...
-				message: `Hello ${recipient.user.name}, you forgot to set up a message for ${recipient.name}.\n\nAdd one here: https://www.gratitext.app/recipients/${recipient.id}`,
-			})
+			dueSentCount++
 		}
 	}
+
+	if (reminderSentCount) console.log(`Sent ${reminderSentCount} reminders`)
+	if (dueSentCount) console.log(`Sent ${dueSentCount} due texts`)
 }

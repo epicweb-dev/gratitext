@@ -167,14 +167,14 @@ INSERT INTO Permission VALUES('clnf2zvlm0004pcou2guvolx5','update','user','own',
 INSERT INTO Permission VALUES('clnf2zvln0005pcoun78ps5ap','update','user','any','',1696625465531,1696625465531);
 INSERT INTO Permission VALUES('clnf2zvlo0006pcouyoptc5jp','delete','user','own','',1696625465532,1696625465532);
 INSERT INTO Permission VALUES('clnf2zvlo0007pcouw1yzoyam','delete','user','any','',1696625465533,1696625465533);
-INSERT INTO Permission VALUES('clnf2zvlp0008pcou9r0fhbm8','create','note','own','',1696625465533,1696625465533);
-INSERT INTO Permission VALUES('clnf2zvlp0009pcouj3qib9q9','create','note','any','',1696625465534,1696625465534);
-INSERT INTO Permission VALUES('clnf2zvlq000apcouxnspejs9','read','note','own','',1696625465535,1696625465535);
-INSERT INTO Permission VALUES('clnf2zvlr000bpcouf4cg3x72','read','note','any','',1696625465535,1696625465535);
-INSERT INTO Permission VALUES('clnf2zvlr000cpcouy1vp6oeg','update','note','own','',1696625465536,1696625465536);
-INSERT INTO Permission VALUES('clnf2zvls000dpcouvzwjjzrq','update','note','any','',1696625465536,1696625465536);
-INSERT INTO Permission VALUES('clnf2zvls000epcou4ts5ui8f','delete','note','own','',1696625465537,1696625465537);
-INSERT INTO Permission VALUES('clnf2zvlt000fpcouk29jbmxn','delete','note','any','',1696625465538,1696625465538);
+INSERT INTO Permission VALUES('clnf2zvlp0008pcou9r0fhbm8','create','recipient','own','',1696625465533,1696625465533);
+INSERT INTO Permission VALUES('clnf2zvlp0009pcouj3qib9q9','create','recipient','any','',1696625465534,1696625465534);
+INSERT INTO Permission VALUES('clnf2zvlq000apcouxnspejs9','read','recipient','own','',1696625465535,1696625465535);
+INSERT INTO Permission VALUES('clnf2zvlr000bpcouf4cg3x72','read','recipient','any','',1696625465535,1696625465535);
+INSERT INTO Permission VALUES('clnf2zvlr000cpcouy1vp6oeg','update','recipient','own','',1696625465536,1696625465536);
+INSERT INTO Permission VALUES('clnf2zvls000dpcouvzwjjzrq','update','recipient','any','',1696625465536,1696625465536);
+INSERT INTO Permission VALUES('clnf2zvls000epcou4ts5ui8f','delete','recipient','own','',1696625465537,1696625465537);
+INSERT INTO Permission VALUES('clnf2zvlt000fpcouk29jbmxn','delete','recipient','any','',1696625465538,1696625465538);
 
 INSERT INTO Role VALUES('clnf2zvlw000gpcour6dyyuh6','admin','',1696625465540,1696625465540);
 INSERT INTO Role VALUES('clnf2zvlx000hpcou5dfrbegs','user','',1696625465542,1696625465542);

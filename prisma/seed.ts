@@ -4,6 +4,7 @@ import {
 	cleanupDb,
 	createMessage,
 	createPassword,
+	createRecipient,
 	createUser,
 } from '#tests/db-utils.ts'
 
@@ -80,11 +81,7 @@ async function seed() {
 						create: Array.from(
 							{ length: faker.number.int({ min: 1, max: 3 }) },
 							() => ({
-								phoneNumber: faker.phone.number(),
-								name: faker.person.fullName(),
-								verified: faker.datatype.boolean(),
-								// TODO: make sure this doesn't generate a cron string that's too frequent
-								scheduleCron: faker.system.cron(),
+								...createRecipient(),
 								messages: {
 									create: Array.from(
 										{ length: faker.number.int({ min: 1, max: 3 }) },

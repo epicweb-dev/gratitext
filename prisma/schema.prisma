@@ -105,11 +105,12 @@ model Verification {
 }
 
 model Recipient {
-  id           String  @id @default(cuid())
-  name         String
-  phoneNumber  String
-  verified     Boolean
-  scheduleCron String
+  id             String    @id @default(cuid())
+  name           String
+  phoneNumber    String
+  verified       Boolean
+  scheduleCron   String
+  lastRemindedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

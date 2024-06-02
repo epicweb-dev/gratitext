@@ -44,6 +44,16 @@ export function createMessage() {
 	}
 }
 
+export function createRecipient() {
+	return {
+		phoneNumber: faker.phone.number(),
+		name: faker.person.fullName(),
+		verified: faker.datatype.boolean(),
+		// TODO: make sure this doesn't generate a cron string that's too frequent
+		scheduleCron: faker.system.cron(),
+	}
+}
+
 export async function cleanupDb(prisma: PrismaClient) {
 	const tables = await prisma.$queryRaw<
 		{ name: string }[]
