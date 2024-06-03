@@ -2,6 +2,11 @@ import { json, type LoaderFunctionArgs } from '@remix-run/node'
 import { NavLink, Outlet, useLoaderData } from '@remix-run/react'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from '#app/components/ui/tooltip.js'
 import { requireUserId } from '#app/utils/auth.server.js'
 import { prisma } from '#app/utils/db.server.ts'
 import { cn } from '#app/utils/misc.tsx'
@@ -9,7 +14,11 @@ import { cn } from '#app/utils/misc.tsx'
 export async function loader({ request }: LoaderFunctionArgs) {
 	const userId = await requireUserId(request)
 	const recipients = await prisma.recipient.findMany({
-		select: { id: true, name: true },
+		select: {
+			id: true,
+			name: true,
+			_count: { select: { messages: { where: { sentAt: null } } } },
+		},
 		where: { userId },
 	})
 
@@ -48,10 +57,26 @@ export default function RecipientsRoute() {
 										preventScrollReset
 										prefetch="intent"
 										className={({ isActive }) =>
-											cn(navLinkDefaultClassName, isActive && 'bg-accent')
+											cn(
+												navLinkDefaultClassName,
+												isActive && 'bg-accent',
+												'flex gap-1',
+											)
 										}
 									>
-										{recipient.name}
+										<span>{recipient.name}</span>
+										{recipient._count.messages <= 0 ? (
+											<Tooltip>
+												<TooltipTrigger>
+													<Icon
+														size="xs"
+														name="exclamation-circle-outline"
+														className="self-start"
+													/>
+												</TooltipTrigger>
+												<TooltipContent>No new messages</TooltipContent>
+											</Tooltip>
+										) : null}
 									</NavLink>
 								</li>
 							))}

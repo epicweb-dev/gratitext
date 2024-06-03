@@ -7,14 +7,21 @@ import {
 	type LoaderFunctionArgs,
 	type SerializeFrom,
 } from '@remix-run/node'
-import { useFetcher, useLoaderData } from '@remix-run/react'
-import cronParser from 'cron-parser'
+import { Link, useFetcher, useLoaderData } from '@remix-run/react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { ErrorList, TextareaField } from '#app/components/forms.js'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.js'
+import {
+	SimpleTooltip,
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from '#app/components/ui/tooltip.js'
 import { requireUserId } from '#app/utils/auth.server.ts'
+import { formatSendTime, getSendTime } from '#app/utils/cron.server.js'
 import { prisma } from '#app/utils/db.server.ts'
 import { useDoubleCheck } from '#app/utils/misc.js'
 import { sendTextToRecipient } from '#app/utils/text.server.js'
@@ -39,8 +46,6 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 
 	const { messages, ...recipientProps } = recipient
 
-	const interval = cronParser.parseExpression(recipientProps.scheduleCron)
-
 	return json({
 		recipient: recipientProps,
 		futureMessages: messages
@@ -55,17 +60,9 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 				const isLast = i === arr.length - 1
 				const earlierOrder = isFirst ? null : (oneBefore + twoBefore) / 2
 				const laterOrder = isLast ? null : (oneAfter + twoAfter) / 2
-				const sendAtDisplay = interval
-					.next()
-					.toDate()
-					.toLocaleDateString('en-US', {
-						weekday: 'short',
-						year: 'numeric',
-						month: 'short',
-						day: 'numeric',
-						hour: 'numeric',
-						minute: 'numeric',
-					})
+				const sendAtDisplay = formatSendTime(
+					getSendTime(recipient.scheduleCron, i),
+				)
 				return {
 					id: m.id,
 					content: m.content,
@@ -215,11 +212,17 @@ export default function RecipientRoute() {
 
 	return (
 		<ul className="flex flex-col gap-12">
-			{data.futureMessages.map(m => (
-				<li key={m.id} className="flex justify-start gap-2 align-top">
-					<MessageForms message={m} />
-				</li>
-			))}
+			{data.futureMessages.length ? (
+				data.futureMessages.map(m => (
+					<li key={m.id} className="flex justify-start gap-2 align-top">
+						<MessageForms message={m} />
+					</li>
+				))
+			) : (
+				<Link to="new" className="underline">
+					Create a new message
+				</Link>
+			)}
 		</ul>
 	)
 }
@@ -316,10 +319,15 @@ function UpdateOrderForm({
 				name="intent"
 				value={updateMessageActionIntent}
 			>
+				{/* TODO: the tooltip doesn't seem to be working... */}
 				{direction === 'later' ? (
-					<Icon size="lg" name="chevron-down" title="Move later" />
+					<SimpleTooltip content="Move later">
+						<Icon size="lg" name="chevron-down" />
+					</SimpleTooltip>
 				) : (
-					<Icon size="lg" name="chevron-up" title="Move earlier" />
+					<SimpleTooltip content="Move earlier">
+						<Icon size="lg" name="chevron-up" />
+					</SimpleTooltip>
 				)}
 			</StatusButton>
 			<ErrorList id={fields.order.errorId} errors={fields.order.errors} />

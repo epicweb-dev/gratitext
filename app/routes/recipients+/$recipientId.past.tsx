@@ -30,6 +30,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 
 	return json({
 		recipient: recipientProps,
+		messageCountDisplay: messages.length.toLocaleString(),
 		pastMessages: messages
 			.filter(m => m.sentAt)
 			.sort((m1, m2) => m2.sentAt!.getTime() - m1.sentAt!.getTime())
@@ -60,19 +61,26 @@ export default function RecipientRoute() {
 	const data = useLoaderData<typeof loader>()
 
 	return (
-		<ul className="flex flex-col gap-2">
-			{data.pastMessages.map(m => (
-				<li
-					key={m.id}
-					className="flex flex-col justify-start gap-2 align-top lg:flex-row"
-				>
-					<span className="text-muted-secondary-foreground min-w-36">
-						{m.sentAtDisplay}
-					</span>
-					<span>{m.content}</span>
-				</li>
-			))}
-		</ul>
+		<div>
+			<p className="mb-8">
+				You have sent <strong>{data.messageCountDisplay}</strong>{' '}
+				{data.pastMessages.length === 1 ? 'message' : 'messages'} to{' '}
+				{data.recipient.name}.
+			</p>
+			<ul className="flex flex-col gap-2">
+				{data.pastMessages.map(m => (
+					<li
+						key={m.id}
+						className="flex flex-col justify-start gap-2 align-top lg:flex-row"
+					>
+						<span className="min-w-36 text-muted-secondary-foreground">
+							{m.sentAtDisplay}
+						</span>
+						<span>{m.content}</span>
+					</li>
+				))}
+			</ul>
+		</div>
 	)
 }
 

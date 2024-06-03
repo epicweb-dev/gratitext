@@ -14,12 +14,23 @@ import { floatingToolbarClassName } from '#app/components/floating-toolbar.js'
 import { Button } from '#app/components/ui/button.js'
 import { Icon } from '#app/components/ui/icon.js'
 import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from '#app/components/ui/popover.tsx'
+import {
 	Tabs,
 	TabsContent,
 	TabsList,
 	TabsTrigger,
 } from '#app/components/ui/tabs.js'
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from '#app/components/ui/tooltip.js'
 import { requireUserId } from '#app/utils/auth.server.js'
+import { formatSendTime, getSendTime } from '#app/utils/cron.server.js'
 import { prisma } from '#app/utils/db.server.js'
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
@@ -30,13 +41,19 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 			id: true,
 			name: true,
 			phoneNumber: true,
+			scheduleCron: true,
 			verified: true,
 		},
 	})
 
 	invariantResponse(recipient, 'Not found', { status: 404 })
 
-	return json({ recipient })
+	return json({
+		recipient,
+		formattedNextSendTime: formatSendTime(
+			getSendTime(recipient.scheduleCron, 0),
+		),
+	})
 }
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -84,7 +101,7 @@ export default function RecipientRoute() {
 			<div className="absolute inset-0 flex flex-col px-10">
 				<h2 className="mb-2 h-36 pt-12 text-h2 lg:mb-6">
 					{data.recipient.name}
-					<small className="block text-sm text-secondary-foreground">
+					<small className="block text-sm font-normal text-secondary-foreground">
 						{data.recipient.phoneNumber}{' '}
 						{data.recipient.verified ? (
 							''
@@ -96,6 +113,12 @@ export default function RecipientRoute() {
 								(unverified)
 							</Link>
 						)}
+						<Tooltip>
+							<TooltipTrigger className="cursor-default">
+								{data.formattedNextSendTime}
+							</TooltipTrigger>
+							<TooltipContent>Next send time</TooltipContent>
+						</Tooltip>
 					</small>
 				</h2>
 				<div className="absolute left-3 right-3 top-[8.7rem] rounded-lg bg-muted/80 px-2 py-2 shadow-xl shadow-accent backdrop-blur-sm">
