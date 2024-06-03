@@ -1,3 +1,4 @@
+import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import { json, redirect, type LoaderFunctionArgs } from '@remix-run/node'
 import { Link, useLoaderData } from '@remix-run/react'
 import { z } from 'zod'
@@ -7,6 +8,10 @@ import { SearchBar } from '#app/components/search-bar.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 import { cn, useDelayedIsPending } from '#app/utils/misc.tsx'
 import { requireUserWithRole } from '#app/utils/permissions.server.js'
+
+export const handle: SEOHandle = {
+	getSitemapEntries: () => null,
+}
 
 const UserSearchResultSchema = z.object({
 	id: z.string(),

@@ -1,5 +1,10 @@
+import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import { type MetaFunction } from '@remix-run/react'
 import { type loader as rootLoader } from '#app/root.tsx'
+
+export const handle: SEOHandle = {
+	getSitemapEntries: () => null,
+}
 
 export default function RecipientsIndexRoute() {
 	return (

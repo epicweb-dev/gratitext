@@ -1,5 +1,6 @@
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import {
 	type LoaderFunctionArgs,
 	json,
@@ -14,6 +15,10 @@ import { StatusButton } from '#app/components/ui/status-button.js'
 import { prisma } from '#app/utils/db.server.js'
 import { useDoubleCheck } from '#app/utils/misc.js'
 import { requireUserWithRole } from '#app/utils/permissions.server.js'
+
+export const handle: SEOHandle = {
+	getSitemapEntries: () => null,
+}
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	await requireUserWithRole(request, 'admin')
