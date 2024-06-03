@@ -33,6 +33,7 @@ export async function sendNextTexts() {
 			id: true,
 			name: true,
 			scheduleCron: true,
+			timezone: true,
 			lastRemindedAt: true,
 			messages: { orderBy: { sentAt: 'desc' }, take: 1 },
 			user: {
@@ -45,7 +46,9 @@ export async function sendNextTexts() {
 		.map(recipient => {
 			const { scheduleCron, messages, lastRemindedAt } = recipient
 			const lastMessage = messages[0]
-			const interval = cronParser.parseExpression(scheduleCron)
+			const interval = cronParser.parseExpression(scheduleCron, {
+				tz: recipient.timezone,
+			})
 			const lastSent = new Date(lastMessage?.sentAt ?? 0)
 			const prev = interval.prev().toDate()
 			const next = interval.next().toDate()

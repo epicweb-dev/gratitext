@@ -117,6 +117,7 @@ async function seed() {
 						phoneNumber: '555-555-5465',
 						verified: true,
 						scheduleCron: '00 00 15 * * 1-5',
+						timezone: 'America/Denver',
 						messages: {
 							create: [
 								// past messages
@@ -184,6 +185,7 @@ async function seed() {
 						phoneNumber: '+17035551212',
 						verified: true,
 						scheduleCron: '00 00 08 * * *',
+						timezone: 'America/Denver',
 						messages: {
 							create: [
 								{
