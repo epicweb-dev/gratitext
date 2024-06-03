@@ -116,20 +116,30 @@ export async function sendNextTexts() {
 	if (dueSentCount) console.log(`Sent ${dueSentCount} due texts`)
 }
 
-export function getSendTime(scheduleCron: string, number: number) {
-	const interval = cronParser.parseExpression(scheduleCron)
+export function getSendTime(
+	scheduleCron: string,
+	options: { tz: string },
+	number: number,
+) {
+	const interval = cronParser.parseExpression(scheduleCron, options)
 	let next = interval.next().toDate()
 	while (number-- > 0) next = interval.next().toDate()
 	return next
 }
 
-export function formatSendTime(date: Date) {
-	return date.toLocaleDateString('en-US', {
+export function formatSendTime(date: Date, timezone: string) {
+	const timezoneOffset = new Date(date).getTimezoneOffset()
+	const timezoneOffsetInMs = timezoneOffset * 60 * 1000
+	const timezoneDate = new Date(date.getTime() + timezoneOffsetInMs)
+
+	const formatted = new Intl.DateTimeFormat('en-US', {
 		weekday: 'short',
 		year: 'numeric',
 		month: 'short',
 		day: 'numeric',
 		hour: 'numeric',
 		minute: 'numeric',
-	})
+		timeZoneName: 'short',
+	}).format(timezoneDate)
+	return `${formatted} ${timezone}`
 }

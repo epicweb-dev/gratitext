@@ -25,6 +25,7 @@ export const RecipientEditorSchema = z.object({
 	name: z.string().min(1).max(100),
 	phoneNumber: z.string().min(1).max(100),
 	scheduleCron: z.string(),
+	timezone: z.string(),
 })
 
 export const DeleteRecipientSchema = z.object({
@@ -36,7 +37,10 @@ export function RecipientEditor({
 	recipient,
 }: {
 	recipient?: SerializeFrom<
-		Pick<Recipient, 'id' | 'name' | 'phoneNumber' | 'scheduleCron' | 'verified'>
+		Pick<
+			Recipient,
+			'id' | 'name' | 'phoneNumber' | 'scheduleCron' | 'timezone' | 'verified'
+		>
 	>
 }) {
 	const actionData = useActionData<typeof usertRecipientAction>()
@@ -96,6 +100,13 @@ export function RecipientEditor({
 							...getInputProps(fields.scheduleCron, { type: 'text' }),
 						}}
 						errors={fields.scheduleCron.errors}
+					/>
+					<Field
+						labelProps={{ children: 'Timezone' }}
+						inputProps={{
+							...getInputProps(fields.timezone, { type: 'text' }),
+						}}
+						errors={fields.timezone.errors}
 					/>
 				</div>
 				<ErrorList id={form.errorId} errors={form.errors} />

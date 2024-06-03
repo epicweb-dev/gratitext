@@ -20,6 +20,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 			name: true,
 			phoneNumber: true,
 			scheduleCron: true,
+			timezone: true,
 			verified: true,
 		},
 		where: {

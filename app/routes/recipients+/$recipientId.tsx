@@ -14,11 +14,6 @@ import { floatingToolbarClassName } from '#app/components/floating-toolbar.js'
 import { Button } from '#app/components/ui/button.js'
 import { Icon } from '#app/components/ui/icon.js'
 import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from '#app/components/ui/popover.tsx'
-import {
 	Tabs,
 	TabsContent,
 	TabsList,
@@ -42,6 +37,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 			name: true,
 			phoneNumber: true,
 			scheduleCron: true,
+			timezone: true,
 			verified: true,
 		},
 	})
@@ -51,7 +47,8 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 	return json({
 		recipient,
 		formattedNextSendTime: formatSendTime(
-			getSendTime(recipient.scheduleCron, 0),
+			getSendTime(recipient.scheduleCron, { tz: recipient.timezone }, 0),
+			recipient.timezone,
 		),
 	})
 }

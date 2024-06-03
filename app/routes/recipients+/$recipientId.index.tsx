@@ -13,13 +13,7 @@ import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { ErrorList, TextareaField } from '#app/components/forms.js'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.js'
-import {
-	SimpleTooltip,
-	Tooltip,
-	TooltipContent,
-	TooltipProvider,
-	TooltipTrigger,
-} from '#app/components/ui/tooltip.js'
+import { SimpleTooltip } from '#app/components/ui/tooltip.js'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { formatSendTime, getSendTime } from '#app/utils/cron.server.js'
 import { prisma } from '#app/utils/db.server.ts'
@@ -34,6 +28,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 		where: { id: params.recipientId, userId },
 		select: {
 			scheduleCron: true,
+			timezone: true,
 			messages: {
 				select: { id: true, content: true, sentAt: true, order: true },
 				orderBy: { order: 'asc' },
@@ -61,7 +56,8 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 				const earlierOrder = isFirst ? null : (oneBefore + twoBefore) / 2
 				const laterOrder = isLast ? null : (oneAfter + twoAfter) / 2
 				const sendAtDisplay = formatSendTime(
-					getSendTime(recipient.scheduleCron, i),
+					getSendTime(recipient.scheduleCron, { tz: recipient.timezone }, i),
+					recipient.timezone,
 				)
 				return {
 					id: m.id,

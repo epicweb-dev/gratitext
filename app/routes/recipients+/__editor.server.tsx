@@ -107,7 +107,13 @@ export async function usertRecipientAction({
 		)
 	}
 
-	const { id: recipientId, name, phoneNumber, scheduleCron } = submission.value
+	const {
+		id: recipientId,
+		name,
+		phoneNumber,
+		scheduleCron,
+		timezone,
+	} = submission.value
 
 	const user = await prisma.user.findUnique({
 		where: { id: userId },
@@ -129,6 +135,7 @@ export async function usertRecipientAction({
 				verified: phoneNumber !== recipient?.phoneNumber ? false : undefined,
 				phoneNumber,
 				scheduleCron,
+				timezone,
 			},
 		})
 		if (verified) {
@@ -144,6 +151,7 @@ export async function usertRecipientAction({
 				phoneNumber,
 				scheduleCron,
 				userId,
+				timezone,
 				verified: false,
 			},
 		})
