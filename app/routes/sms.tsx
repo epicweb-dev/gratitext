@@ -72,6 +72,6 @@ async function validateTwilio(request: Request) {
 		Buffer.from(twilioHeader),
 		Buffer.from(expectedSignature),
 	)
-	console.log({ isValidHeader })
-	// invariantResponse(!isValidHeader, 'Invalid Twilio signature')
+
+	invariantResponse(!isValidHeader, 'Invalid Twilio signature')
 }
