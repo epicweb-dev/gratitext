@@ -3,7 +3,15 @@ import { type ActionFunctionArgs } from '@remix-run/node'
 import { prisma } from '#app/utils/db.server.js'
 
 export async function action({ request }: ActionFunctionArgs) {
+	const twilioHeader = request.headers.get('X-Twilio-Signature')
+
 	const body = new URLSearchParams(await request.text())
+	console.log({
+		twilioHeader,
+		url: request.url,
+		body,
+		headers: request.headers,
+	})
 
 	const content = (body.get('Body') ?? '').trim()
 
