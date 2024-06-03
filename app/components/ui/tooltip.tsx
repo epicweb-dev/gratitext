@@ -30,13 +30,14 @@ export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
 export function SimpleTooltip({
 	content,
 	children,
+	...props
 }: {
 	content: string | null
 	children: React.ReactNode
-}) {
+} & React.ComponentProps<typeof Tooltip>) {
 	if (!content) return children
 	return (
-		<Tooltip>
+		<Tooltip {...props}>
 			<TooltipTrigger asChild>{children}</TooltipTrigger>
 			<TooltipContent>{content}</TooltipContent>
 		</Tooltip>

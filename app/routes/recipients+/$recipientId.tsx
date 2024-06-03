@@ -20,6 +20,7 @@ import {
 	TabsTrigger,
 } from '#app/components/ui/tabs.js'
 import {
+	SimpleTooltip,
 	Tooltip,
 	TooltipContent,
 	TooltipTrigger,
@@ -45,8 +46,13 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 	})
 
 	invariantResponse(recipient, 'Not found', { status: 404 })
+	const optedOut = await prisma.optOut.findUnique({
+		where: { phoneNumber: recipient.phoneNumber },
+		select: { id: true },
+	})
 
 	return json({
+		optedOut: Boolean(optedOut),
 		recipient,
 		formattedNextSendTime: formatSendTime(
 			getSendTime(recipient.scheduleCron, { tz: recipient.timeZone }, 0),
@@ -100,8 +106,11 @@ export default function RecipientRoute() {
 			<div className="absolute inset-0 flex flex-col px-10">
 				<h2 className="mb-2 h-36 pt-12 text-h2 lg:mb-6">
 					{data.recipient.name}
-					<small className="block text-sm font-normal text-secondary-foreground">
-						{data.recipient.phoneNumber}{' '}
+					<small className="flex gap-1 text-sm font-normal text-secondary-foreground">
+						{data.recipient.phoneNumber}
+						{data.optedOut ? (
+							<span className="text-destructive">Opted out</span>
+						) : null}
 						{data.recipient.verified ? (
 							''
 						) : (
@@ -112,12 +121,11 @@ export default function RecipientRoute() {
 								(unverified)
 							</Link>
 						)}
-						<Tooltip>
-							<TooltipTrigger className="cursor-default">
+						<SimpleTooltip content="Next send time">
+							<button className="cursor-default">
 								{data.formattedNextSendTime}
-							</TooltipTrigger>
-							<TooltipContent>Next send time</TooltipContent>
-						</Tooltip>
+							</button>
+						</SimpleTooltip>
 					</small>
 				</h2>
 				<div className="absolute left-3 right-3 top-[8.7rem] rounded-lg bg-muted/80 px-2 py-2 shadow-xl shadow-accent backdrop-blur-sm">

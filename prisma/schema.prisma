@@ -151,7 +151,7 @@ model SourceNumber {
 
 model OptOut {
   id          String   @id @default(cuid())
-  phoneNumber String
+  phoneNumber String   @unique
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

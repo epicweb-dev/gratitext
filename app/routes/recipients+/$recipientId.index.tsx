@@ -310,24 +310,24 @@ function UpdateOrderForm({
 		<fetcher.Form method="POST" {...getFormProps(form)}>
 			<input type="hidden" name="id" value={message.id} />
 			<input type="hidden" name="order" value={newOrder.toString()} />
-			<StatusButton
-				variant="ghost"
-				status={fetcher.state !== 'idle' ? 'pending' : 'idle'}
-				type="submit"
-				name="intent"
-				value={updateMessageActionIntent}
+			<SimpleTooltip
+				delayDuration={1000}
+				content={direction === 'later' ? 'Move earlier' : 'Move later'}
 			>
-				{/* TODO: the tooltip doesn't seem to be working... */}
-				{direction === 'later' ? (
-					<SimpleTooltip content="Move later">
+				<StatusButton
+					variant="ghost"
+					status={fetcher.state !== 'idle' ? 'pending' : 'idle'}
+					type="submit"
+					name="intent"
+					value={updateMessageActionIntent}
+				>
+					{direction === 'later' ? (
 						<Icon size="lg" name="chevron-down" />
-					</SimpleTooltip>
-				) : (
-					<SimpleTooltip content="Move earlier">
+					) : (
 						<Icon size="lg" name="chevron-up" />
-					</SimpleTooltip>
-				)}
-			</StatusButton>
+					)}
+				</StatusButton>
+			</SimpleTooltip>
 			<ErrorList id={fields.order.errorId} errors={fields.order.errors} />
 		</fetcher.Form>
 	) : null

@@ -1,5 +1,9 @@
 import { useInputControl } from '@conform-to/react'
-import { REGEXP_ONLY_DIGITS_AND_CHARS, type OTPInputProps } from 'input-otp'
+import {
+	REGEXP_ONLY_DIGITS_AND_CHARS,
+	REGEXP_ONLY_DIGITS,
+	type OTPInputProps,
+} from 'input-otp'
 import React, { useId } from 'react'
 import { Checkbox, type CheckboxProps } from './ui/checkbox.tsx'
 import {
@@ -69,11 +73,13 @@ export function OTPField({
 	inputProps,
 	errors,
 	className,
+	type,
 }: {
 	labelProps: React.LabelHTMLAttributes<HTMLLabelElement>
 	inputProps: Partial<OTPInputProps & { render: never }>
 	errors?: ListOfErrors
 	className?: string
+	type: 'digits' | 'digits-and-characters'
 }) {
 	const fallbackId = useId()
 	const id = inputProps.id ?? fallbackId
@@ -82,7 +88,10 @@ export function OTPField({
 		<div className={className}>
 			<Label htmlFor={id} {...labelProps} />
 			<InputOTP
-				pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
+				pattern={
+					type === 'digits' ? REGEXP_ONLY_DIGITS : REGEXP_ONLY_DIGITS_AND_CHARS
+				}
+				type={type === 'digits' ? 'number' : 'text'}
 				maxLength={6}
 				id={id}
 				aria-invalid={errorId ? true : undefined}

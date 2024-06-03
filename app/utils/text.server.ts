@@ -39,7 +39,11 @@ export async function sendTextToRecipient({
 }): ReturnType<typeof sendText> {
 	const recipient = await prisma.recipient.findUnique({
 		where: { id: recipientId },
-		select: { phoneNumber: true, verified: true },
+		select: {
+			phoneNumber: true,
+			verified: true,
+			user: { select: { name: true } },
+		},
 	})
 	if (!recipient) {
 		return { status: 'error', error: 'Recipient not found' }
@@ -48,7 +52,10 @@ export async function sendTextToRecipient({
 		return { status: 'error', error: 'Recipient not verified' }
 	}
 
-	const result = await sendText({ to: recipient.phoneNumber, message })
+	const result = await sendText({
+		to: recipient.phoneNumber,
+		message: `${message}\n\n -${recipient.user.name}`,
+	})
 	return result
 }
 
