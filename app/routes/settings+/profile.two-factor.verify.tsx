@@ -177,6 +177,7 @@ export default function TwoFactorRoute() {
 					<Form method="POST" {...getFormProps(form)} className="flex-1">
 						<div className="flex items-center justify-center">
 							<OTPField
+								type="digits"
 								labelProps={{
 									htmlFor: fields.code.id,
 									children: 'Code',

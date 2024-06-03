@@ -113,6 +113,7 @@ export default function VerifyRoute() {
 						<HoneypotInputs />
 						<div className="flex items-center justify-center">
 							<OTPField
+								type="digits-and-characters"
 								labelProps={{
 									htmlFor: fields[codeQueryParam].id,
 									children: 'Code',
