@@ -19,12 +19,7 @@ import {
 	TabsList,
 	TabsTrigger,
 } from '#app/components/ui/tabs.js'
-import {
-	SimpleTooltip,
-	Tooltip,
-	TooltipContent,
-	TooltipTrigger,
-} from '#app/components/ui/tooltip.js'
+import { SimpleTooltip } from '#app/components/ui/tooltip.js'
 import { requireUserId } from '#app/utils/auth.server.js'
 import { getHints } from '#app/utils/client-hints.js'
 import { formatSendTime, getSendTime } from '#app/utils/cron.server.js'

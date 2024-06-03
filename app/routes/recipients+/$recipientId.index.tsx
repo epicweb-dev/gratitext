@@ -31,6 +31,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 		select: {
 			scheduleCron: true,
 			timeZone: true,
+			phoneNumber: true,
 			messages: {
 				select: { id: true, content: true, sentAt: true, order: true },
 				orderBy: { order: 'asc' },
@@ -41,13 +42,28 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 
 	invariantResponse(recipient, 'Not found', { status: 404 })
 
+	const optOut = await prisma.optOut.findUnique({
+		where: { phoneNumber: recipient.phoneNumber },
+	})
+
 	const { messages, ...recipientProps } = recipient
 
 	return json({
+		optedOut: Boolean(optOut),
 		recipient: recipientProps,
 		futureMessages: messages
 			.sort((m1, m2) => m1.order - m2.order)
 			.map((m, i, arr) => {
+				const base = {
+					id: m.id,
+					content: m.content,
+					order: m.order,
+					earlierOrder: null,
+					laterOrder: null,
+					sendAtDisplay: null,
+				}
+				if (optOut) return base
+
 				const lastItem = arr[arr.length - 1]
 				const oneBefore = arr[i - 1]?.order ?? 0
 				const twoBefore = arr[i - 2]?.order ?? 0
@@ -62,9 +78,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 					hints.timeZone || recipient.timeZone,
 				)
 				return {
-					id: m.id,
-					content: m.content,
-					order: m.order,
+					...base,
 					earlierOrder,
 					laterOrder,
 					sendAtDisplay,
@@ -73,7 +87,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 	})
 }
 
-const MessageSchema = z.object({
+const UpdateMessageContentSchema = z.object({
 	id: z.string(),
 	content: z.string().min(1).max(5000),
 })
@@ -180,13 +194,13 @@ async function deleteMessageAction({ formData }: MessageActionArgs) {
 	return json({ result: submission.reply() }, { status: 200 })
 }
 
-const UpdateMessageSchema = z.object({
+const UpdateMessageOrderSchema = z.object({
 	id: z.string(),
 	order: z.number().min(0),
 })
 async function updateMessageAction({ formData }: MessageActionArgs) {
 	const submission = parseWithZod(formData, {
-		schema: UpdateMessageSchema,
+		schema: UpdateMessageOrderSchema,
 	})
 	if (submission.status !== 'success') {
 		return json(
@@ -229,11 +243,11 @@ function MessageForms({ message }: { message: FutureMessage }) {
 	const updateContentFetcher = useFetcher<typeof updateMessageAction>()
 	const [updateContentForm, updateContentFields] = useForm({
 		id: `message-form-${message.id}`,
-		constraint: getZodConstraint(MessageSchema),
-		defaultValue: message,
+		constraint: getZodConstraint(UpdateMessageContentSchema),
+		defaultValue: { id: message.id, content: message.content },
 		lastResult: updateContentFetcher.data?.result,
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema: MessageSchema })
+			return parseWithZod(formData, { schema: UpdateMessageContentSchema })
 		},
 		shouldRevalidate: 'onBlur',
 	})
@@ -252,7 +266,11 @@ function MessageForms({ message }: { message: FutureMessage }) {
 				>
 					<input type="hidden" name="id" value={message.id} />
 					<TextareaField
-						labelProps={{ children: `Message (${message.sendAtDisplay})` }}
+						labelProps={{
+							children: message.sendAtDisplay
+								? `Message (${message.sendAtDisplay})`
+								: 'Message',
+						}}
 						textareaProps={{
 							...getTextareaProps(updateContentFields.content),
 						}}
@@ -286,17 +304,19 @@ function UpdateOrderForm({
 	message,
 	direction: direction,
 }: {
-	message: FutureMessage
+	message: Pick<FutureMessage, 'id' | 'order' | 'laterOrder' | 'earlierOrder'>
 	direction: 'later' | 'earlier'
 }) {
 	const fetcher = useFetcher<typeof updateMessageAction>()
 	const [form, fields] = useForm({
 		id: `message-earlier-form-${message.id}`,
-		constraint: getZodConstraint(UpdateMessageSchema),
-		defaultValue: message,
+		constraint: getZodConstraint(UpdateMessageOrderSchema),
+		defaultValue: { id: message.id, order: direction === 'later' ? 0 : 1 },
 		lastResult: fetcher.data?.result,
 		onValidate({ formData }) {
-			const result = parseWithZod(formData, { schema: UpdateMessageSchema })
+			const result = parseWithZod(formData, {
+				schema: UpdateMessageOrderSchema,
+			})
 			if (result.status === 'error') {
 				console.error(result.error)
 			}
@@ -333,12 +353,12 @@ function UpdateOrderForm({
 	) : null
 }
 
-function SendNowForm({ message }: { message: FutureMessage }) {
+function SendNowForm({ message }: { message: Pick<FutureMessage, 'id'> }) {
 	const fetcher = useFetcher<typeof sendMessageAction>()
 	const [form] = useForm({
 		id: `send-now-form-${message.id}`,
 		constraint: getZodConstraint(SendMessageSchema),
-		defaultValue: message,
+		defaultValue: { id: message.id },
 		lastResult: fetcher.data?.result,
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: SendMessageSchema })
@@ -364,12 +384,12 @@ function SendNowForm({ message }: { message: FutureMessage }) {
 	)
 }
 
-function DeleteForm({ message }: { message: FutureMessage }) {
+function DeleteForm({ message }: { message: Pick<FutureMessage, 'id'> }) {
 	const fetcher = useFetcher<typeof deleteMessageAction>()
 	const [form] = useForm({
 		id: `delete-form-${message.id}`,
 		constraint: getZodConstraint(DeleteMessageSchema),
-		defaultValue: message,
+		defaultValue: { id: message.id },
 		lastResult: fetcher.data?.result,
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: DeleteMessageSchema })
