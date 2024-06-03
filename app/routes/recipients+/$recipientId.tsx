@@ -25,11 +25,13 @@ import {
 	TooltipTrigger,
 } from '#app/components/ui/tooltip.js'
 import { requireUserId } from '#app/utils/auth.server.js'
+import { getHints } from '#app/utils/client-hints.js'
 import { formatSendTime, getSendTime } from '#app/utils/cron.server.js'
 import { prisma } from '#app/utils/db.server.js'
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
 	const userId = await requireUserId(request)
+	const hints = getHints(request)
 	const recipient = await prisma.recipient.findUnique({
 		where: { id: params.recipientId, userId },
 		select: {
@@ -37,7 +39,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 			name: true,
 			phoneNumber: true,
 			scheduleCron: true,
-			timezone: true,
+			timeZone: true,
 			verified: true,
 		},
 	})
@@ -47,8 +49,8 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 	return json({
 		recipient,
 		formattedNextSendTime: formatSendTime(
-			getSendTime(recipient.scheduleCron, { tz: recipient.timezone }, 0),
-			recipient.timezone,
+			getSendTime(recipient.scheduleCron, { tz: recipient.timeZone }, 0),
+			hints.timeZone || recipient.timeZone,
 		),
 	})
 }

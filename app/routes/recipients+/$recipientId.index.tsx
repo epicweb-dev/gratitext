@@ -15,6 +15,7 @@ import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.js'
 import { SimpleTooltip } from '#app/components/ui/tooltip.js'
 import { requireUserId } from '#app/utils/auth.server.ts'
+import { getHints } from '#app/utils/client-hints.js'
 import { formatSendTime, getSendTime } from '#app/utils/cron.server.js'
 import { prisma } from '#app/utils/db.server.ts'
 import { useDoubleCheck } from '#app/utils/misc.js'
@@ -24,11 +25,12 @@ type FutureMessage = SerializeFrom<typeof loader>['futureMessages'][number]
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
 	const userId = await requireUserId(request)
+	const hints = getHints(request)
 	const recipient = await prisma.recipient.findUnique({
 		where: { id: params.recipientId, userId },
 		select: {
 			scheduleCron: true,
-			timezone: true,
+			timeZone: true,
 			messages: {
 				select: { id: true, content: true, sentAt: true, order: true },
 				orderBy: { order: 'asc' },
@@ -56,8 +58,8 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 				const earlierOrder = isFirst ? null : (oneBefore + twoBefore) / 2
 				const laterOrder = isLast ? null : (oneAfter + twoAfter) / 2
 				const sendAtDisplay = formatSendTime(
-					getSendTime(recipient.scheduleCron, { tz: recipient.timezone }, i),
-					recipient.timezone,
+					getSendTime(recipient.scheduleCron, { tz: recipient.timeZone }, i),
+					hints.timeZone || recipient.timeZone,
 				)
 				return {
 					id: m.id,

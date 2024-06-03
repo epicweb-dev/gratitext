@@ -110,7 +110,7 @@ model Recipient {
   phoneNumber    String
   verified       Boolean
   scheduleCron   String
-  timezone       String
+  timeZone       String
   lastRemindedAt DateTime?
 
   createdAt DateTime @default(now())

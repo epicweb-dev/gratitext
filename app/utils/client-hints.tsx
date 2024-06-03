@@ -7,14 +7,20 @@ import {
 	clientHint as colorSchemeHint,
 	subscribeToSchemeChange,
 } from '@epic-web/client-hints/color-scheme'
-import { clientHint as timeZoneHint } from '@epic-web/client-hints/time-zone'
 import { useRevalidator } from '@remix-run/react'
 import * as React from 'react'
 import { useRequestInfo } from './request-info.ts'
 
 const hintsUtils = getHintUtils({
 	theme: colorSchemeHint,
-	timeZone: timeZoneHint,
+	timeZone: {
+		cookieName: 'CH-time-zone',
+		getValueCode: 'Intl.DateTimeFormat().resolvedOptions().timeZone',
+		fallback: null,
+		transform(value: string) {
+			return value || null
+		},
+	},
 	// add other hints here
 })
 

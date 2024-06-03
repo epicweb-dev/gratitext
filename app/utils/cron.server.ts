@@ -33,7 +33,7 @@ export async function sendNextTexts() {
 			id: true,
 			name: true,
 			scheduleCron: true,
-			timezone: true,
+			timeZone: true,
 			lastRemindedAt: true,
 			messages: { orderBy: { sentAt: 'desc' }, take: 1 },
 			user: {
@@ -47,7 +47,7 @@ export async function sendNextTexts() {
 			const { scheduleCron, messages, lastRemindedAt } = recipient
 			const lastMessage = messages[0]
 			const interval = cronParser.parseExpression(scheduleCron, {
-				tz: recipient.timezone,
+				tz: recipient.timeZone,
 			})
 			const lastSent = new Date(lastMessage?.sentAt ?? 0)
 			const prev = interval.prev().toDate()
@@ -127,19 +127,18 @@ export function getSendTime(
 	return next
 }
 
-export function formatSendTime(date: Date, timezone: string) {
-	const timezoneOffset = new Date(date).getTimezoneOffset()
-	const timezoneOffsetInMs = timezoneOffset * 60 * 1000
-	const timezoneDate = new Date(date.getTime() + timezoneOffsetInMs)
-
-	const formatted = new Intl.DateTimeFormat('en-US', {
+export function formatSendTime(date: Date, timezone: string): string {
+	const options: Intl.DateTimeFormatOptions = {
 		weekday: 'short',
 		year: 'numeric',
 		month: 'short',
 		day: 'numeric',
 		hour: 'numeric',
 		minute: 'numeric',
+		hour12: true,
+		timeZone: timezone,
 		timeZoneName: 'short',
-	}).format(timezoneDate)
-	return `${formatted} ${timezone}`
+	}
+
+	return new Intl.DateTimeFormat('en-US', options).format(date)
 }

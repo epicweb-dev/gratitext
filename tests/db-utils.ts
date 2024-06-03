@@ -51,7 +51,7 @@ export function createRecipient() {
 		verified: faker.datatype.boolean(),
 		// TODO: make sure this doesn't generate a cron string that's too frequent
 		scheduleCron: faker.system.cron(),
-		timezone: 'America/Denver',
+		timeZone: 'America/Denver',
 	}
 }
 

@@ -25,7 +25,7 @@ export const RecipientEditorSchema = z.object({
 	name: z.string().min(1).max(100),
 	phoneNumber: z.string().min(1).max(100),
 	scheduleCron: z.string(),
-	timezone: z.string(),
+	timeZone: z.string(),
 })
 
 export const DeleteRecipientSchema = z.object({
@@ -39,7 +39,7 @@ export function RecipientEditor({
 	recipient?: SerializeFrom<
 		Pick<
 			Recipient,
-			'id' | 'name' | 'phoneNumber' | 'scheduleCron' | 'timezone' | 'verified'
+			'id' | 'name' | 'phoneNumber' | 'scheduleCron' | 'timeZone' | 'verified'
 		>
 	>
 }) {
@@ -59,6 +59,10 @@ export function RecipientEditor({
 
 	return (
 		<div className="absolute inset-0">
+			<div className="flex justify-end gap-2 p-6">
+				{recipient?.verified ? null : <VerifyForm />}
+				{recipient?.id ? <DeleteRecipient id={recipient.id} /> : null}
+			</div>
 			<Form
 				method="POST"
 				className="flex h-full flex-col gap-y-4 overflow-y-auto overflow-x-hidden px-10 pb-28 pt-12"
@@ -102,18 +106,16 @@ export function RecipientEditor({
 						errors={fields.scheduleCron.errors}
 					/>
 					<Field
-						labelProps={{ children: 'Timezone' }}
+						labelProps={{ children: 'Time Zone' }}
 						inputProps={{
-							...getInputProps(fields.timezone, { type: 'text' }),
+							...getInputProps(fields.timeZone, { type: 'text' }),
 						}}
-						errors={fields.timezone.errors}
+						errors={fields.timeZone.errors}
 					/>
 				</div>
 				<ErrorList id={form.errorId} errors={form.errors} />
 			</Form>
 			<div className={floatingToolbarClassName}>
-				{recipient?.verified ? null : <VerifyForm />}
-				{recipient?.id ? <DeleteRecipient id={recipient.id} /> : null}
 				<StatusButton
 					form={form.id}
 					type="submit"
