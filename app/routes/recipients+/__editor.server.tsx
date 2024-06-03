@@ -16,7 +16,7 @@ import {
 	RecipientEditorSchema,
 	deleteRecipientActionIntent,
 	sendVerificationActionIntent,
-	updateRecipientActionIntent,
+	upsertRecipientActionIntent,
 } from './__editor.tsx'
 
 export async function handleVerification({ submission }: VerifyFunctionArgs) {
@@ -60,25 +60,25 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	const userId = await requireUserId(request)
 	const { recipientId } = params
 
-	invariantResponse(recipientId, 'Invalid recipient id')
-
-	const recipient = await prisma.recipient.findUnique({
-		where: { id: recipientId, userId },
-		select: { id: true, phoneNumber: true, verified: true },
-	})
-
-	invariantResponse(recipient, 'Recipient not found', { status: 404 })
+	const recipient = recipientId
+		? await prisma.recipient.findUnique({
+				where: { id: recipientId, userId },
+				select: { id: true, phoneNumber: true, verified: true },
+			})
+		: null
 
 	const formData = await request.formData()
 
 	switch (formData.get('intent')) {
 		case deleteRecipientActionIntent: {
+			invariantResponse(recipient, 'Recipient not found', { status: 404 })
 			return deleteRecipientAction({ formData, userId, request, recipient })
 		}
-		case updateRecipientActionIntent: {
-			return updateRecipientAction({ formData, userId, request, recipient })
+		case upsertRecipientActionIntent: {
+			return usertRecipientAction({ formData, userId, request, recipient })
 		}
 		case sendVerificationActionIntent: {
+			invariantResponse(recipient, 'Recipient not found', { status: 404 })
 			return sendVerificationAction({ formData, userId, request, recipient })
 		}
 		default: {
@@ -87,12 +87,14 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	}
 }
 
-export async function updateRecipientAction({
+export async function usertRecipientAction({
 	formData,
 	userId,
 	request,
 	recipient,
-}: RecipientActionArgs) {
+}: Pick<RecipientActionArgs, 'formData' | 'request' | 'userId'> & {
+	recipient: RecipientActionArgs['recipient'] | null
+}) {
 	const submission = await parseWithZod(formData, {
 		schema: RecipientEditorSchema,
 		async: true,
@@ -135,8 +137,8 @@ export async function updateRecipientAction({
 			return sendVerificationAction({ formData, userId, request, recipient })
 		}
 	} else {
-		await prisma.recipient.create({
-			select: { id: true },
+		recipient = await prisma.recipient.create({
+			select: { id: true, phoneNumber: true, verified: true },
 			data: {
 				name,
 				phoneNumber,

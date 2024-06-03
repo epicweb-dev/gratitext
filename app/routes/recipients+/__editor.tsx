@@ -13,11 +13,11 @@ import { useDoubleCheck, useIsPending } from '#app/utils/misc.tsx'
 import {
 	type deleteRecipientAction,
 	type sendVerificationAction,
-	type updateRecipientAction,
+	type usertRecipientAction,
 } from './__editor.server.tsx'
 
 export const deleteRecipientActionIntent = 'delete-recipient'
-export const updateRecipientActionIntent = 'update-recipient'
+export const upsertRecipientActionIntent = 'upsert-recipient'
 export const sendVerificationActionIntent = 'send-verification'
 
 export const RecipientEditorSchema = z.object({
@@ -39,7 +39,7 @@ export function RecipientEditor({
 		Pick<Recipient, 'id' | 'name' | 'phoneNumber' | 'scheduleCron' | 'verified'>
 	>
 }) {
-	const actionData = useActionData<typeof updateRecipientAction>()
+	const actionData = useActionData<typeof usertRecipientAction>()
 	const isPending = useIsPending()
 
 	const [form, fields] = useForm({
@@ -69,7 +69,7 @@ export function RecipientEditor({
 					type="submit"
 					className="hidden"
 					name="intent"
-					value={updateRecipientActionIntent}
+					value={upsertRecipientActionIntent}
 				/>
 				{recipient ? (
 					<input type="hidden" name="id" value={recipient.id} />
@@ -109,7 +109,7 @@ export function RecipientEditor({
 					disabled={isPending}
 					status={isPending ? 'pending' : 'idle'}
 					name="intent"
-					value={updateRecipientActionIntent}
+					value={upsertRecipientActionIntent}
 				>
 					Submit
 				</StatusButton>
