@@ -49,6 +49,8 @@ RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN \
 # Finally, build the production image with minimal footprint
 FROM base
 
+ENV SENTRY_ORG="kent-c-dodds-tech-llc"
+ENV SENTRY_PROJECT="gratitext"
 ENV FLY="true"
 ENV LITEFS_DIR="/litefs/data"
 ENV DATABASE_FILENAME="sqlite.db"
