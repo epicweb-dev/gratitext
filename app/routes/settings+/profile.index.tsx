@@ -100,6 +100,11 @@ export default function EditUserProfile() {
 			<div className="col-span-6 my-6 h-1 border-b-[1.5px] border-foreground" />
 			<div className="col-span-full flex flex-col gap-6">
 				<div>
+					<Link to="subscription">
+						<Icon name="banknotes-outline">Manage Subscription</Icon>
+					</Link>
+				</div>
+				<div>
 					<Link to="change-number">
 						<Icon name="device-phone-mobile-outline">
 							Change number from {data.user.phoneNumber}

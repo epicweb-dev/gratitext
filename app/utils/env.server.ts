@@ -15,11 +15,11 @@ const schema = z.object({
 	TWILIO_TOKEN: z.string(),
 	TWILIO_SID: z.string(),
 
-	AWS_ACCESS_KEY_ID: z.string(),
-	AWS_REGION: z.string(),
-	AWS_SECRET_ACCESS_KEY: z.string(),
-	AWS_ENDPOINT_URL_S3: z.string(),
-	BUCKET_NAME: z.string(),
+	STRIPE_SECRET_KEY: z.string(),
+	STRIPE_BASIC_PAYMENT_LINK: z.string(),
+	STRIPE_BASIC_PRODUCT: z.string(),
+	STRIPE_PREMIUM_PAYMENT_LINK: z.string(),
+	STRIPE_PREMIUM_PRODUCT: z.string(),
 })
 
 declare global {
