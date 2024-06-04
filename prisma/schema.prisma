@@ -127,10 +127,11 @@ model Recipient {
 }
 
 model Message {
-  id      String    @id @default(cuid())
-  content String
-  sentAt  DateTime?
-  order   Float
+  id       String    @id @default(cuid())
+  content  String
+  sentAt   DateTime?
+  order    Float
+  twilioId String?   @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

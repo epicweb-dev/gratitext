@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { prisma } from './db.server.ts'
+import { getCustomerProducts } from './stripe.server.ts'
 
 const { TWILIO_SID, TWILIO_TOKEN } = process.env
 
@@ -32,17 +33,17 @@ const TwilioResponseSchema = z.union([
 
 export async function sendTextToRecipient({
 	recipientId,
-	message,
+	messageId,
 }: {
 	recipientId: string
-	message: string
+	messageId: string
 }): ReturnType<typeof sendText> {
 	const recipient = await prisma.recipient.findUnique({
 		where: { id: recipientId },
 		select: {
 			phoneNumber: true,
 			verified: true,
-			user: { select: { name: true } },
+			user: { select: { id: true, name: true, stripeId: true } },
 		},
 	})
 	if (!recipient) {
@@ -51,11 +52,47 @@ export async function sendTextToRecipient({
 	if (!recipient.verified) {
 		return { status: 'error', error: 'Recipient not verified' }
 	}
+	if (!recipient.user.stripeId) {
+		return { status: 'error', error: 'Recipient has not subscribed' }
+	}
+	const products = await getCustomerProducts(recipient.user.stripeId)
+	const messageCountInLastTwentyThreeHours = await prisma.message.count({
+		where: {
+			recipient: { userId: recipient.user.id },
+			sentAt: { gte: new Date(Date.now() - 1000 * 60 * 60 * 23) },
+		},
+	})
+
+	const isPremium = products.includes('premium')
+	const limit = isPremium ? 10 : 1
+	if (messageCountInLastTwentyThreeHours >= limit) {
+		return {
+			status: 'error',
+			error: isPremium
+				? `You have reached the premium limit of ${limit} in 24 hours.`
+				: `You have reached the basic limit of ${limit} in 24 hours (upgrade for more).`,
+		}
+	}
+
+	const message = await prisma.message.findUnique({
+		where: { id: messageId },
+		select: { content: true },
+	})
+	if (!message) {
+		return { status: 'error', error: 'Message not found' }
+	}
 
 	const result = await sendText({
 		to: recipient.phoneNumber,
-		message: `${message}\n\n -${recipient.user.name}`,
+		message: `${message.content}\n\n -${recipient.user.name}`,
 	})
+	if (result.status === 'success') {
+		await prisma.message.update({
+			select: { id: true },
+			where: { id: messageId },
+			data: { sentAt: new Date(), twilioId: result.data.sid },
+		})
+	}
 	return result
 }
 

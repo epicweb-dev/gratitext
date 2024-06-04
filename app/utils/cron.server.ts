@@ -6,8 +6,8 @@
 import { remember } from '@epic-web/remember'
 import cronParser from 'cron-parser'
 import {
-	setIntervalAsync,
 	clearIntervalAsync,
+	setIntervalAsync,
 } from 'set-interval-async/dynamic'
 import { prisma } from './db.server.ts'
 import { sendText, sendTextToRecipient } from './text.server.ts'
@@ -28,7 +28,7 @@ export function init() {
 
 export async function sendNextTexts() {
 	const recipients = await prisma.recipient.findMany({
-		where: { verified: true },
+		where: { verified: true, user: { stripeId: { not: null } } },
 		select: {
 			id: true,
 			name: true,
@@ -72,7 +72,7 @@ export async function sendNextTexts() {
 	let reminderSentCount = 0
 	for (const { recipient, due, remind, prev } of messagesToSend) {
 		const nextMessage = await prisma.message.findFirst({
-			select: { id: true, content: true, updatedAt: true },
+			select: { id: true, updatedAt: true },
 			where: { recipientId: recipient.id, sentAt: null },
 			orderBy: { order: 'asc' },
 		})
@@ -101,12 +101,7 @@ export async function sendNextTexts() {
 		if (nextMessage && due && nextMessageWasReady && !tooLongOverdue) {
 			await sendTextToRecipient({
 				recipientId: recipient.id,
-				message: nextMessage.content,
-			})
-			await prisma.message.update({
-				select: { id: true },
-				where: { id: nextMessage.id },
-				data: { sentAt: new Date() },
+				messageId: nextMessage.id,
 			})
 			dueSentCount++
 		}

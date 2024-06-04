@@ -37,9 +37,11 @@ export function createPassword(password: string = faker.internet.password()) {
 }
 
 export function createMessage() {
+	const sentAt = Math.random() > 0.5 ? faker.date.recent() : undefined
 	return {
 		content: faker.lorem.sentence(),
-		sentAt: Math.random() > 0.5 ? faker.date.recent() : undefined,
+		sentAt,
+		twilioId: sentAt ? faker.string.uuid() : undefined,
 		order: faker.number.float({ min: 0, max: 100, multipleOf: 0.0000000001 }),
 	}
 }

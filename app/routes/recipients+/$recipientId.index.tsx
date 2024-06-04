@@ -136,6 +136,20 @@ async function sendMessageAction({ formData, userId }: MessageActionArgs) {
 			{ status: submission.status === 'error' ? 400 : 200 },
 		)
 	}
+	const { stripeId } = await prisma.user.findUniqueOrThrow({
+		where: { id: userId },
+		select: { stripeId: true },
+	})
+	if (!stripeId) {
+		return json(
+			{
+				result: submission.reply({
+					formErrors: ['Please subscribe in settings'],
+				}),
+			},
+			{ status: 400 },
+		)
+	}
 
 	const data = submission.value
 
@@ -143,7 +157,6 @@ async function sendMessageAction({ formData, userId }: MessageActionArgs) {
 		where: { id: data.id, recipient: { userId } },
 		select: {
 			id: true,
-			content: true,
 			recipient: { select: { id: true } },
 		},
 	})
@@ -154,16 +167,10 @@ async function sendMessageAction({ formData, userId }: MessageActionArgs) {
 	}
 
 	const response = await sendTextToRecipient({
-		message: message.content,
+		messageId: message.id,
 		recipientId: message.recipient.id,
 	})
-	if (response.status === 'success') {
-		await prisma.message.update({
-			where: { id: data.id, recipient: { userId } },
-			select: { id: true },
-			data: { sentAt: new Date() },
-		})
-	} else {
+	if (response.status === 'error') {
 		return json({
 			result: submission.reply({ formErrors: [response.error] }),
 		})
