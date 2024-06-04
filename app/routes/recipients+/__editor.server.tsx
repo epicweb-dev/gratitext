@@ -242,7 +242,7 @@ export async function sendVerificationAction({
 
 		await sendText({
 			to: recipient.phoneNumber,
-			message: `Hello ${recipient.name},\nYou have been added as a recipient to GratiText messages fom ${user.name ?? user.username} (${user.phoneNumber}). You can expect regular, thoughtful texts from them. First, we need to verify your number and get your consent. Please provide ${user.name ?? user.username} (${user.phoneNumber}) with the following code to provide your consent:\n\n${otp}.\n\nLearn more at https://www.GratiText.app.\n\nTo opt-out of all text messages from GratiText, reply STOP to this message.`,
+			message: `Hello ${recipient.name},\nYou have been added as a recipient to GratiText messages fom ${user.name ?? user.username} (${user.phoneNumber}). You can expect regular, thoughtful texts from them. First, we need to verify your number and get your consent. Please provide ${user.name ?? user.username} (${user.phoneNumber}) with the following code to provide your consent:\n\n${otp}\n\nLearn more at https://www.GratiText.app.\n\nTo opt-out of all text messages from GratiText, reply STOP to this message.`,
 		})
 
 		return redirect(redirectTo.toString())
