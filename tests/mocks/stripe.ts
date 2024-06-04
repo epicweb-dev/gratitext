@@ -5,7 +5,7 @@ import { requireHeader } from './utils.ts'
 const { json } = HttpResponse
 
 export const handlers: Array<HttpHandler> = [
-	http.post(
+	http.get(
 		`https://api.stripe.com/v1/checkout/sessions/:sessionId`,
 		async ({ request }) => {
 			requireHeader(request.headers, 'Authorization')
@@ -13,7 +13,7 @@ export const handlers: Array<HttpHandler> = [
 			return json({ customer: faker.string.uuid() })
 		},
 	),
-	http.post(`https://api.stripe.com/v1/subscriptions`, async ({ request }) => {
+	http.get(`https://api.stripe.com/v1/subscriptions`, async ({ request }) => {
 		requireHeader(request.headers, 'Authorization')
 
 		return json({

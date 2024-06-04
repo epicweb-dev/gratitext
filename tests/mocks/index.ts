@@ -1,8 +1,9 @@
 import closeWithGrace from 'close-with-grace'
 import { setupServer } from 'msw/node'
+import { handlers as stripeHandlers } from './stripe.ts'
 import { handlers as twilioHandlers } from './twilio.ts'
 
-export const server = setupServer(...twilioHandlers)
+export const server = setupServer(...twilioHandlers, ...stripeHandlers)
 
 server.listen({
 	onUnhandledRequest(request, print) {

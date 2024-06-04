@@ -5,10 +5,16 @@ import { sendNextTexts } from './cron.server.ts'
 import { prisma } from './db.server.ts'
 
 test('does not send any texts if there are none to be sent', async () => {
+	await prisma.sourceNumber.create({
+		data: { phoneNumber: faker.phone.number() },
+	})
 	await sendNextTexts()
 })
 
 test('does not send to unverified recipients', async () => {
+	await prisma.sourceNumber.create({
+		data: { phoneNumber: faker.phone.number() },
+	})
 	await prisma.user.create({
 		data: {
 			...createUser(),
@@ -34,9 +40,13 @@ test('does not send to unverified recipients', async () => {
 })
 
 test('sends a text if one is due', async () => {
+	await prisma.sourceNumber.create({
+		data: { phoneNumber: faker.phone.number() },
+	})
 	await prisma.user.create({
 		data: {
 			...createUser(),
+			stripeId: faker.string.uuid(),
 			recipients: {
 				create: [
 					{
@@ -60,10 +70,14 @@ test('sends a text if one is due', async () => {
 	const unsentMessages = await prisma.message.findMany({
 		where: { sentAt: null },
 	})
+	console.log(unsentMessages)
 	expect(unsentMessages).toHaveLength(0)
 })
 
 test(`does not send a text if it is too overdue`, async () => {
+	await prisma.sourceNumber.create({
+		data: { phoneNumber: faker.phone.number() },
+	})
 	await prisma.user.create({
 		data: {
 			...createUser(),
