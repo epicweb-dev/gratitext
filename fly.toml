@@ -13,6 +13,18 @@ auto_rollback = true
 source = "data"
 destination = "/data"
 
+[[statics]]
+  guest_path = "/myapp/build/client/assets"
+  url_prefix = "/assets"
+
+[[statics]]
+  guest_path = "/myapp/build/client/fonts"
+  url_prefix = "/fonts"
+
+[[statics]]
+  guest_path = "/myapp/build/client/favicons"
+  url_prefix = "/favicons"
+
 [[services]]
 internal_port = 8_080
 processes = [ "app" ]

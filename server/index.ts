@@ -144,7 +144,7 @@ const maxMultiple =
 	!IS_PROD || process.env.PLAYWRIGHT_TEST_BASE_URL ? 10_000 : 1
 const rateLimitDefault = {
 	windowMs: 60 * 1000,
-	max: 1000 * maxMultiple,
+	max: 500 * maxMultiple,
 	standardHeaders: true,
 	legacyHeaders: false,
 	// Fly.io prevents spoofing of X-Forwarded-For
@@ -155,13 +155,13 @@ const rateLimitDefault = {
 const strongestRateLimit = rateLimit({
 	...rateLimitDefault,
 	windowMs: 60 * 1000,
-	max: 10 * maxMultiple,
+	max: 7 * maxMultiple,
 })
 
 const strongRateLimit = rateLimit({
 	...rateLimitDefault,
 	windowMs: 60 * 1000,
-	max: 100 * maxMultiple,
+	max: 20 * maxMultiple,
 })
 
 const generalRateLimit = rateLimit(rateLimitDefault)
