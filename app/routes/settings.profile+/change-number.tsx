@@ -22,7 +22,7 @@ import { useIsPending } from '#app/utils/misc.tsx'
 import { sendText } from '#app/utils/text.server.js'
 import { PhoneNumberSchema } from '#app/utils/user-validation.ts'
 import { verifySessionStorage } from '#app/utils/verification.server.ts'
-import { type BreadcrumbHandle } from './profile.tsx'
+import { type BreadcrumbHandle } from './_layout.tsx'
 
 export const handle: BreadcrumbHandle & SEOHandle = {
 	breadcrumb: <Icon name="device-phone-mobile-outline">Change Number</Icon>,

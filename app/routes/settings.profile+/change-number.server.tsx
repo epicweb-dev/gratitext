@@ -8,7 +8,7 @@ import { prisma } from '#app/utils/db.server.ts'
 import { sendText } from '#app/utils/text.server.js'
 import { redirectWithToast } from '#app/utils/toast.server.ts'
 import { verifySessionStorage } from '#app/utils/verification.server.ts'
-import { newPhoneNumberSessionKey } from './profile.change-number'
+import { newPhoneNumberSessionKey } from './change-number'
 
 export async function handleVerification({
 	request,

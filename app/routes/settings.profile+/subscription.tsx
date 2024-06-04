@@ -7,7 +7,7 @@ import { Icon } from '#app/components/ui/icon.js'
 import { requireUserId } from '#app/utils/auth.server.js'
 import { prisma } from '#app/utils/db.server.js'
 import { getCustomerProducts } from '#app/utils/stripe.server.js'
-import { type BreadcrumbHandle } from './profile.tsx'
+import { type BreadcrumbHandle } from './_layout.tsx'
 
 export const handle: BreadcrumbHandle & SEOHandle = {
 	breadcrumb: <Icon name="banknotes-outline">Subscription</Icon>,
