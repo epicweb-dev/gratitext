@@ -1,3 +1,7 @@
 export default function SupportRoute() {
-	return <div>Support</div>
+	return (
+		<div className="container">
+			<h1 className="text-h1">Support</h1>
+		</div>
+	)
 }

@@ -217,15 +217,56 @@ function App() {
 						</div>
 					</nav>
 				</header>
-
 				<div className="flex-1">
 					<Outlet />
 				</div>
-
-				<div className="container flex justify-between pb-5">
-					<Logo />
+				<footer className="container flex items-center justify-between pb-5">
+					<div className="flex items-center">
+						<Logo />
+						<nav className="ml-4">
+							<ul className="flex space-x-4">
+								<li>
+									<Link
+										to="/about"
+										className="text-gray-600 hover:text-gray-900"
+									>
+										About
+									</Link>
+								</li>
+								<li>
+									<Link
+										to="/privacy"
+										className="text-gray-600 hover:text-gray-900"
+									>
+										Privacy
+									</Link>
+								</li>
+								<li>
+									<Link to="/tos" className="text-gray-600 hover:text-gray-900">
+										Terms of Service
+									</Link>
+								</li>
+								<li>
+									<Link
+										to="/support"
+										className="text-gray-600 hover:text-gray-900"
+									>
+										Support
+									</Link>
+								</li>
+								<li>
+									<Link
+										to="/contact"
+										className="text-gray-600 hover:text-gray-900"
+									>
+										Contact
+									</Link>
+								</li>
+							</ul>
+						</nav>
+					</div>
 					<ThemeSwitch userPreference={data.requestInfo.userPrefs.theme} />
-				</div>
+				</footer>{' '}
 			</div>
 			<EpicToaster closeButton position="top-center" theme={theme} />
 			<EpicProgress />
