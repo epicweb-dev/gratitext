@@ -43,7 +43,7 @@ export async function sendTextToRecipient({
 		select: {
 			phoneNumber: true,
 			verified: true,
-			user: { select: { id: true, name: true, stripeId: true } },
+			user: { select: { id: true, stripeId: true } },
 		},
 	})
 	if (!recipient) {
@@ -84,7 +84,7 @@ export async function sendTextToRecipient({
 
 	const result = await sendText({
 		to: recipient.phoneNumber,
-		message: `${message.content}\n\n -${recipient.user.name}`,
+		message: message.content,
 	})
 	if (result.status === 'success') {
 		await prisma.message.update({
