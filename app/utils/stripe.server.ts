@@ -11,7 +11,10 @@ export async function getCustomerIdFromSession(sessionId: string) {
 		`https://api.stripe.com/v1/checkout/sessions/${sessionId}`,
 		{ headers: { Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}` } },
 	)
-	invariantResponse(response.ok, 'Failed to retrieve session details')
+	if (!response.ok) {
+		console.error(await response.text())
+		throw new Error('Failed to retrieve session details')
+	}
 	const json = await response.json()
 
 	const result = SessionSchema.safeParse(json)
@@ -59,6 +62,7 @@ export async function getCustomerProducts(customerId: string) {
 				},
 			)
 			if (!response.ok) {
+				console.error(await response.text())
 				throw new Error('Failed to retrieve customer products')
 			}
 			const json = await response.json()
