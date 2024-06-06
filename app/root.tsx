@@ -42,6 +42,7 @@ import { getEnv } from './utils/env.server.ts'
 import { honeypot } from './utils/honeypot.server.ts'
 import { combineHeaders, getDomainUrl } from './utils/misc.tsx'
 import { useNonce } from './utils/nonce-provider.ts'
+import { getCustomerProducts } from './utils/stripe.server.ts'
 import { getTheme, type Theme } from './utils/theme.server.ts'
 import { makeTimings, time } from './utils/timing.server.ts'
 import { getToast } from './utils/toast.server.ts'
@@ -93,6 +94,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 							id: true,
 							name: true,
 							username: true,
+							stripeId: true,
 							roles: {
 								select: {
 									name: true,
@@ -119,6 +121,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	return json(
 		{
 			user,
+			isSubscribed: user?.stripeId
+				? Boolean((await getCustomerProducts(user.stripeId)).products.length)
+				: false,
 			requestInfo: {
 				hints: getHints(request),
 				origin: getDomainUrl(request),
@@ -208,7 +213,16 @@ function App() {
 						<Logo />
 						<div className="flex items-center gap-10">
 							{user ? (
-								<UserDropdown />
+								<div className="flex gap-4">
+									{data.isSubscribed ? null : (
+										<Button variant="outline" asChild>
+											<Link to="/settings/profile/subscription">
+												Start your free trial
+											</Link>
+										</Button>
+									)}
+									<UserDropdown />
+								</div>
 							) : (
 								<Button asChild variant="default" size="lg">
 									<Link to="/login">Log In</Link>
@@ -220,11 +234,11 @@ function App() {
 				<div className="flex-1">
 					<Outlet />
 				</div>
-				<footer className="container flex items-center justify-between pb-5">
-					<div className="flex items-center">
+				<footer className="container my-4 flex items-center justify-between pb-5">
+					<div className="flex items-center gap-4">
 						<Logo />
-						<nav className="ml-4">
-							<ul className="flex space-x-4">
+						<nav>
+							<ul className="flex list-none flex-col gap-2 md:flex-row md:gap-4">
 								<li>
 									<Link
 										to="/about"
