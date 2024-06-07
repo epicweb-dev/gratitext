@@ -53,9 +53,14 @@ export async function sendTextToRecipient({
 		return { status: 'error', error: 'Recipient not verified' }
 	}
 	if (!recipient.user.stripeId) {
-		return { status: 'error', error: 'Recipient has not subscribed' }
+		return { status: 'error', error: 'User not subscribed' }
 	}
-	const products = await getCustomerProducts(recipient.user.stripeId)
+	const { products, cancelAt } = await getCustomerProducts(
+		recipient.user.stripeId,
+	)
+	if (cancelAt && cancelAt < new Date().getTime()) {
+		return { status: 'error', error: 'Subscription expired' }
+	}
 	const messageCountInLastTwentyThreeHours = await prisma.message.count({
 		where: {
 			recipient: { userId: recipient.user.id },
