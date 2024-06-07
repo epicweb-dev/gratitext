@@ -105,6 +105,18 @@ export function RecipientEditor({
 						}}
 						errors={fields.phoneNumber.errors}
 					/>
+					<small className="text-body-xs">
+						The UX for this will be improved later, but for now you can use{' '}
+						<a
+							href="https://crontab.guru/"
+							className="underline"
+							target="_blank"
+							rel="noreferrer"
+						>
+							crontab.guru
+						</a>{' '}
+						to create a cron schedule
+					</small>
 					<Field
 						labelProps={{ children: 'Schedule Cron' }}
 						inputProps={{
