@@ -109,7 +109,7 @@ export default function SignupRoute() {
 			<div className="text-center">
 				<h1 className="text-h1">Let's start your journey!</h1>
 				<p className="mt-3 text-body-md text-muted-foreground">
-					Please enter your phone number.
+					Please enter your phone number along with your country code.
 				</p>
 			</div>
 			<div className="mx-auto mt-16 min-w-full max-w-sm sm:min-w-[368px]">
