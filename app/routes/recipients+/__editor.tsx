@@ -1,4 +1,9 @@
-import { getFormProps, getInputProps, useForm } from '@conform-to/react'
+import {
+	getFormProps,
+	getInputProps,
+	getSelectProps,
+	useForm,
+} from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { type Recipient } from '@prisma/client'
 import { type SerializeFrom } from '@remix-run/node'
@@ -6,7 +11,7 @@ import { Form, useActionData, useFetcher } from '@remix-run/react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { floatingToolbarClassName } from '#app/components/floating-toolbar.tsx'
-import { ErrorList, Field } from '#app/components/forms.tsx'
+import { ErrorList, Field, SelectField } from '#app/components/forms.tsx'
 import { Icon } from '#app/components/ui/icon.js'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { useDoubleCheck, useIsPending } from '#app/utils/misc.tsx'
@@ -34,8 +39,10 @@ export const DeleteRecipientSchema = z.object({
 })
 
 export function RecipientEditor({
+	supportedTimeZones,
 	recipient,
 }: {
+	supportedTimeZones: Array<string>
 	recipient?: SerializeFrom<
 		Pick<
 			Recipient,
@@ -105,10 +112,15 @@ export function RecipientEditor({
 						}}
 						errors={fields.scheduleCron.errors}
 					/>
-					<Field
+					<SelectField
 						labelProps={{ children: 'Time Zone' }}
-						inputProps={{
-							...getInputProps(fields.timeZone, { type: 'text' }),
+						selectProps={{
+							...getSelectProps(fields.timeZone),
+							children: supportedTimeZones.map(tz => (
+								<option key={tz} value={tz}>
+									{tz}
+								</option>
+							)),
 						}}
 						errors={fields.timeZone.errors}
 					/>

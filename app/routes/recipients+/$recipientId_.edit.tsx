@@ -30,7 +30,9 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 	})
 	invariantResponse(recipient, 'Not found', { status: 404 })
 
-	return json({ recipient })
+	const supportedTimeZones = Intl.supportedValuesOf('timeZone')
+
+	return json({ recipient, supportedTimeZones })
 }
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -44,7 +46,12 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 export default function NoteEdit() {
 	const data = useLoaderData<typeof loader>()
 
-	return <RecipientEditor recipient={data.recipient} />
+	return (
+		<RecipientEditor
+			recipient={data.recipient}
+			supportedTimeZones={data.supportedTimeZones}
+		/>
+	)
 }
 
 export function ErrorBoundary() {
