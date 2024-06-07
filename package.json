@@ -107,7 +107,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@epic-web/config": "^1.9.2",
+    "@epic-web/config": "^1.10.0",
     "@faker-js/faker": "^8.4.1",
     "@playwright/test": "^1.44.1",
     "@remix-run/dev": "2.9.2",
