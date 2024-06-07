@@ -1,10 +1,12 @@
 import { type MetaFunction } from '@remix-run/node'
 import { Link } from '@remix-run/react'
 import { Button } from '#app/components/ui/button.js'
+import { useOptionalUser } from '#app/utils/user.js'
 
 export const meta: MetaFunction = () => [{ title: 'GratiText' }]
 
 export default function Index() {
+	const user = useOptionalUser()
 	return (
 		<main className="bg-gray-100 py-12">
 			<section className="container mx-auto px-4">
@@ -115,7 +117,11 @@ export default function Index() {
 				</div>
 				<div className="mt-12 text-center">
 					<Button asChild>
-						<Link to="/login">Get Started</Link>
+						{user ? (
+							<Link to="/recipients">Your Recipients</Link>
+						) : (
+							<Link to="/login">Get Started</Link>
+						)}
 					</Button>
 				</div>
 			</section>
