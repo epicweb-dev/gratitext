@@ -80,7 +80,8 @@ export async function prepareVerification({
 	request,
 	type,
 	target,
-	charSet = 'ABCDEFGHIJKLMNPQRSTUVWXYZ123456789',
+	// this intentionally leaves out 0, O, and I
+	charSet = 'ABCDEFGHJKLMNPQRSTUVWXYZ123456789',
 }: {
 	period: number
 	request: Request
