@@ -17,6 +17,7 @@ type GetOrInsertUserOptions = {
 	username?: UserModel['username']
 	password?: string
 	phoneNumber?: UserModel['phoneNumber']
+	stripeId?: string
 }
 
 type User = {
@@ -31,6 +32,7 @@ async function getOrInsertUser({
 	username,
 	password,
 	phoneNumber,
+	stripeId,
 }: GetOrInsertUserOptions = {}): Promise<User> {
 	const select = { id: true, phoneNumber: true, username: true, name: true }
 	if (id) {
@@ -49,6 +51,7 @@ async function getOrInsertUser({
 				...userData,
 				phoneNumber,
 				username,
+				stripeId,
 				roles: { connect: { name: 'user' } },
 				password: { create: { hash: await getPasswordHash(password) } },
 			},
@@ -107,7 +110,7 @@ export const { expect } = test
 export async function waitFor<ReturnValue>(
 	cb: () => ReturnValue | Promise<ReturnValue>,
 	{
-		errorMessage,
+		errorMessage = 'waitFor call timed out',
 		timeout = 5000,
 	}: { errorMessage?: string; timeout?: number } = {},
 ) {

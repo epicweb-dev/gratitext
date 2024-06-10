@@ -20,6 +20,7 @@ import { formatSendTime, getSendTime } from '#app/utils/cron.server.js'
 import { prisma } from '#app/utils/db.server.ts'
 import { useDoubleCheck } from '#app/utils/misc.js'
 import { sendTextToRecipient } from '#app/utils/text.server.js'
+import { createToastHeaders } from '#app/utils/toast.server.js'
 
 type FutureMessage = SerializeFrom<typeof loader>['futureMessages'][number]
 
@@ -181,7 +182,17 @@ async function sendMessageAction({ formData, userId }: MessageActionArgs) {
 		data: { sentAt: new Date() },
 	})
 
-	return json({ result: submission.reply() }, { status: 200 })
+	return json(
+		{ result: submission.reply() },
+		{
+			status: 200,
+			headers: await createToastHeaders({
+				type: 'success',
+				title: 'Message sent',
+				description: 'Your message has been sent',
+			}),
+		},
+	)
 }
 
 const DeleteMessageSchema = z.object({ id: z.string() })

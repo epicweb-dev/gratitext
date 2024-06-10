@@ -59,10 +59,13 @@ test('onboarding with link', async ({ page, getOnboardingData }) => {
 	).toBeVisible()
 	await expect(page.getByText(/check your texts/i)).toBeVisible()
 
+	const sourceNumber = await prisma.sourceNumber.findFirstOrThrow({
+		select: { phoneNumber: true },
+	})
 	const textMessage = await readText(onboardingData.phoneNumber)
 	invariant(textMessage, 'Text message not found')
 	expect(textMessage.To).toBe(onboardingData.phoneNumber.toLowerCase())
-	expect(textMessage.From).toBe('555-555-5555')
+	expect(textMessage.From).toBe(sourceNumber.phoneNumber)
 	expect(textMessage.Body).toMatch(/welcome/i)
 	const onboardingUrl = extractUrl(textMessage.Body)
 	invariant(onboardingUrl, 'Onboarding URL not found')
@@ -121,10 +124,13 @@ test('onboarding with a short code', async ({ page, getOnboardingData }) => {
 	).toBeVisible()
 	await expect(page.getByText(/Check your texts/i)).toBeVisible()
 
+	const sourceNumber = await prisma.sourceNumber.findFirstOrThrow({
+		select: { phoneNumber: true },
+	})
 	const textMessage = await readText(onboardingData.phoneNumber)
 	invariant(textMessage, 'Text message not found')
 	expect(textMessage.To).toBe(onboardingData.phoneNumber)
-	expect(textMessage.From).toBe('555-555-5555')
+	expect(textMessage.From).toBe(sourceNumber.phoneNumber)
 	expect(textMessage.Body).toMatch(/welcome/i)
 	const codeMatch = textMessage.Body.match(CODE_REGEX)
 	const code = codeMatch?.groups?.code
@@ -167,11 +173,14 @@ test('reset password with a link', async ({ page, insertNewUser }) => {
 	).toBeVisible()
 	await expect(page.getByText(/check your texts/i)).toBeVisible()
 
+	const sourceNumber = await prisma.sourceNumber.findFirstOrThrow({
+		select: { phoneNumber: true },
+	})
 	const textMessage = await readText(user.phoneNumber)
 	invariant(textMessage, 'Text message not found')
 	expect(textMessage.Body).toMatch(/password reset/i)
 	expect(textMessage.To).toBe(user.phoneNumber)
-	expect(textMessage.From).toBe('555-555-5555')
+	expect(textMessage.From).toBe(sourceNumber.phoneNumber)
 	const resetPasswordUrl = extractUrl(textMessage.Body)
 	invariant(resetPasswordUrl, 'Reset password URL not found')
 	await page.goto(resetPasswordUrl)
@@ -225,11 +234,14 @@ test('reset password with a short code', async ({ page, insertNewUser }) => {
 	).toBeVisible()
 	await expect(page.getByText(/Check your texts/i)).toBeVisible()
 
+	const sourceNumber = await prisma.sourceNumber.findFirstOrThrow({
+		select: { phoneNumber: true },
+	})
 	const textMessage = await readText(user.phoneNumber)
 	invariant(textMessage, 'Text message not found')
 	expect(textMessage.Body).toMatch(/password reset/i)
 	expect(textMessage.To).toBe(user.phoneNumber)
-	expect(textMessage.From).toBe('555-555-5555')
+	expect(textMessage.From).toBe(sourceNumber.phoneNumber)
 	const codeMatch = textMessage.Body.match(CODE_REGEX)
 	const code = codeMatch?.groups?.code
 	invariant(code, 'Reset Password code not found')
