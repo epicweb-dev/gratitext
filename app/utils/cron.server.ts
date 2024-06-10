@@ -52,7 +52,7 @@ export async function sendNextTexts() {
 			const lastSent = new Date(lastMessage?.sentAt ?? 0)
 			const prev = interval.prev().toDate()
 			const next = interval.next().toDate()
-			const nextIsSoon = next.getTime() - Date.now() < 1000 * 60 * 10
+			const nextIsSoon = next.getTime() - Date.now() < 1000 * 60 * 30
 			const due = lastSent < prev
 			const remind =
 				nextIsSoon && (lastRemindedAt?.getTime() ?? 0) < prev.getTime()
