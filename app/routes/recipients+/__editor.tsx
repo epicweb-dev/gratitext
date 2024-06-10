@@ -52,6 +52,7 @@ export function RecipientEditor({
 }) {
 	const actionData = useActionData<typeof usertRecipientAction>()
 	const isPending = useIsPending()
+	const needsVerification = recipient?.verified === false
 
 	const [form, fields] = useForm({
 		id: 'recipient-editor',
@@ -67,9 +68,21 @@ export function RecipientEditor({
 	return (
 		<div className="absolute inset-0">
 			<div className="flex justify-end gap-2 p-6">
-				{recipient && !recipient.verified ? <VerifyForm /> : null}
+				{needsVerification ? <VerifyForm /> : null}
 				{recipient?.id ? <DeleteRecipient id={recipient.id} /> : null}
 			</div>
+			{needsVerification ? (
+				<div className="px-6">
+					<strong className="font-bold text-destructive">
+						Verification required
+					</strong>
+					<p>
+						When you click "Verify" above, it will send a text message with a
+						verification code to {recipient?.phoneNumber} (their phone number).
+						You will be required to enter their code in the next step.
+					</p>
+				</div>
+			) : null}
 			<Form
 				method="POST"
 				className="flex h-full flex-col gap-y-4 overflow-y-auto overflow-x-hidden px-10 pb-28 pt-12"

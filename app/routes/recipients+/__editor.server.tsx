@@ -95,7 +95,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
 export async function usertRecipientAction({
 	formData,
 	userId,
-	request,
 	recipient,
 }: Pick<RecipientActionArgs, 'formData' | 'request' | 'userId'> & {
 	recipient: RecipientActionArgs['recipient'] | null
@@ -128,7 +127,6 @@ export async function usertRecipientAction({
 
 	if (recipientId) {
 		invariantResponse(recipient, 'Recipient not found')
-		const verified = phoneNumber === recipient?.phoneNumber
 		const updatedRecipient = await prisma.recipient.update({
 			select: { id: true },
 			where: { id: recipientId },
@@ -143,14 +141,10 @@ export async function usertRecipientAction({
 				timeZone,
 			},
 		})
-		if (verified) {
-			return redirect(`/recipients/${updatedRecipient.id}`)
-		} else {
-			return sendVerificationAction({ formData, userId, request, recipient })
-		}
+		return redirect(`/recipients/${updatedRecipient.id}`)
 	} else {
-		recipient = await prisma.recipient.create({
-			select: { id: true, name: true, phoneNumber: true, verified: true },
+		const newRecipient = await prisma.recipient.create({
+			select: { id: true },
 			data: {
 				name,
 				phoneNumber,
@@ -161,7 +155,12 @@ export async function usertRecipientAction({
 			},
 		})
 
-		return sendVerificationAction({ formData, userId, request, recipient })
+		return redirectWithToast(`/recipients/${newRecipient.id}/edit`, {
+			type: 'success',
+			title: 'Recipient created',
+			description:
+				'Your recipient has been created. You must verify them before sending messages.',
+		})
 	}
 }
 
