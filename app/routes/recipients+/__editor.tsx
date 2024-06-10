@@ -67,7 +67,7 @@ export function RecipientEditor({
 	return (
 		<div className="absolute inset-0">
 			<div className="flex justify-end gap-2 p-6">
-				{recipient?.verified ? null : <VerifyForm />}
+				{recipient && !recipient.verified ? <VerifyForm /> : null}
 				{recipient?.id ? <DeleteRecipient id={recipient.id} /> : null}
 			</div>
 			<Form
