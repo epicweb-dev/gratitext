@@ -2,8 +2,8 @@ import { invariant } from '@epic-web/invariant'
 import { faker } from '@faker-js/faker'
 import { verifyUserPassword } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
-import { readText } from '#tests/mocks/utils.ts'
-import { expect, test, createUser, waitFor } from '#tests/playwright-utils.ts'
+import { waitForText } from '#tests/mocks/utils.ts'
+import { createUser, expect, test } from '#tests/playwright-utils.ts'
 
 const CODE_REGEX = /Here's your verification code: (?<code>[\d\w]+)/
 
@@ -63,7 +63,7 @@ test('Users can change their phone number', async ({ page, login }) => {
 		.fill(newPhoneNumber)
 	await page.getByRole('button', { name: /send confirmation/i }).click()
 	await expect(page.getByText(/check your texts/i)).toBeVisible()
-	const text = await waitFor(() => readText(newPhoneNumber), {
+	const text = await waitForText(newPhoneNumber, {
 		errorMessage: 'Confirmation text message was not sent',
 	})
 	invariant(text, 'Text was not sent')
@@ -80,7 +80,7 @@ test('Users can change their phone number', async ({ page, login }) => {
 	})
 	invariant(updatedUser, 'Updated user not found')
 	expect(updatedUser.phoneNumber).toBe(newPhoneNumber)
-	const noticeText = await waitFor(() => readText(preUpdateUser.phoneNumber), {
+	const noticeText = await waitForText(preUpdateUser.phoneNumber, {
 		errorMessage: 'Notice text was not sent',
 	})
 	expect(noticeText.Body).toContain('changed')

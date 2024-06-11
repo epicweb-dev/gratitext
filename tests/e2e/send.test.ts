@@ -1,12 +1,11 @@
-import { invariant } from '@epic-web/invariant'
 import { faker } from '@faker-js/faker'
 import { prisma } from '#app/utils/db.server.ts'
-import { readText } from '#tests/mocks/utils.ts'
+import { waitForText } from '#tests/mocks/utils.ts'
 import {
+	createMessage,
+	createRecipient,
 	expect,
 	test,
-	createRecipient,
-	createMessage,
 	waitFor,
 } from '#tests/playwright-utils.ts'
 
@@ -48,8 +47,7 @@ test('Users can write and send a message immediately', async ({
 	const sourceNumber = await prisma.sourceNumber.findFirstOrThrow({
 		select: { phoneNumber: true },
 	})
-	const textMessage = await readText(recipient.phoneNumber)
-	invariant(textMessage, 'Text message not found')
+	const textMessage = await waitForText(recipient.phoneNumber)
 	expect(textMessage.To).toBe(recipient.phoneNumber)
 	expect(textMessage.From).toBe(sourceNumber.phoneNumber)
 
@@ -116,8 +114,7 @@ test('Scheduled messages go out on schedule', async ({ page, login }) => {
 	const sourceNumber = await prisma.sourceNumber.findFirstOrThrow({
 		select: { phoneNumber: true },
 	})
-	const textMessage = await readText(recipient.phoneNumber)
-	invariant(textMessage, 'Text message not found')
+	const textMessage = await waitForText(recipient.phoneNumber)
 	expect(textMessage.To).toBe(recipient.phoneNumber)
 	expect(textMessage.From).toBe(sourceNumber.phoneNumber)
 

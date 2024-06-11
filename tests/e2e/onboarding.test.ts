@@ -1,8 +1,8 @@
 import { invariant } from '@epic-web/invariant'
 import { faker } from '@faker-js/faker'
 import { prisma } from '#app/utils/db.server.ts'
-import { readText } from '#tests/mocks/utils.ts'
-import { createUser, expect, test as base } from '#tests/playwright-utils.ts'
+import { waitForText } from '#tests/mocks/utils.ts'
+import { test as base, createUser, expect } from '#tests/playwright-utils.ts'
 
 const URL_REGEX = /(?<url>https?:\/\/[^\s$.?#].[^\s]*)/
 const CODE_REGEX = /code: (?<code>[\d\w]+)/
@@ -62,8 +62,7 @@ test('onboarding with link', async ({ page, getOnboardingData }) => {
 	const sourceNumber = await prisma.sourceNumber.findFirstOrThrow({
 		select: { phoneNumber: true },
 	})
-	const textMessage = await readText(onboardingData.phoneNumber)
-	invariant(textMessage, 'Text message not found')
+	const textMessage = await waitForText(onboardingData.phoneNumber)
 	expect(textMessage.To).toBe(onboardingData.phoneNumber.toLowerCase())
 	expect(textMessage.From).toBe(sourceNumber.phoneNumber)
 	expect(textMessage.Body).toMatch(/welcome/i)
@@ -127,8 +126,9 @@ test('onboarding with a short code', async ({ page, getOnboardingData }) => {
 	const sourceNumber = await prisma.sourceNumber.findFirstOrThrow({
 		select: { phoneNumber: true },
 	})
-	const textMessage = await readText(onboardingData.phoneNumber)
-	invariant(textMessage, 'Text message not found')
+	const textMessage = await waitForText(onboardingData.phoneNumber, {
+		errorMessage: 'Onboarding code not found',
+	})
 	expect(textMessage.To).toBe(onboardingData.phoneNumber)
 	expect(textMessage.From).toBe(sourceNumber.phoneNumber)
 	expect(textMessage.Body).toMatch(/welcome/i)
@@ -176,8 +176,7 @@ test('reset password with a link', async ({ page, insertNewUser }) => {
 	const sourceNumber = await prisma.sourceNumber.findFirstOrThrow({
 		select: { phoneNumber: true },
 	})
-	const textMessage = await readText(user.phoneNumber)
-	invariant(textMessage, 'Text message not found')
+	const textMessage = await waitForText(user.phoneNumber)
 	expect(textMessage.Body).toMatch(/password reset/i)
 	expect(textMessage.To).toBe(user.phoneNumber)
 	expect(textMessage.From).toBe(sourceNumber.phoneNumber)
@@ -237,8 +236,7 @@ test('reset password with a short code', async ({ page, insertNewUser }) => {
 	const sourceNumber = await prisma.sourceNumber.findFirstOrThrow({
 		select: { phoneNumber: true },
 	})
-	const textMessage = await readText(user.phoneNumber)
-	invariant(textMessage, 'Text message not found')
+	const textMessage = await waitForText(user.phoneNumber)
 	expect(textMessage.Body).toMatch(/password reset/i)
 	expect(textMessage.To).toBe(user.phoneNumber)
 	expect(textMessage.From).toBe(sourceNumber.phoneNumber)

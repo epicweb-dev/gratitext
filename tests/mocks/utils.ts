@@ -1,7 +1,9 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import filenamify from 'filenamify'
 import fsExtra from 'fs-extra'
 import { z } from 'zod'
+import { waitFor } from '#tests/playwright-utils.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const fixturesDirPath = path.join(__dirname, '..', 'fixtures')
@@ -28,7 +30,7 @@ export const TextMessageSchema = z.object({
 
 export async function writeText(rawText: unknown) {
 	const textMessage = TextMessageSchema.parse(rawText)
-	await createFixture('texts', textMessage.To, textMessage)
+	await createFixture('texts', filenamify(textMessage.To), textMessage)
 	return textMessage
 }
 
@@ -40,12 +42,18 @@ export async function requireText(recipient: string) {
 
 export async function readText(recipient: string) {
 	try {
-		const textMessage = await readFixture('texts', recipient)
+		const textMessage = await readFixture('texts', filenamify(recipient))
 		return TextMessageSchema.parse(textMessage)
-	} catch (error) {
-		console.error(`Error reading text message to ${recipient}`, error)
+	} catch {
 		return null
 	}
+}
+
+export async function waitForText(
+	recipient: string,
+	options: Parameters<typeof waitFor>[1] = {},
+) {
+	return waitFor(() => requireText(recipient), options)
 }
 
 export function requireHeader(headers: Headers, header: string) {
