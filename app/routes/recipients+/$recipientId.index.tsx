@@ -88,11 +88,6 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 	})
 }
 
-const UpdateMessageContentSchema = z.object({
-	id: z.string(),
-	content: z.string().min(1).max(5000),
-})
-
 type MessageActionArgs = {
 	request: Request
 	userId: string
@@ -102,7 +97,8 @@ type MessageActionArgs = {
 
 const sendMessageActionIntent = 'send-message'
 const deleteMessageActionIntent = 'delete-message'
-const updateMessageActionIntent = 'update-message'
+const updateMessageOrderActionIntent = 'update-order-message'
+const updateMessageContentActionIntent = 'update-content-message'
 
 export async function action({ request, params }: ActionFunctionArgs) {
 	const userId = await requireUserId(request)
@@ -117,8 +113,21 @@ export async function action({ request, params }: ActionFunctionArgs) {
 		case deleteMessageActionIntent: {
 			return deleteMessageAction({ request, userId, recipientId, formData })
 		}
-		case updateMessageActionIntent: {
-			return updateMessageAction({ request, userId, recipientId, formData })
+		case updateMessageContentActionIntent: {
+			return updateMessageContentAction({
+				request,
+				userId,
+				recipientId,
+				formData,
+			})
+		}
+		case updateMessageOrderActionIntent: {
+			return updateMessageOrderAction({
+				request,
+				userId,
+				recipientId,
+				formData,
+			})
 		}
 		default: {
 			throw new Response(`Invalid intent "${intent}"`, { status: 400 })
@@ -212,11 +221,34 @@ async function deleteMessageAction({ formData }: MessageActionArgs) {
 	return json({ result: submission.reply() }, { status: 200 })
 }
 
+const UpdateMessageContentSchema = z.object({
+	id: z.string(),
+	content: z.string().min(1).max(5000),
+})
+async function updateMessageContentAction({ formData }: MessageActionArgs) {
+	const submission = parseWithZod(formData, {
+		schema: UpdateMessageContentSchema,
+	})
+	if (submission.status !== 'success') {
+		return json(
+			{ result: submission.reply() },
+			{ status: submission.status === 'error' ? 400 : 200 },
+		)
+	}
+
+	const data = submission.value
+	await prisma.message.update({
+		where: { id: data.id },
+		data: { content: data.content },
+	})
+	return json({ result: submission.reply() }, { status: 200 })
+}
+
 const UpdateMessageOrderSchema = z.object({
 	id: z.string(),
 	order: z.number().min(0),
 })
-async function updateMessageAction({ formData }: MessageActionArgs) {
+async function updateMessageOrderAction({ formData }: MessageActionArgs) {
 	const submission = parseWithZod(formData, {
 		schema: UpdateMessageOrderSchema,
 	})
@@ -258,7 +290,7 @@ export default function RecipientRoute() {
 }
 
 function MessageForms({ message }: { message: FutureMessage }) {
-	const updateContentFetcher = useFetcher<typeof updateMessageAction>()
+	const updateContentFetcher = useFetcher<typeof updateMessageContentAction>()
 	const [updateContentForm, updateContentFields] = useForm({
 		id: `message-form-${message.id}`,
 		constraint: getZodConstraint(UpdateMessageContentSchema),
@@ -302,7 +334,7 @@ function MessageForms({ message }: { message: FutureMessage }) {
 						className="w-full"
 						type="submit"
 						name="intent"
-						value={updateMessageActionIntent}
+						value={updateMessageContentActionIntent}
 					>
 						Save
 					</StatusButton>
@@ -325,7 +357,7 @@ function UpdateOrderForm({
 	message: Pick<FutureMessage, 'id' | 'order' | 'laterOrder' | 'earlierOrder'>
 	direction: 'later' | 'earlier'
 }) {
-	const fetcher = useFetcher<typeof updateMessageAction>()
+	const fetcher = useFetcher<typeof updateMessageOrderAction>()
 	const [form, fields] = useForm({
 		id: `message-earlier-form-${message.id}`,
 		constraint: getZodConstraint(UpdateMessageOrderSchema),
@@ -357,7 +389,7 @@ function UpdateOrderForm({
 					status={fetcher.state !== 'idle' ? 'pending' : 'idle'}
 					type="submit"
 					name="intent"
-					value={updateMessageActionIntent}
+					value={updateMessageOrderActionIntent}
 				>
 					{direction === 'later' ? (
 						<Icon size="lg" name="chevron-down" />
