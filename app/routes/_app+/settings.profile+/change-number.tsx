@@ -15,7 +15,7 @@ import { StatusButton } from '#app/components/ui/status-button.tsx'
 import {
 	prepareVerification,
 	requireRecentVerification,
-} from '#app/routes/_auth+/verify.server.ts'
+} from '#app/routes/_app+/_auth+/verify.server.ts'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { useIsPending } from '#app/utils/misc.tsx'

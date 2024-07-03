@@ -6,34 +6,22 @@ import {
 	type MetaFunction,
 } from '@remix-run/node'
 import {
-	Form,
-	Link,
 	Links,
 	Meta,
 	Outlet,
 	Scripts,
 	ScrollRestoration,
 	useLoaderData,
-	useSubmit,
 } from '@remix-run/react'
 import { withSentry } from '@sentry/remix'
-import { useRef } from 'react'
 import { HoneypotProvider } from 'remix-utils/honeypot/react'
 import { GeneralErrorBoundary } from './components/error-boundary.tsx'
 import { EpicProgress } from './components/progress-bar.tsx'
 import { useToast } from './components/toaster.tsx'
-import { Button } from './components/ui/button.tsx'
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuPortal,
-	DropdownMenuTrigger,
-} from './components/ui/dropdown-menu.tsx'
-import { Icon, href as iconsHref } from './components/ui/icon.tsx'
+import { href as iconsHref } from './components/ui/icon.tsx'
 import { EpicToaster } from './components/ui/sonner.tsx'
 import { TooltipProvider } from './components/ui/tooltip.tsx'
-import { ThemeSwitch, useTheme } from './routes/resources+/theme-switch.tsx'
+import { useTheme } from './routes/resources+/theme-switch.tsx'
 import tailwindStyleSheetUrl from './styles/tailwind.css?url'
 import { getUserId, logout } from './utils/auth.server.ts'
 import { ClientHintCheck, getHints } from './utils/client-hints.tsx'
@@ -42,11 +30,9 @@ import { getEnv } from './utils/env.server.ts'
 import { honeypot } from './utils/honeypot.server.ts'
 import { combineHeaders, getDomainUrl } from './utils/misc.tsx'
 import { useNonce } from './utils/nonce-provider.ts'
-import { getCustomerProducts } from './utils/stripe.server.ts'
 import { getTheme, type Theme } from './utils/theme.server.ts'
 import { makeTimings, time } from './utils/timing.server.ts'
 import { getToast } from './utils/toast.server.ts'
-import { useOptionalUser, useUser } from './utils/user.ts'
 
 export const links: LinksFunction = () => {
 	return [
@@ -121,9 +107,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	return json(
 		{
 			user,
-			isSubscribed: user?.stripeId
-				? Boolean((await getCustomerProducts(user.stripeId)).products.length)
-				: false,
 			requestInfo: {
 				hints: getHints(request),
 				origin: getDomainUrl(request),
@@ -195,7 +178,6 @@ function Document({
 function App() {
 	const data = useLoaderData<typeof loader>()
 	const nonce = useNonce()
-	const user = useOptionalUser()
 	const theme = useTheme()
 	const allowIndexing = data.ENV.ALLOW_INDEXING !== 'false'
 	useToast(data.toast)
@@ -207,89 +189,11 @@ function App() {
 			allowIndexing={allowIndexing}
 			env={data.ENV}
 		>
-			<div className="flex h-screen flex-col justify-between">
-				<header className="container py-6">
-					<nav className="flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8">
-						<Logo />
-						<div className="flex items-center gap-10">
-							{user ? (
-								<div className="flex gap-4">
-									{data.isSubscribed ? null : (
-										<Button variant="outline" asChild>
-											<Link to="/settings/profile/subscription">
-												Start your free trial
-											</Link>
-										</Button>
-									)}
-									<UserDropdown />
-								</div>
-							) : (
-								<Button asChild variant="default" size="lg">
-									<Link to="/login">Log In</Link>
-								</Button>
-							)}
-						</div>
-					</nav>
-				</header>
-				<div className="flex-1">
-					<Outlet />
-				</div>
-				<footer className="container my-4 flex items-center justify-between pb-5">
-					<div className="flex items-center gap-4">
-						<Logo />
-						<nav>
-							<ul className="flex list-none flex-col gap-2 md:flex-row md:gap-4">
-								<li>
-									<Link
-										to="/about"
-										className="text-gray-600 hover:text-gray-900"
-									>
-										About
-									</Link>
-								</li>
-								<li>
-									<Link
-										to="/privacy"
-										className="text-gray-600 hover:text-gray-900"
-									>
-										Privacy
-									</Link>
-								</li>
-								<li>
-									<Link to="/tos" className="text-gray-600 hover:text-gray-900">
-										Terms of Service
-									</Link>
-								</li>
-								<li>
-									<Link
-										to="/support"
-										className="text-gray-600 hover:text-gray-900"
-									>
-										Support
-									</Link>
-								</li>
-								<li>
-									<Link
-										to="/contact"
-										className="text-gray-600 hover:text-gray-900"
-									>
-										Contact
-									</Link>
-								</li>
-							</ul>
-						</nav>
-					</div>
-					<ThemeSwitch userPreference={data.requestInfo.userPrefs.theme} />
-				</footer>{' '}
-			</div>
+			<Outlet />
 			<EpicToaster closeButton position="top-center" theme={theme} />
 			<EpicProgress />
 		</Document>
 	)
-}
-
-function Logo() {
-	return <Link to="/">GratiText</Link>
 }
 
 function AppWithProviders() {
@@ -304,62 +208,6 @@ function AppWithProviders() {
 }
 
 export default withSentry(AppWithProviders)
-
-function UserDropdown() {
-	const user = useUser()
-	const submit = useSubmit()
-	const formRef = useRef<HTMLFormElement>(null)
-	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
-				<Button asChild variant="secondary">
-					<Link
-						to={`/users/${user.username}`}
-						// this is for progressive enhancement
-						onClick={e => e.preventDefault()}
-						className="flex items-center gap-2"
-					>
-						<span className="text-body-sm font-bold">
-							{user.name ?? user.username}
-						</span>
-					</Link>
-				</Button>
-			</DropdownMenuTrigger>
-			<DropdownMenuPortal>
-				<DropdownMenuContent sideOffset={8} align="start">
-					<DropdownMenuItem asChild>
-						<Link prefetch="intent" to={`/users/${user.username}`}>
-							<Icon className="text-body-md" name="avatar">
-								Profile
-							</Icon>
-						</Link>
-					</DropdownMenuItem>
-					<DropdownMenuItem asChild>
-						<Link prefetch="intent" to={`/recipients`}>
-							<Icon className="text-body-md" name="pencil-2">
-								Recipients
-							</Icon>
-						</Link>
-					</DropdownMenuItem>
-					<DropdownMenuItem
-						asChild
-						// this prevents the menu from closing before the form submission is completed
-						onSelect={event => {
-							event.preventDefault()
-							submit(formRef.current)
-						}}
-					>
-						<Form action="/logout" method="POST" ref={formRef}>
-							<Icon className="text-body-md" name="exit">
-								<button type="submit">Logout</button>
-							</Icon>
-						</Form>
-					</DropdownMenuItem>
-				</DropdownMenuContent>
-			</DropdownMenuPortal>
-		</DropdownMenu>
-	)
-}
 
 export function ErrorBoundary() {
 	// the nonce doesn't rely on the loader so we can access that
