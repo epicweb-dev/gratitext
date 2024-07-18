@@ -21,7 +21,7 @@ const ABORT_DELAY = 5000
 initEnv()
 global.ENV = getEnv()
 
-initCron()
+void initCron()
 
 type DocRequestArgs = Parameters<HandleDocumentRequestFunction>
 

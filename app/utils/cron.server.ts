@@ -16,12 +16,12 @@ const cronIntervalRef = remember<{
 	current: ReturnType<typeof setIntervalAsync> | null
 }>('cronInterval', () => ({ current: null }))
 
-export function init() {
+export async function init() {
 	console.log('initializing cron interval')
-	if (cronIntervalRef.current) clearIntervalAsync(cronIntervalRef.current)
+	if (cronIntervalRef.current) await clearIntervalAsync(cronIntervalRef.current)
 
 	cronIntervalRef.current = setIntervalAsync(
-		() => sendNextTexts().catch(err => console.error(err)),
+		() => sendNextTexts().catch((err) => console.error(err)),
 		1000 * 5,
 	)
 }
@@ -43,7 +43,7 @@ export async function sendNextTexts() {
 	})
 
 	const messagesToSend = recipients
-		.map(recipient => {
+		.map((recipient) => {
 			const { scheduleCron, messages, lastRemindedAt } = recipient
 			const lastMessage = messages[0]
 			const interval = cronParser.parseExpression(scheduleCron, {
@@ -64,7 +64,7 @@ export async function sendNextTexts() {
 				prev,
 			}
 		})
-		.filter(r => r.due || r.remind)
+		.filter((r) => r.due || r.remind)
 
 	if (!messagesToSend.length) return
 
