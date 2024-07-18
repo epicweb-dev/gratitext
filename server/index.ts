@@ -1,7 +1,6 @@
 import crypto from 'crypto'
-import { createRequestHandler as _createRequestHandler } from '@remix-run/express'
+import { createRequestHandler } from '@remix-run/express'
 import { type ServerBuild, installGlobals } from '@remix-run/node'
-import * as Sentry from '@sentry/remix'
 import { ip as ipAddress } from 'address'
 import chalk from 'chalk'
 import closeWithGrace from 'close-with-grace'
@@ -19,13 +18,13 @@ const IS_PROD = MODE === 'production'
 const IS_DEV = MODE === 'development'
 const ALLOW_INDEXING = process.env.ALLOW_INDEXING !== 'false'
 
-const createRequestHandler = IS_PROD
-	? Sentry.wrapExpressCreateRequestHandler(_createRequestHandler)
-	: _createRequestHandler
+if (IS_PROD && process.env.SENTRY_DSN) {
+	void import('./utils/monitoring.js').then(({ init }) => init())
+}
 
 const viteDevServer = IS_PROD
 	? undefined
-	: await import('vite').then(vite =>
+	: await import('vite').then((vite) =>
 			vite.createServer({
 				server: { middlewareMode: true },
 			}),
@@ -88,7 +87,7 @@ app.get(['/img/*', '/favicons/*'], (_req, res) => {
 	return res.status(404).send('Not found')
 })
 
-morgan.token('url', req => decodeURIComponent(req.url ?? ''))
+morgan.token('url', (req) => decodeURIComponent(req.url ?? ''))
 app.use(
 	morgan('tiny', {
 		skip: (req, res) =>
@@ -147,9 +146,14 @@ const rateLimitDefault = {
 	max: 500 * maxMultiple,
 	standardHeaders: true,
 	legacyHeaders: false,
-	// Fly.io prevents spoofing of X-Forwarded-For
-	// so no need to validate the trustProxy config
 	validate: { trustProxy: false },
+	// Malicious users can spoof their IP address which means we should not deault
+	// to trusting req.ip when hosted on Fly.io. However, users cannot spoof Fly-Client-Ip.
+	// When sitting behind a CDN such as cloudflare, replace fly-client-ip with the CDN
+	// specific header such as cf-connecting-ip
+	keyGenerator: (req: express.Request) => {
+		return req.get('fly-client-ip') ?? `${req.ip}`
+	},
 }
 
 const strongestRateLimit = rateLimit({
@@ -178,7 +182,7 @@ app.use((req, res, next) => {
 		'/resources/verify',
 	]
 	if (req.method !== 'GET' && req.method !== 'HEAD') {
-		if (strongPaths.some(p => req.path.includes(p))) {
+		if (strongPaths.some((p) => req.path.includes(p))) {
 			return strongestRateLimit(req, res, next)
 		}
 		return strongRateLimit(req, res, next)
@@ -262,6 +266,6 @@ ${chalk.bold('Press Ctrl+C to stop')}
 
 closeWithGrace(async () => {
 	await new Promise((resolve, reject) => {
-		server.close(e => (e ? reject(e) : resolve('ok')))
+		server.close((e) => (e ? reject(e) : resolve('ok')))
 	})
 })

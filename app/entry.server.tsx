@@ -23,10 +23,6 @@ global.ENV = getEnv()
 
 initCron()
 
-if (ENV.MODE === 'production' && ENV.SENTRY_DSN) {
-	import('./utils/monitoring.server.ts').then(({ init }) => init())
-}
-
 type DocRequestArgs = Parameters<HandleDocumentRequestFunction>
 
 export default async function handleRequest(...args: DocRequestArgs) {
@@ -43,11 +39,15 @@ export default async function handleRequest(...args: DocRequestArgs) {
 	responseHeaders.set('fly-primary-instance', primaryInstance)
 	responseHeaders.set('fly-instance', currentInstance)
 
+	if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {
+		responseHeaders.append('Document-Policy', 'js-profiling')
+	}
+
 	const callbackName = isbot(request.headers.get('user-agent'))
 		? 'onAllReady'
 		: 'onShellReady'
 
-	const nonce = String(loadContext.cspNonce) ?? undefined
+	const nonce = loadContext.cspNonce?.toString() ?? ''
 	return new Promise(async (resolve, reject) => {
 		let didError = false
 		// NOTE: this timing will only include things that are rendered in the shell
@@ -106,7 +106,12 @@ export function handleError(
 	}
 	if (error instanceof Error) {
 		console.error(chalk.red(error.stack))
-		Sentry.captureRemixServerException(error, 'remix.server', request)
+		void Sentry.captureRemixServerException(
+			error,
+			'remix.server',
+			request,
+			true,
+		)
 	} else {
 		console.error(chalk.red(error))
 		Sentry.captureException(error)
