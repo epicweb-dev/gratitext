@@ -25,15 +25,15 @@
 		--card: 0 0% 100%;
 		--card-foreground: 222.2 84% 4.9%;
 
-		--border: 214.3 31.8% 91.4%;
+		--border: 210 25% 25%;
 		--input: 214.3 31.8% 91.4%;
 		--input-invalid: 0 84.2% 60.2%;
 
-		--primary: 222.2 47.4% 11.2%;
-		--primary-foreground: 210 40% 98%;
+		--primary: 19 93% 32%;
+		--primary-foreground: 0 0% 100%;
 
-		--secondary: 210 20% 83%;
-		--secondary-foreground: 222.2 47.4% 11.2%;
+		--secondary: 210 25% 25%;
+		--secondary-foreground: 0 0% 100%;
 
 		--accent: 210 40% 90%;
 		--accent-foreground: 222.2 47.4% 11.2%;
@@ -62,15 +62,16 @@
 		--card: 222.2 84% 4.9%;
 		--card-foreground: 210 40% 98%;
 
-		--border: 217.2 32.6% 17.5%;
+		/* border: 1px solid hsla(37, 57%, 91%, 0.4) */
+		--border: 37 57% 91%;
 		--input: 217.2 32.6% 17.5%;
 		--input-invalid: 0 62.8% 30.6%;
 
-		--primary: 210 40% 98%;
-		--primary-foreground: 222.2 47.4% 11.2%;
+		--primary: 19 93% 32%;
+		--primary-foreground: 0 0% 100%;
 
-		--secondary: 217.2 20% 24%;
-		--secondary-foreground: 210 40% 98%;
+		--secondary: 210 25% 25%;
+		--secondary-foreground: 0 0% 100%;
 
 		--accent: 217.2 32.6% 10%;
 		--accent-foreground: 210 40% 98%;
