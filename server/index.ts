@@ -1,6 +1,6 @@
-import crypto from 'crypto'
+import crypto from 'node:crypto'
 import { createRequestHandler } from '@remix-run/express'
-import { type ServerBuild, installGlobals } from '@remix-run/node'
+import { type ServerBuild } from '@remix-run/node'
 import { ip as ipAddress } from 'address'
 import chalk from 'chalk'
 import closeWithGrace from 'close-with-grace'
@@ -10,8 +10,6 @@ import rateLimit from 'express-rate-limit'
 import getPort, { portNumbers } from 'get-port'
 import helmet from 'helmet'
 import morgan from 'morgan'
-
-installGlobals()
 
 const MODE = process.env.NODE_ENV ?? 'development'
 const IS_PROD = MODE === 'production'
@@ -40,6 +38,7 @@ app.set('trust proxy', true)
 
 // ensure HTTPS only (X-Forwarded-Proto comes from Fly)
 app.use((req, res, next) => {
+	if (req.method !== 'GET') return next()
 	const proto = req.get('X-Forwarded-Proto')
 	const host = getHost(req)
 	if (proto === 'http') {
@@ -143,7 +142,7 @@ const maxMultiple =
 	!IS_PROD || process.env.PLAYWRIGHT_TEST_BASE_URL ? 10_000 : 1
 const rateLimitDefault = {
 	windowMs: 60 * 1000,
-	max: 500 * maxMultiple,
+	max: 1000 * maxMultiple,
 	standardHeaders: true,
 	legacyHeaders: false,
 	validate: { trustProxy: false },
@@ -198,13 +197,19 @@ app.use((req, res, next) => {
 })
 
 async function getBuild() {
-	const build = viteDevServer
-		? viteDevServer.ssrLoadModule('virtual:remix/server-build')
-		: // @ts-ignore this should exist before running the server
-			// but it may not exist just yet.
-			await import('../build/server/index.js')
-	// not sure how to make this happy 🤷‍♂️
-	return build as unknown as ServerBuild
+	try {
+		const build = viteDevServer
+			? await viteDevServer.ssrLoadModule('virtual:remix/server-build')
+			: // @ts-expect-error - the file might not exist yet but it will
+				// eslint-disable-next-line import/no-unresolved
+				await import('../build/server/index.js')
+
+		return { build: build as unknown as ServerBuild, error: null }
+	} catch (error) {
+		// Catch error and return null to make express happy and avoid an unrecoverable crash
+		console.error('Error creating build:', error)
+		return { error: error, build: null as unknown as ServerBuild }
+	}
 }
 
 if (!ALLOW_INDEXING) {
@@ -222,7 +227,14 @@ app.all(
 			serverBuild: getBuild(),
 		}),
 		mode: MODE,
-		build: getBuild,
+		build: async () => {
+			const { error, build } = await getBuild()
+			// gracefully "catch" the error
+			if (error) {
+				throw error
+			}
+			return build
+		},
 	}),
 )
 
