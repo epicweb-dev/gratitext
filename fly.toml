@@ -13,6 +13,10 @@ auto_rollback = true
 source = "data"
 destination = "/data"
 
+[build]
+dockerfile = "/other/Dockerfile"
+ignorefile = "/other/Dockerfile.dockerignore"
+
 [[statics]]
   guest_path = "/myapp/build/client/assets"
   url_prefix = "/assets"
@@ -26,7 +30,7 @@ destination = "/data"
   url_prefix = "/favicons"
 
 [[services]]
-internal_port = 8_080
+internal_port = 8080
 processes = [ "app" ]
 protocol = "tcp"
 script_checks = [ ]
