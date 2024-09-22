@@ -1,4 +1,4 @@
-import { PassThrough } from 'stream'
+import { PassThrough } from 'node:stream'
 import {
 	createReadableStreamFromReadable,
 	type LoaderFunctionArgs,
@@ -10,18 +10,16 @@ import * as Sentry from '@sentry/remix'
 import chalk from 'chalk'
 import { isbot } from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
-import { init as initCron } from './utils/cron.server.ts'
-import { getEnv, init as initEnv } from './utils/env.server.ts'
+import { init } from './utils/env.server.ts'
+import { getEnv } from './utils/env.server.ts'
 import { getInstanceInfo } from './utils/litefs.server.ts'
 import { NonceProvider } from './utils/nonce-provider.ts'
 import { makeTimings } from './utils/timing.server.ts'
 
 const ABORT_DELAY = 5000
 
-initEnv()
+init()
 global.ENV = getEnv()
-
-void initCron()
 
 type DocRequestArgs = Parameters<HandleDocumentRequestFunction>
 
@@ -99,8 +97,6 @@ export function handleError(
 	error: unknown,
 	{ request }: LoaderFunctionArgs | ActionFunctionArgs,
 ): void {
-	// Skip capturing if the request is aborted as Remix docs suggest
-	// Ref: https://remix.run/docs/en/main/file-conventions/entry.server#handleerror
 	if (request.signal.aborted) {
 		return
 	}
@@ -113,7 +109,7 @@ export function handleError(
 			true,
 		)
 	} else {
-		console.error(chalk.red(error))
+		console.error(error)
 		Sentry.captureException(error)
 	}
 }
