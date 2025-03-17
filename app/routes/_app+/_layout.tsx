@@ -87,9 +87,9 @@ export default function Layout() {
 					</div>
 				</nav>
 			</header>
-			<main className="flex-1">
+			<div className="flex-1">
 				<Outlet />
-			</main>
+			</div>
 			<footer className="container my-4 flex items-center justify-between pb-5">
 				<div className="flex items-center gap-4">
 					<Logo />

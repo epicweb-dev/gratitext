@@ -116,9 +116,9 @@ export default function RecipientsLayout() {
 						</div>
 					</details>
 				</div>
-				<div className="flex flex-1 overflow-auto">
+				<main className="flex flex-1 overflow-auto">
 					<Outlet />
-				</div>
+				</main>
 			</div>
 		</div>
 	)
