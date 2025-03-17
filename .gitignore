@@ -24,3 +24,5 @@ node_modules
 
 # generated files
 /app/components/ui/icons
+
+vite.config.ts.timestamp*

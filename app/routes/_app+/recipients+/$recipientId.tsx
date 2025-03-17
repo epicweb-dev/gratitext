@@ -1,12 +1,6 @@
 import { invariantResponse } from '@epic-web/invariant'
 import { type LoaderFunctionArgs, type MetaFunction } from '@remix-run/node'
-import {
-	Link,
-	json,
-	useLoaderData,
-	useMatches,
-	useOutlet,
-} from '@remix-run/react'
+import { Link, Outlet, json, useLoaderData, useMatches } from '@remix-run/react'
 import { useEffect, useRef } from 'react'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.js'
 import { Icon } from '#app/components/ui/icon.js'
@@ -58,7 +52,6 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 export default function RecipientRoute() {
 	const data = useLoaderData<typeof loader>()
 	const firstLinkRef = useRef<HTMLAnchorElement | null>(null)
-	const outlet = useOutlet()
 	const matches = useMatches()
 	const lastMatch = matches[matches.length - 1]
 	const idPortion = lastMatch?.id.split('.')?.at(-1) ?? '.'
@@ -135,7 +128,7 @@ export default function RecipientRoute() {
 					<Link
 						to="edit"
 						className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${
-							currentPath === 'past'
+							currentPath === 'edit'
 								? 'bg-accent text-accent-foreground'
 								: 'hover:bg-accent/50'
 						}`}
@@ -144,7 +137,9 @@ export default function RecipientRoute() {
 					</Link>
 				</nav>
 			</div>
-			<div className="overflow-y-auto px-4 py-6">{outlet}</div>
+			<div className="overflow-y-auto px-4 py-6">
+				<Outlet />
+			</div>
 		</div>
 	)
 }
