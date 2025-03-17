@@ -10,7 +10,6 @@ import { type SerializeFrom } from '@remix-run/node'
 import { Form, useActionData, useFetcher } from '@remix-run/react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
-import { floatingToolbarClassName } from '#app/components/floating-toolbar.tsx'
 import { ErrorList, Field, SelectField } from '#app/components/forms.tsx'
 import { Icon } from '#app/components/ui/icon.js'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
@@ -66,10 +65,9 @@ export function RecipientEditor({
 	})
 
 	return (
-		<div className="absolute inset-0">
+		<div>
 			<div className="flex justify-end gap-2 p-6">
 				{needsVerification ? <VerifyForm /> : null}
-				{recipient?.id ? <DeleteRecipient id={recipient.id} /> : null}
 			</div>
 			{needsVerification ? (
 				<div className="px-6">
@@ -85,7 +83,7 @@ export function RecipientEditor({
 			) : null}
 			<Form
 				method="POST"
-				className="flex h-full flex-col gap-y-4 overflow-y-auto overflow-x-hidden px-10 pb-28 pt-12"
+				className="flex flex-col gap-y-4 overflow-y-auto px-4 py-4"
 				{...getFormProps(form)}
 			>
 				{/*
@@ -141,7 +139,7 @@ export function RecipientEditor({
 						labelProps={{ children: 'Time Zone' }}
 						selectProps={{
 							...getSelectProps(fields.timeZone),
-							children: supportedTimeZones.map(tz => (
+							children: supportedTimeZones.map((tz) => (
 								<option key={tz} value={tz}>
 									{tz}
 								</option>
@@ -152,7 +150,8 @@ export function RecipientEditor({
 				</div>
 				<ErrorList id={form.errorId} errors={form.errors} />
 			</Form>
-			<div className={floatingToolbarClassName}>
+			<div className="flex justify-between gap-2 p-6">
+				{recipient?.id ? <DeleteRecipient id={recipient.id} /> : null}
 				<StatusButton
 					form={form.id}
 					type="submit"
@@ -198,28 +197,20 @@ function DeleteRecipient({ id }: { id: string }) {
 			<input type="hidden" name="recipientId" value={id} />
 			<StatusButton
 				variant="destructive"
-				status={isPending ? 'pending' : form.status ?? 'idle'}
+				status={isPending ? 'pending' : (form.status ?? 'idle')}
 				{...dc.getButtonProps({
 					type: 'submit',
 					title: dc.doubleCheck ? 'Are you sure?' : 'Delete recipient',
 					name: 'intent',
 					value: deleteRecipientActionIntent,
 					disabled: isPending,
-					className:
-						'w-full max-md:aspect-square max-md:px-0 data-[safe-delay=true]:opacity-50',
+					className: 'data-[safe-delay=true]:opacity-50',
 				})}
 			>
 				{dc.doubleCheck ? (
-					<Icon
-						name="question-mark-circled"
-						className="scale-125 max-md:scale-150"
-					>
-						<span className="max-md:hidden">Confirm</span>
-					</Icon>
+					<Icon name="question-mark-circled">Confirm</Icon>
 				) : (
-					<Icon name="trash" className="scale-125 max-md:scale-150">
-						<span className="max-md:hidden">Delete</span>
-					</Icon>
+					<Icon name="trash">Delete</Icon>
 				)}
 			</StatusButton>
 			<ErrorList errors={form.errors} id={form.errorId} />

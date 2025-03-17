@@ -1,4 +1,5 @@
 import { Slot } from '@radix-ui/react-slot'
+import { Link, type LinkProps } from '@remix-run/react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import * as React from 'react'
 
@@ -27,6 +28,10 @@ const buttonVariants = cva(
 				pill: 'px-12 py-3 leading-3',
 				icon: 'h-10 w-10',
 			},
+			icon: {
+				true: 'flex h-10 w-10 items-center justify-center rounded-full p-2',
+				false: 'px-6 py-2',
+			},
 		},
 		defaultVariants: {
 			variant: 'default',
@@ -54,5 +59,17 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 	},
 )
 Button.displayName = 'Button'
+
+export function ButtonLink({
+	variant,
+
+	icon,
+	className,
+	...props
+}: LinkProps & VariantProps<typeof buttonVariants>) {
+	return (
+		<Link className={buttonVariants({ variant, icon, className })} {...props} />
+	)
+}
 
 export { Button, buttonVariants }

@@ -270,13 +270,14 @@ async function updateMessageOrderAction({ formData }: MessageActionArgs) {
 export default function RecipientRoute() {
 	const data = useLoaderData<typeof loader>()
 
-	// TODO: add optimistic UI
-
 	return (
-		<ul className="flex flex-col gap-12">
+		<ul className="flex flex-col gap-6 sm:gap-12">
 			{data.futureMessages.length ? (
-				data.futureMessages.map(m => (
-					<li key={m.id} className="flex justify-start gap-2 align-top">
+				data.futureMessages.map((m) => (
+					<li
+						key={m.id}
+						className="flex flex-col gap-4 sm:flex-row sm:justify-start sm:gap-2"
+					>
 						<MessageForms message={m} />
 					</li>
 				))
@@ -304,8 +305,8 @@ function MessageForms({ message }: { message: FutureMessage }) {
 
 	return (
 		<>
-			<div className="flex w-full items-center gap-4">
-				<div>
+			<div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center">
+				<div className="flex justify-center gap-2 sm:flex-col">
 					<UpdateOrderForm message={message} direction="earlier" />
 					<UpdateOrderForm message={message} direction="later" />
 				</div>
@@ -327,11 +328,11 @@ function MessageForms({ message }: { message: FutureMessage }) {
 						errors={updateContentFields.content.errors}
 					/>
 				</updateContentFetcher.Form>
-				<div className="flex flex-col gap-2">
+				<div className="flex flex-row gap-2 sm:flex-col">
 					<StatusButton
 						form={updateContentForm.id}
 						status={updateContentFetcher.state !== 'idle' ? 'pending' : 'idle'}
-						className="w-full"
+						className="flex-1 sm:w-full"
 						type="submit"
 						name="intent"
 						value={updateMessageContentActionIntent}

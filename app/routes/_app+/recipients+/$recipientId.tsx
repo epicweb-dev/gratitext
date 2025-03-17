@@ -1,24 +1,15 @@
 import { invariantResponse } from '@epic-web/invariant'
-import { type MetaFunction, type LoaderFunctionArgs } from '@remix-run/node'
+import { type LoaderFunctionArgs, type MetaFunction } from '@remix-run/node'
 import {
 	Link,
 	json,
 	useLoaderData,
 	useMatches,
-	useNavigate,
 	useOutlet,
 } from '@remix-run/react'
 import { useEffect, useRef } from 'react'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.js'
-import { floatingToolbarClassName } from '#app/components/floating-toolbar.js'
-import { Button } from '#app/components/ui/button.js'
 import { Icon } from '#app/components/ui/icon.js'
-import {
-	Tabs,
-	TabsContent,
-	TabsList,
-	TabsTrigger,
-} from '#app/components/ui/tabs.js'
 import { SimpleTooltip } from '#app/components/ui/tooltip.js'
 import { requireUserId } from '#app/utils/auth.server.js'
 import { getHints } from '#app/utils/client-hints.js'
@@ -68,39 +59,24 @@ export default function RecipientRoute() {
 	const data = useLoaderData<typeof loader>()
 	const firstLinkRef = useRef<HTMLAnchorElement | null>(null)
 	const outlet = useOutlet()
-	const navigate = useNavigate()
 	const matches = useMatches()
 	const lastMatch = matches[matches.length - 1]
 	const idPortion = lastMatch?.id.split('.')?.at(-1) ?? '.'
-	const tab = idPortion === 'index' ? '.' : idPortion
+	const currentPath = idPortion === 'index' ? '.' : idPortion
 
 	useEffect(() => {
 		firstLinkRef.current?.focus()
 	}, [data.recipient.id])
 
 	useEffect(() => {
-		if (tab === '.') firstLinkRef.current?.focus()
-	}, [tab])
-
-	// The links are just for progressive enhancement. We disable their default
-	function handleLinkClick(event: React.MouseEvent<HTMLAnchorElement>) {
-		if (event.metaKey) {
-			// TODO: this doesn't seem to be preventing the tab from switching properly
-			event.stopPropagation()
-		} else {
-			event.preventDefault()
-		}
-	}
+		if (currentPath === '.') firstLinkRef.current?.focus()
+	}, [currentPath])
 
 	return (
-		<Tabs
-			defaultValue="."
-			onValueChange={newValue => navigate(newValue)}
-			value={tab}
-		>
-			<div className="absolute inset-0 flex flex-col px-10">
-				<h2 className="mb-2 h-36 pt-12 text-h2 lg:mb-6">
-					{data.recipient.name}
+		<div className="px-10 py-6">
+			<div className="flex flex-col justify-between gap-4 md:flex-row">
+				<div className="mb-2 pt-12 lg:mb-6">
+					<h2 className="text-h2">{data.recipient.name}</h2>
 					<small className="flex gap-1 text-sm font-normal text-secondary-foreground">
 						{data.recipient.phoneNumber}
 						{data.optedOut ? (
@@ -122,52 +98,54 @@ export default function RecipientRoute() {
 							</button>
 						</SimpleTooltip>
 					</small>
-				</h2>
-				<div className="absolute left-3 right-3 top-[8.7rem] rounded-lg bg-muted/80 px-2 py-2 shadow-xl shadow-accent backdrop-blur-sm">
-					<TabsList className="grid w-full grid-cols-3 bg-transparent">
-						<TabsTrigger value="." asChild>
-							<Link
-								to="."
-								preventScrollReset
-								onClick={handleLinkClick}
-								ref={firstLinkRef}
-							>
-								Upcoming
-							</Link>
-						</TabsTrigger>
-						<TabsTrigger value="new" asChild>
-							<Link to="new" preventScrollReset onClick={handleLinkClick}>
-								New
-							</Link>
-						</TabsTrigger>
-						<TabsTrigger value="past" asChild>
-							<Link to="past" preventScrollReset onClick={handleLinkClick}>
-								Past
-							</Link>
-						</TabsTrigger>
-					</TabsList>
 				</div>
-				<div className="overflow-y-auto px-4 py-24">
-					<TabsContent value=".">{outlet}</TabsContent>
-					<TabsContent value="new">{outlet}</TabsContent>
-					<TabsContent value="past">{outlet}</TabsContent>
-				</div>
-				<div className={floatingToolbarClassName}>
-					<div className="grid flex-1 grid-cols-2 justify-end gap-2 min-[525px]:flex md:gap-4">
-						<Button
-							asChild
-							className="min-[525px]:max-md:aspect-square min-[525px]:max-md:px-0"
-						>
-							<Link to="edit">
-								<Icon name="pencil-1" className="scale-125 max-md:scale-150">
-									<span className="max-md:hidden">Edit</span>
-								</Icon>
-							</Link>
-						</Button>
-					</div>
-				</div>
+				<nav>
+					<Link
+						to="."
+						className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${
+							currentPath === '.'
+								? 'bg-accent text-accent-foreground'
+								: 'hover:bg-accent/50'
+						}`}
+						ref={firstLinkRef}
+					>
+						<Icon name="clock">Upcoming</Icon>
+					</Link>
+					<Link
+						to="new"
+						className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${
+							currentPath === 'new'
+								? 'bg-accent text-accent-foreground'
+								: 'hover:bg-accent/50'
+						}`}
+					>
+						<Icon name="plus">New</Icon>
+					</Link>
+					<Link
+						to="past"
+						className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${
+							currentPath === 'past'
+								? 'bg-accent text-accent-foreground'
+								: 'hover:bg-accent/50'
+						}`}
+					>
+						<Icon name="chevron-down">Past</Icon>
+					</Link>
+
+					<Link
+						to="edit"
+						className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${
+							currentPath === 'past'
+								? 'bg-accent text-accent-foreground'
+								: 'hover:bg-accent/50'
+						}`}
+					>
+						<Icon name="pencil-1">Edit</Icon>
+					</Link>
+				</nav>
 			</div>
-		</Tabs>
+			<div className="overflow-y-auto px-4 py-6">{outlet}</div>
+		</div>
 	)
 }
 
