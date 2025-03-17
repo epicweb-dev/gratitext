@@ -78,7 +78,7 @@ test('Scheduled messages go out on schedule', async ({ page, login }) => {
 	await page.goto(`/recipients/${recipient.id}/past`)
 	await expect(page.getByText(/sent 0 messages/i)).toBeVisible()
 
-	await prisma.$transaction(async $prisma => {
+	await prisma.$transaction(async ($prisma) => {
 		await $prisma.recipient.update({
 			select: { id: true },
 			where: { id: recipient.id },

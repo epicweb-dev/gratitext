@@ -87,9 +87,9 @@ export default function Layout() {
 					</div>
 				</nav>
 			</header>
-			<div className="flex-1">
+			<main className="flex-1">
 				<Outlet />
-			</div>
+			</main>
 			<footer className="container my-4 flex items-center justify-between pb-5">
 				<div className="flex items-center gap-4">
 					<Logo />
@@ -153,7 +153,7 @@ function UserDropdown() {
 					<Link
 						to={`/users/${user.username}`}
 						// this is for progressive enhancement
-						onClick={e => e.preventDefault()}
+						onClick={(e) => e.preventDefault()}
 						className="flex items-center gap-2"
 					>
 						<span className="text-body-sm font-bold">
@@ -181,7 +181,7 @@ function UserDropdown() {
 					<DropdownMenuItem
 						asChild
 						// this prevents the menu from closing before the form submission is completed
-						onSelect={event => {
+						onSelect={(event) => {
 							event.preventDefault()
 							submit(formRef.current)
 						}}

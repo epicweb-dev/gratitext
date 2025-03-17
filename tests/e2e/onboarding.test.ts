@@ -21,6 +21,7 @@ const test = base.extend<{
 }>({
 	getOnboardingData: async ({}, use) => {
 		const userData = createUser()
+		// eslint-disable-next-line react-hooks/rules-of-hooks
 		await use(() => {
 			const onboardingData = {
 				...userData,
