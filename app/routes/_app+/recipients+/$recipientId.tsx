@@ -79,6 +79,7 @@ export default function RecipientRoute() {
 							''
 						) : (
 							<Link
+								preventScrollReset
 								to="edit"
 								className="text-body-2xs text-destructive underline"
 							>
@@ -95,6 +96,7 @@ export default function RecipientRoute() {
 				<nav>
 					<Link
 						to="."
+						preventScrollReset
 						className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${
 							currentPath === '.'
 								? 'bg-accent text-accent-foreground'
@@ -106,6 +108,7 @@ export default function RecipientRoute() {
 					</Link>
 					<Link
 						to="new"
+						preventScrollReset
 						className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${
 							currentPath === 'new'
 								? 'bg-accent text-accent-foreground'
@@ -116,6 +119,7 @@ export default function RecipientRoute() {
 					</Link>
 					<Link
 						to="past"
+						preventScrollReset
 						className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${
 							currentPath === 'past'
 								? 'bg-accent text-accent-foreground'
@@ -127,6 +131,7 @@ export default function RecipientRoute() {
 
 					<Link
 						to="edit"
+						preventScrollReset
 						className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${
 							currentPath === 'edit'
 								? 'bg-accent text-accent-foreground'

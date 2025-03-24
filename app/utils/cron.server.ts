@@ -122,6 +122,11 @@ export function getSendTime(
 	return next
 }
 
+export function getNextScheduledTime(scheduleCron: string, timeZone: string) {
+	const interval = cronParser.parseExpression(scheduleCron, { tz: timeZone })
+	return interval.next().toDate()
+}
+
 export function formatSendTime(date: Date, timezone: string): string {
 	const options: Intl.DateTimeFormatOptions = {
 		weekday: 'short',
