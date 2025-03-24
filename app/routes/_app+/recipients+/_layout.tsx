@@ -43,15 +43,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 				recipient.timeZone,
 			),
 		}))
-		.sort((a, b) => {
-			// If either recipient has no messages, they should be last
-			if (a._count.messages === 0 && b._count.messages === 0) return 0
-			if (a._count.messages === 0) return 1
-			if (b._count.messages === 0) return -1
-
-			// Sort by next scheduled time
-			return a.nextScheduledAt.getTime() - b.nextScheduledAt.getTime()
-		})
+		.sort((a, b) => a.nextScheduledAt.getTime() - b.nextScheduledAt.getTime())
 
 	return json({ recipients: sortedRecipients })
 }
