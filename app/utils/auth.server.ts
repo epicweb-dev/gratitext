@@ -6,11 +6,49 @@ import { prisma } from './db.server.ts'
 import { combineHeaders } from './misc.tsx'
 import { authSessionStorage } from './session.server.ts'
 
-export const SESSION_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30
-export const getSessionExpirationDate = () =>
-	new Date(Date.now() + SESSION_EXPIRATION_TIME)
+// Session expiration constants
+export const SESSION_IDLE_TIMEOUT = 1000 * 60 * 60 * 24 * 14 // 14 days
+export const SESSION_ABSOLUTE_MAX_LIFETIME = 1000 * 60 * 60 * 24 * 90 // 90 days
+
+export const getSessionExpirationDate = ({
+	isRenewal,
+	originalCreatedAt,
+}: {
+	isRenewal: boolean
+	originalCreatedAt?: Date
+}) => {
+	if (isRenewal && originalCreatedAt) {
+		// For renewals, calculate the maximum possible expiration date
+		// based on the original session creation time
+		const maxPossibleExpiration = new Date(
+			originalCreatedAt.getTime() + SESSION_ABSOLUTE_MAX_LIFETIME,
+		)
+		const idleTimeoutExpiration = new Date(Date.now() + SESSION_IDLE_TIMEOUT)
+
+		// Return the earlier of the two to enforce absolute maximum lifetime
+		return maxPossibleExpiration < idleTimeoutExpiration
+			? maxPossibleExpiration
+			: idleTimeoutExpiration
+	} else {
+		// For new sessions, use absolute max lifetime
+		return new Date(Date.now() + SESSION_ABSOLUTE_MAX_LIFETIME)
+	}
+}
 
 export const sessionKey = 'sessionId'
+
+// WeakMap to associate session renewals with requests
+const sessionRenewalMap = new WeakMap<
+	Request,
+	{ sessionId: string; expirationDate: Date }
+>()
+
+/**
+ * Get session renewal info for a request if it exists
+ */
+export function getSessionRenewal(request: Request) {
+	return sessionRenewalMap.get(request)
+}
 
 export async function getUserId(request: Request) {
 	const authSession = await authSessionStorage.getSession(
@@ -18,10 +56,17 @@ export async function getUserId(request: Request) {
 	)
 	const sessionId = authSession.get(sessionKey)
 	if (!sessionId) return null
+
 	const session = await prisma.session.findUnique({
-		select: { user: { select: { id: true } } },
+		select: {
+			id: true,
+			expirationDate: true,
+			createdAt: true,
+			user: { select: { id: true } },
+		},
 		where: { id: sessionId, expirationDate: { gt: new Date() } },
 	})
+
 	if (!session?.user) {
 		throw redirect('/', {
 			headers: {
@@ -29,6 +74,55 @@ export async function getUserId(request: Request) {
 			},
 		})
 	}
+
+	// Check if session needs renewal (within 7 days of expiration)
+	const sevenDaysFromNow = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7)
+	const needsRenewal = session.expirationDate < sevenDaysFromNow
+
+	// Check if session has reached absolute max lifetime
+	const absoluteMaxExpiration = new Date(
+		session.createdAt.getTime() + SESSION_ABSOLUTE_MAX_LIFETIME,
+	)
+	const hasReachedMaxLifetime = new Date() >= absoluteMaxExpiration
+
+	if (hasReachedMaxLifetime) {
+		// Session has reached absolute max lifetime, force logout
+		await prisma.session.delete({ where: { id: sessionId } })
+		throw redirect('/', {
+			headers: {
+				'set-cookie': await authSessionStorage.destroySession(authSession),
+			},
+		})
+	}
+
+	if (needsRenewal) {
+		// Create new session with rotated ID and extended expiration
+		// Pass the original creation time to enforce absolute maximum lifetime
+		const newSession = await prisma.session.create({
+			data: {
+				expirationDate: getSessionExpirationDate({
+					isRenewal: true,
+					originalCreatedAt: session.createdAt,
+				}),
+				userId: session.user.id,
+				// Preserve the original creation time to enforce absolute maximum lifetime
+				createdAt: session.createdAt,
+			},
+		})
+
+		// Update the session in the cookie
+		authSession.set(sessionKey, newSession.id)
+
+		// Delete the old session
+		await prisma.session.delete({ where: { id: sessionId } })
+
+		// Store the new session info in WeakMap for entry.server.tsx to handle
+		sessionRenewalMap.set(request, {
+			sessionId: newSession.id,
+			expirationDate: newSession.expirationDate,
+		})
+	}
+
 	return session.user.id
 }
 
@@ -71,7 +165,7 @@ export async function login({
 	const session = await prisma.session.create({
 		select: { id: true, expirationDate: true, userId: true },
 		data: {
-			expirationDate: getSessionExpirationDate(),
+			expirationDate: getSessionExpirationDate({ isRenewal: false }),
 			userId: user.id,
 		},
 	})
@@ -113,7 +207,7 @@ export async function signup({
 
 	const session = await prisma.session.create({
 		data: {
-			expirationDate: getSessionExpirationDate(),
+			expirationDate: getSessionExpirationDate({ isRenewal: false }),
 			user: {
 				create: {
 					phoneNumber: phoneNumber,
