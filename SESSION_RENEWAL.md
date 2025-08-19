@@ -1,91 +1,89 @@
 # Session Renewal Implementation
 
-This document explains how to use the new session renewal functionality that automatically extends user sessions when they make authenticated requests.
+This document explains how the session renewal functionality works in your Epic
+Stack application.
 
 ## Overview
 
 The session renewal system provides:
+
 - **Idle timeout**: 14 days - resets on user activity
-- **Absolute max lifetime**: 90 days since login - cannot be extended beyond this
-- **Session ID rotation**: New session IDs are generated when renewing for security
-- **Secure cookies**: HttpOnly, Secure, SameSite=Lax flags maintained
+- **Absolute max lifetime**: 90 days since login - cannot be extended beyond
+  this
+- **Session ID rotation**: New session IDs are generated when renewing for
+  security
+- **Secure cookie flags**: HttpOnly, Secure, SameSite=Lax maintained
+- **Automatic handling**: No manual intervention required in routes
 
 ## How It Works
 
-1. **Automatic Renewal**: When a user makes an authenticated request, the system checks if their session is within 7 days of expiration
-2. **Session Rotation**: If renewal is needed, a new session is created with a new ID and extended expiration
-3. **Cookie Update**: The new session cookie is automatically included in the response
+1. **Automatic Renewal**: When a user makes an authenticated request, the system
+   checks if their session is within 7 days of expiration
+2. **Session Rotation**: If renewal is needed, a new session is created with a
+   new ID and extended expiration
+3. **Automatic Cookie Update**: The new session cookie is automatically included
+   in the response via `entry.server.tsx`
 
-## Usage in Routes
+## Implementation Details
 
-### Loader Functions
+### Core Logic (`app/utils/auth.server.ts`)
+
+The session renewal logic is built into the `getUserId()` function:
+
+- **Session Validation**: Checks if session exists and is not expired
+- **Renewal Detection**: Identifies sessions within 7 days of expiration
+- **Lifetime Check**: Enforces absolute 90-day maximum lifetime
+- **Session Rotation**: Creates new sessions with new IDs for security
+- **Request Annotation**: Stores renewal info in the request object for
+  `entry.server.tsx`
+
+### Automatic Handling (`app/entry.server.tsx`)
+
+The `handleDataRequest` function automatically handles session renewal:
+
+- **Cookie Generation**: Creates new session cookies when renewal is detected
+- **Header Injection**: Automatically adds `set-cookie` headers to responses
+- **Transparent Operation**: No changes required in individual routes
+
+## Usage
+
+**No changes required in your routes!** The session renewal happens
+automatically.
+
+### Example Route (Before and After)
+
+**Before (and still works the same):**
 
 ```typescript
-import { requireUserId, handleSessionRenewal } from '#app/utils/auth.server.ts'
-
 export async function loader({ request }: LoaderFunctionArgs) {
-  const userId = await requireUserId(request)
-  
-  // Your loader logic here...
-  const data = await getSomeData(userId)
-  
-  // Handle session renewal if needed
-  const responseInit = handleSessionRenewal(request)
-  return json(data, responseInit)
+	const userId = await requireUserId(request)
+	const data = await getData(userId)
+	return json(data)
 }
 ```
 
-### Action Functions
+**After (exactly the same):**
 
 ```typescript
-import { requireUserId, handleSessionRenewal } from '#app/utils/auth.server.ts'
-
-export async function action({ request }: ActionFunctionArgs) {
-  const userId = await requireUserId(request)
-  
-  // Your action logic here...
-  await updateSomething(userId)
-  
-  // Handle session renewal if needed
-  const responseInit = handleSessionRenewal(request)
-  return redirect('/success', responseInit)
+export async function loader({ request }: LoaderFunctionArgs) {
+	const userId = await requireUserId(request)
+	const data = await getData(userId)
+	return json(data)
 }
 ```
 
-### Redirects with Toast
-
-```typescript
-import { requireUserId, handleSessionRenewal } from '#app/utils/auth.server.ts'
-
-export async function action({ request }: ActionFunctionArgs) {
-  const userId = await requireUserId(request)
-  
-  // Your action logic here...
-  await deleteSomething(userId)
-  
-  // Handle session renewal if needed
-  const responseInit = handleSessionRenewal(request)
-  return redirectWithToast('/success', {
-    type: 'success',
-    title: 'Success',
-    description: 'Operation completed successfully.',
-  }, responseInit)
-}
-```
-
-## Key Functions
-
-- `requireUserId(request)`: Authenticates user and triggers session renewal if needed
-- `getUserId(request)`: Same as above but doesn't redirect on failure
-- `handleSessionRenewal(request)`: Returns response init with session renewal cookies
-- `combineSessionHeaders(request, existingHeaders)`: Combines session headers with existing headers
+The session renewal happens automatically in the background without any code
+changes.
 
 ## Security Features
 
 - **Session ID Rotation**: New session IDs are generated on each renewal
-- **Absolute Lifetime Limit**: Sessions cannot exceed 90 days regardless of activity
-- **Automatic Cleanup**: Old sessions are automatically deleted from the database
+- **Absolute Lifetime Limit**: Sessions cannot exceed 90 days regardless of
+  activity
+- **Automatic Cleanup**: Old sessions are automatically deleted from the
+  database
 - **Secure Cookies**: All security flags are maintained during renewal
+- **Transparent Operation**: No security risks from manual implementation
 
 ## Database Impact
 
@@ -93,32 +91,32 @@ export async function action({ request }: ActionFunctionArgs) {
 - New sessions are created with extended expiration dates
 - The `createdAt` timestamp is preserved to track absolute lifetime
 
-## Migration Notes
+## Benefits of This Approach
 
-Existing routes will continue to work without changes. To enable session renewal:
+1. **Non-Intrusive**: No changes required to existing routes
+2. **Automatic**: Session renewal happens transparently
+3. **Centralized**: All session logic is in one place
+4. **Future-Proof**: Ready for React Router middleware when available
+5. **Maintainable**: Single point of control for session behavior
 
-1. Import `handleSessionRenewal` from `#app/utils/auth.server.ts`
-2. Call it after `requireUserId` or `getUserId`
-3. Pass the result to your response functions
+## How to Test
 
-## Example Migration
+1. **Login with "Remember Me"**: Check that the initial session has a 90-day
+   expiration
+2. **Make Authenticated Requests**: Verify that sessions are renewed when within
+   7 days of expiration
+3. **Check Cookie Expiration**: Verify that cookies are extended on renewal
+4. **Monitor Database**: Check that old sessions are cleaned up and new ones
+   created
 
-**Before:**
+## Configuration
+
+The session timing can be adjusted in `app/utils/auth.server.ts`:
+
 ```typescript
-export async function loader({ request }: LoaderFunctionArgs) {
-  const userId = await requireUserId(request)
-  const data = await getData(userId)
-  return json(data)
-}
+export const SESSION_IDLE_TIMEOUT = 1000 * 60 * 60 * 24 * 14 // 14 days
+export const SESSION_ABSOLUTE_MAX_LIFETIME = 1000 * 60 * 60 * 24 * 90 // 90 days
 ```
 
-**After:**
-```typescript
-export async function loader({ request }: LoaderFunctionArgs) {
-  const userId = await requireUserId(request)
-  const data = await getData(userId)
-  
-  const responseInit = handleSessionRenewal(request)
-  return json(data, responseInit)
-}
-```
+The renewal threshold (7 days) is hardcoded in the `getUserId` function and can
+be adjusted if needed.

@@ -14,6 +14,7 @@ import { init as initCron } from './utils/cron.server.ts'
 import { getEnv, init as initEnv } from './utils/env.server.ts'
 import { getInstanceInfo } from './utils/litefs.server.ts'
 import { NonceProvider } from './utils/nonce-provider.ts'
+import { authSessionStorage } from './utils/session.server.ts'
 import { makeTimings } from './utils/timing.server.ts'
 
 const ABORT_DELAY = 5000
@@ -85,12 +86,31 @@ export default async function handleRequest(...args: DocRequestArgs) {
 	})
 }
 
-export async function handleDataRequest(response: Response) {
+export async function handleDataRequest(
+	response: Response,
+	{ request }: LoaderFunctionArgs | ActionFunctionArgs,
+) {
 	const { currentInstance, primaryInstance } = await getInstanceInfo()
 	response.headers.set('fly-region', process.env.FLY_REGION ?? 'unknown')
 	response.headers.set('fly-app', process.env.FLY_APP_NAME ?? 'unknown')
 	response.headers.set('fly-primary-instance', primaryInstance)
 	response.headers.set('fly-instance', currentInstance)
+
+	// Handle session renewal if needed
+	const sessionRenewal = (request as any).sessionRenewal
+	if (sessionRenewal) {
+		// Create a new session storage instance with the renewed session
+		const authSession = await authSessionStorage.getSession()
+		authSession.set('sessionId', sessionRenewal.sessionId)
+
+		// Commit the session with the new expiration date
+		const cookieHeader = await authSessionStorage.commitSession(authSession, {
+			expires: sessionRenewal.expirationDate,
+		})
+
+		// Add the session cookie to the response headers
+		response.headers.append('set-cookie', cookieHeader)
+	}
 
 	return response
 }

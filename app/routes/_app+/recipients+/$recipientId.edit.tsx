@@ -6,7 +6,7 @@ import {
 } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
-import { requireUserId, handleSessionRenewal } from '#app/utils/auth.server.ts'
+import { requireUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { RecipientEditor } from './__editor.tsx'
 
@@ -32,9 +32,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 
 	const supportedTimeZones = Intl.supportedValuesOf('timeZone')
 
-	// Handle session renewal if needed
-	const responseInit = handleSessionRenewal(request)
-	return json({ recipient, supportedTimeZones }, responseInit)
+	return json({ recipient, supportedTimeZones })
 }
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {

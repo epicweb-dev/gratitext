@@ -1,5 +1,5 @@
 import { redirect, type LoaderFunctionArgs } from '@remix-run/node'
-import { requireUserId, logout, handleSessionRenewal } from '#app/utils/auth.server.ts'
+import { requireUserId, logout } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -14,8 +14,5 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		await logout({ request, redirectTo })
 		return redirect(redirectTo)
 	}
-	
-	// Handle session renewal if needed
-	const responseInit = handleSessionRenewal(request)
-	return redirect(`/users/${user.username}`, responseInit)
+	return redirect(`/users/${user.username}`)
 }
