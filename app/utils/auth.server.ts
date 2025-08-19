@@ -105,6 +105,8 @@ export async function getUserId(request: Request) {
 					originalCreatedAt: session.createdAt,
 				}),
 				userId: session.user.id,
+				// Preserve the original creation time to enforce absolute maximum lifetime
+				createdAt: session.createdAt,
 			},
 		})
 
