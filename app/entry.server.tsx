@@ -10,7 +10,7 @@ import * as Sentry from '@sentry/remix'
 import chalk from 'chalk'
 import { isbot } from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
-import { getSessionRenewal } from './utils/auth.server.ts'
+import { getSessionRenewal, sessionKey } from './utils/auth.server.ts'
 import { init as initCron } from './utils/cron.server.ts'
 import { getEnv, init as initEnv } from './utils/env.server.ts'
 import { getInstanceInfo } from './utils/litefs.server.ts'
@@ -33,9 +33,11 @@ type DocRequestArgs = Parameters<HandleDocumentRequestFunction>
 async function handleSessionRenewal(request: Request, headers: Headers) {
 	const sessionRenewal = getSessionRenewal(request)
 	if (sessionRenewal) {
-		// Create a new session storage instance with the renewed session
-		const authSession = await authSessionStorage.getSession()
-		authSession.set('sessionId', sessionRenewal.sessionId)
+		// Retrieve the existing session from the request instead of creating a new one
+		const authSession = await authSessionStorage.getSession(
+			request.headers.get('cookie'),
+		)
+		authSession.set(sessionKey, sessionRenewal.sessionId)
 
 		// Commit the session with the new expiration date
 		const cookieHeader = await authSessionStorage.commitSession(authSession, {
