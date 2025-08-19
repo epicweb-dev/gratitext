@@ -1,7 +1,7 @@
 import { parseWithZod } from '@conform-to/zod'
 import { invariant, invariantResponse } from '@epic-web/invariant'
 import { json, redirect, type ActionFunctionArgs } from '@remix-run/node'
-import { requireUserId } from '#app/utils/auth.server.ts'
+import { requireUserId, handleSessionRenewal } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { sendText } from '#app/utils/text.server.js'
 import { redirectWithToast } from '#app/utils/toast.server.js'
@@ -141,7 +141,10 @@ export async function usertRecipientAction({
 				timeZone,
 			},
 		})
-		return redirect(`/recipients/${updatedRecipient.id}`)
+		
+		// Handle session renewal if needed
+		const responseInit = handleSessionRenewal(request)
+		return redirect(`/recipients/${updatedRecipient.id}`, responseInit)
 	} else {
 		const newRecipient = await prisma.recipient.create({
 			select: { id: true },
@@ -155,18 +158,21 @@ export async function usertRecipientAction({
 			},
 		})
 
+		// Handle session renewal if needed
+		const responseInit = handleSessionRenewal(request)
 		return redirectWithToast(`/recipients/${newRecipient.id}/edit`, {
 			type: 'success',
 			title: 'Recipient created',
 			description:
 				'Your recipient has been created. You must verify them before sending messages.',
-		})
+		}, responseInit)
 	}
 }
 
 export async function deleteRecipientAction({
 	formData,
 	userId,
+	request,
 }: RecipientActionArgs) {
 	const submission = parseWithZod(formData, {
 		schema: DeleteRecipientSchema,
@@ -189,11 +195,13 @@ export async function deleteRecipientAction({
 
 	await prisma.recipient.delete({ where: { id: recipient.id } })
 
+	// Handle session renewal if needed
+	const responseInit = handleSessionRenewal(request)
 	return redirectWithToast(`/recipients`, {
 		type: 'success',
 		title: 'Success',
 		description: 'Your recipient has been deleted.',
-	})
+	}, responseInit)
 }
 
 export async function sendVerificationAction({
@@ -219,11 +227,13 @@ export async function sendVerificationAction({
 			redirectTo: reqUrl.pathname + reqUrl.search,
 		}).toString()
 
+		// Handle session renewal if needed
+		const responseInit = handleSessionRenewal(request)
 		return redirectWithToast(redirectTo, {
 			type: 'message',
 			description:
 				'A verification code was sent recently. Please enter that one here, or wait a minute before requesting a new one.',
-		})
+		}, responseInit)
 	} else {
 		const { redirectTo, otp } = await prepareVerification({
 			period: 10 * 60,
@@ -244,6 +254,8 @@ export async function sendVerificationAction({
 			message: `Hello ${recipient.name},\nYou have been added as a recipient to GratiText messages fom ${user.name ?? user.username} (${user.phoneNumber}). You can expect regular, thoughtful texts from them. First, we need to verify your number and get your consent. Please provide ${user.name ?? user.username} (${user.phoneNumber}) with the following code to provide your consent:\n\n${otp}\n\nLearn more at https://www.GratiText.app.\n\nTo opt-out of all text messages from GratiText, reply STOP to this message.`,
 		})
 
-		return redirect(redirectTo.toString())
+		// Handle session renewal if needed
+		const responseInit = handleSessionRenewal(request)
+		return redirect(redirectTo.toString(), responseInit)
 	}
 }

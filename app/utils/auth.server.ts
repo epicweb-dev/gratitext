@@ -6,11 +6,67 @@ import { prisma } from './db.server.ts'
 import { combineHeaders } from './misc.tsx'
 import { authSessionStorage } from './session.server.ts'
 
-export const SESSION_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30
-export const getSessionExpirationDate = () =>
-	new Date(Date.now() + SESSION_EXPIRATION_TIME)
+// Session expiration constants
+export const SESSION_IDLE_TIMEOUT = 1000 * 60 * 60 * 24 * 14 // 14 days
+export const SESSION_ABSOLUTE_MAX_LIFETIME = 1000 * 60 * 60 * 24 * 90 // 90 days
+
+export const getSessionExpirationDate = (isRenewal = false) => {
+	if (isRenewal) {
+		// For renewals, extend by idle timeout
+		return new Date(Date.now() + SESSION_IDLE_TIMEOUT)
+	} else {
+		// For new sessions, use absolute max lifetime
+		return new Date(Date.now() + SESSION_ABSOLUTE_MAX_LIFETIME)
+	}
+}
 
 export const sessionKey = 'sessionId'
+
+/**
+ * Helper function to get session cookie header if session was renewed
+ */
+export function getSessionCookieHeader(request: Request): string | null {
+	return (request as any).sessionCookieHeader || null
+}
+
+/**
+ * Helper function to combine session cookie headers with other response headers
+ */
+export function combineSessionHeaders(
+	request: Request,
+	existingHeaders?: HeadersInit
+): HeadersInit {
+	const sessionCookieHeader = getSessionCookieHeader(request)
+	if (!sessionCookieHeader) {
+		return existingHeaders || {}
+	}
+	
+	const headers = new Headers(existingHeaders)
+	headers.append('set-cookie', sessionCookieHeader)
+	return headers
+}
+
+/**
+ * Utility function to handle session renewal in route responses
+ * Call this after requireUserId or getUserId to include session renewal cookies
+ */
+export function handleSessionRenewal(
+	request: Request,
+	responseInit?: ResponseInit
+): ResponseInit {
+	const sessionCookieHeader = getSessionCookieHeader(request)
+	if (!sessionCookieHeader) {
+		return responseInit || {}
+	}
+	
+	const headers = new Headers(responseInit?.headers)
+	headers.append('set-cookie', sessionCookieHeader)
+	
+	return {
+		...responseInit,
+		headers,
+	}
+}
 
 export async function getUserId(request: Request) {
 	const authSession = await authSessionStorage.getSession(
@@ -18,10 +74,17 @@ export async function getUserId(request: Request) {
 	)
 	const sessionId = authSession.get(sessionKey)
 	if (!sessionId) return null
+	
 	const session = await prisma.session.findUnique({
-		select: { user: { select: { id: true } } },
+		select: { 
+			id: true, 
+			expirationDate: true, 
+			createdAt: true,
+			user: { select: { id: true } } 
+		},
 		where: { id: sessionId, expirationDate: { gt: new Date() } },
 	})
+	
 	if (!session?.user) {
 		throw redirect('/', {
 			headers: {
@@ -29,6 +92,50 @@ export async function getUserId(request: Request) {
 			},
 		})
 	}
+
+	// Check if session needs renewal (within 7 days of expiration)
+	const sevenDaysFromNow = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7)
+	const needsRenewal = session.expirationDate < sevenDaysFromNow
+	
+	// Check if session has reached absolute max lifetime
+	const absoluteMaxExpiration = new Date(session.createdAt.getTime() + SESSION_ABSOLUTE_MAX_LIFETIME)
+	const hasReachedMaxLifetime = new Date() >= absoluteMaxExpiration
+	
+	if (hasReachedMaxLifetime) {
+		// Session has reached absolute max lifetime, force logout
+		await prisma.session.delete({ where: { id: sessionId } })
+		throw redirect('/', {
+			headers: {
+				'set-cookie': await authSessionStorage.destroySession(authSession),
+			},
+		})
+	}
+	
+	if (needsRenewal) {
+		// Create new session with rotated ID and extended expiration
+		const newSession = await prisma.session.create({
+			data: {
+				expirationDate: getSessionExpirationDate(true), // true = renewal
+				userId: session.user.id,
+			},
+		})
+		
+		// Update the session in the cookie
+		authSession.set(sessionKey, newSession.id)
+		
+		// Delete the old session
+		await prisma.session.delete({ where: { id: sessionId } })
+		
+		// Return the new session cookie header for the response
+		const cookieHeader = await authSessionStorage.commitSession(authSession, {
+			expires: newSession.expirationDate,
+		})
+		
+		// Store the cookie header in the request context for later use
+		// We'll need to handle this in the response
+		;(request as any).sessionCookieHeader = cookieHeader
+	}
+	
 	return session.user.id
 }
 
@@ -37,6 +144,14 @@ export async function requireUserId(
 	{ redirectTo }: { redirectTo?: string | null } = {},
 ) {
 	const userId = await getUserId(request)
+	if (userId) {
+		// Check if we need to set a session cookie header for renewal
+		const sessionCookieHeader = (request as any).sessionCookieHeader
+		if (sessionCookieHeader) {
+			// Store the cookie header in the request context for later use
+			;(request as any).sessionCookieHeader = sessionCookieHeader
+		}
+	}
 	if (!userId) {
 		const requestUrl = new URL(request.url)
 		redirectTo =
@@ -71,7 +186,7 @@ export async function login({
 	const session = await prisma.session.create({
 		select: { id: true, expirationDate: true, userId: true },
 		data: {
-			expirationDate: getSessionExpirationDate(),
+			expirationDate: getSessionExpirationDate(false), // false = new session
 			userId: user.id,
 		},
 	})
@@ -113,7 +228,7 @@ export async function signup({
 
 	const session = await prisma.session.create({
 		data: {
-			expirationDate: getSessionExpirationDate(),
+			expirationDate: getSessionExpirationDate(false), // false = new session
 			user: {
 				create: {
 					phoneNumber: phoneNumber,

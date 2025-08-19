@@ -11,7 +11,7 @@ import {
 } from '#app/components/ui/dropdown-menu.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { SimpleTooltip } from '#app/components/ui/tooltip.js'
-import { requireUserId } from '#app/utils/auth.server.js'
+import { requireUserId, handleSessionRenewal } from '#app/utils/auth.server.js'
 import { getNextScheduledTime } from '#app/utils/cron.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { cn } from '#app/utils/misc.tsx'
@@ -45,7 +45,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		}))
 		.sort((a, b) => a.nextScheduledAt.getTime() - b.nextScheduledAt.getTime())
 
-	return json({ recipients: sortedRecipients })
+	// Handle session renewal if needed
+	const responseInit = handleSessionRenewal(request)
+	return json({ recipients: sortedRecipients }, responseInit)
 }
 
 export default function RecipientsLayout() {
