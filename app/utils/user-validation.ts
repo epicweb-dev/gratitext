@@ -8,7 +8,7 @@ export const UsernameSchema = z
 		message: 'Username can only include letters, numbers, and underscores',
 	})
 	// users can type the username in any case, but we store it in lowercase
-	.transform(value => value.trim().toLowerCase())
+	.transform((value) => value.trim().toLowerCase())
 
 export const PasswordSchema = z
 	.string({ required_error: 'Password is required' })
@@ -23,7 +23,7 @@ export const PhoneNumberSchema = z
 	.string({ required_error: 'Phone number is required' })
 	.min(3, { message: 'Phone number is too short' })
 	.max(30, { message: 'Phone number is too long' })
-	.transform(value => value.trim())
+	.transform((value) => value.trim())
 
 export const PasswordAndConfirmPasswordSchema = z
 	.object({ password: PasswordSchema, confirmPassword: PasswordSchema })

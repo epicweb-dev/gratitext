@@ -17,7 +17,7 @@ export default function RecipientsIndexRoute() {
 export const meta: MetaFunction<null, { root: typeof rootLoader }> = ({
 	matches,
 }) => {
-	const rootMatch = matches.find(m => m.id === 'root')
+	const rootMatch = matches.find((m) => m.id === 'root')
 	const displayName = rootMatch?.data?.user?.name ?? 'Unkown User'
 	return [
 		{ title: `${displayName}'s Recipients | GratiText` },

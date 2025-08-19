@@ -32,9 +32,9 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 		recipient: recipientProps,
 		messageCountDisplay: messages.length.toLocaleString(),
 		pastMessages: messages
-			.filter(m => m.sentAt)
+			.filter((m) => m.sentAt)
 			.sort((m1, m2) => m2.sentAt!.getTime() - m1.sentAt!.getTime())
-			.map(m => ({
+			.map((m) => ({
 				id: m.id,
 				sentAtDisplay: m.sentAt!.toLocaleDateString('en-US', {
 					weekday: 'short',
@@ -68,7 +68,7 @@ export default function RecipientRoute() {
 				{data.recipient.name}.
 			</p>
 			<ul className="flex flex-col gap-2">
-				{data.pastMessages.map(m => (
+				{data.pastMessages.map((m) => (
 					<li
 						key={m.id}
 						className="flex flex-col justify-start gap-2 align-top lg:flex-row"

@@ -130,7 +130,7 @@ export default function SignupRoute() {
 					<ErrorList errors={form.errors} id={form.errorId} />
 					<StatusButton
 						className="w-full"
-						status={isPending ? 'pending' : form.status ?? 'idle'}
+						status={isPending ? 'pending' : (form.status ?? 'idle')}
 						type="submit"
 						disabled={isPending}
 					>

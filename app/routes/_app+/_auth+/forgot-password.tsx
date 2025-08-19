@@ -142,7 +142,7 @@ export default function ForgotPasswordRoute() {
 								status={
 									forgotPassword.state === 'submitting'
 										? 'pending'
-										: form.status ?? 'idle'
+										: (form.status ?? 'idle')
 								}
 								type="submit"
 								disabled={forgotPassword.state !== 'idle'}

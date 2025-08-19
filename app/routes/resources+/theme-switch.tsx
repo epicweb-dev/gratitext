@@ -89,7 +89,7 @@ export function ThemeSwitch({
 export function useOptimisticThemeMode() {
 	const fetchers = useFetchers()
 	const themeFetcher = fetchers.find(
-		f => f.formAction === '/resources/theme-switch',
+		(f) => f.formAction === '/resources/theme-switch',
 	)
 
 	if (themeFetcher && themeFetcher.formData) {

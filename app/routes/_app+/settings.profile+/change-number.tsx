@@ -137,7 +137,7 @@ export default function ChangePhoneNumberIndex() {
 					<ErrorList id={form.errorId} errors={form.errors} />
 					<div>
 						<StatusButton
-							status={isPending ? 'pending' : form.status ?? 'idle'}
+							status={isPending ? 'pending' : (form.status ?? 'idle')}
 						>
 							Send Confirmation
 						</StatusButton>

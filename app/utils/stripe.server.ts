@@ -73,11 +73,11 @@ export async function getCustomerProducts(customerId: string) {
 			const json = await response.json()
 			const { data } = SubscriptionSchema.parse(json)
 			const products = data
-				.flatMap(d => d.items.data.map(i => ProductMap[i.plan.product]))
+				.flatMap((d) => d.items.data.map((i) => ProductMap[i.plan.product]))
 				.filter(Boolean)
 			const cancelAt =
 				data
-					.map(d => d.cancel_at)
+					.map((d) => d.cancel_at)
 					.filter(Boolean)
 					.sort()[0] ?? null
 			return { products, cancelAt }

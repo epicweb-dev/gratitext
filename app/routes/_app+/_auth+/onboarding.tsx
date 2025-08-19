@@ -69,7 +69,7 @@ export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData()
 	checkHoneypot(formData)
 	const submission = await parseWithZod(formData, {
-		schema: intent =>
+		schema: (intent) =>
 			SignupFormSchema.superRefine(async (data, ctx) => {
 				const existingUser = await prisma.user.findUnique({
 					where: { username: data.username },
@@ -83,7 +83,7 @@ export async function action({ request }: ActionFunctionArgs) {
 					})
 					return
 				}
-			}).transform(async data => {
+			}).transform(async (data) => {
 				if (intent !== null) return { ...data, session: null }
 
 				const session = await signup({ ...data, phoneNumber })
@@ -228,7 +228,7 @@ export default function SignupRoute() {
 					<div className="flex items-center justify-between gap-6">
 						<StatusButton
 							className="w-full"
-							status={isPending ? 'pending' : form.status ?? 'idle'}
+							status={isPending ? 'pending' : (form.status ?? 'idle')}
 							type="submit"
 							disabled={isPending}
 						>

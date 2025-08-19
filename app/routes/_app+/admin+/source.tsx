@@ -134,7 +134,7 @@ export default function Source() {
 			<div>
 				<h2 className="text-h2">Source Numbers</h2>
 				<ul>
-					{data.sourceNumbers.map(sourceNumber => (
+					{data.sourceNumbers.map((sourceNumber) => (
 						<li key={sourceNumber.id}>
 							<EditSourceForm
 								id={sourceNumber.id}
@@ -178,7 +178,7 @@ function CreateForm() {
 				status={
 					fetcher.state !== 'idle'
 						? 'pending'
-						: fetcher.data?.result.status ?? 'idle'
+						: (fetcher.data?.result.status ?? 'idle')
 				}
 				type="submit"
 				name="intent"
@@ -208,7 +208,7 @@ function DeleteSourceForm({ id }: { id: string }) {
 				status={
 					fetcher.state !== 'idle'
 						? 'pending'
-						: fetcher.data?.result.status ?? 'idle'
+						: (fetcher.data?.result.status ?? 'idle')
 				}
 				variant={dc.doubleCheck ? 'destructive' : 'ghost'}
 				{...dc.getButtonProps({
@@ -256,7 +256,7 @@ function EditSourceForm({
 					status={
 						fetcher.state !== 'idle'
 							? 'pending'
-							: fetcher.data?.result.status ?? 'idle'
+							: (fetcher.data?.result.status ?? 'idle')
 					}
 					type="submit"
 					name="intent"
