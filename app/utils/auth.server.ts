@@ -87,7 +87,8 @@ export async function getUserId(request: Request) {
 
 	if (hasReachedMaxLifetime) {
 		// Session has reached absolute max lifetime, force logout
-		await prisma.session.delete({ where: { id: sessionId } })
+		// Use deleteMany to handle concurrent deletions gracefully
+		void prisma.session.deleteMany({ where: { id: sessionId } }).catch(() => {})
 		throw redirect('/', {
 			headers: {
 				'set-cookie': await authSessionStorage.destroySession(authSession),
@@ -114,7 +115,8 @@ export async function getUserId(request: Request) {
 		authSession.set(sessionKey, newSession.id)
 
 		// Delete the old session
-		await prisma.session.delete({ where: { id: sessionId } })
+		// Use deleteMany to handle concurrent deletions gracefully
+		void prisma.session.deleteMany({ where: { id: sessionId } }).catch(() => {})
 
 		// Store the new session info in WeakMap for entry.server.tsx to handle
 		sessionRenewalMap.set(request, {
