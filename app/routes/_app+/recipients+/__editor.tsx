@@ -10,7 +10,7 @@ import { type SerializeFrom } from '@remix-run/node'
 import { Form, useActionData, useFetcher } from '@remix-run/react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
-import { ErrorList, Field, SelectField } from '#app/components/forms.tsx'
+import { CheckboxField, ErrorList, Field, SelectField } from '#app/components/forms.tsx'
 import { Icon } from '#app/components/ui/icon.js'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { validateCronString } from '#app/utils/cron.ts'
@@ -45,6 +45,7 @@ export const RecipientEditorSchema = z.object({
 			},
 		),
 	timeZone: z.string(),
+	disabled: z.coerce.boolean().optional().default(false),
 })
 
 export const DeleteRecipientSchema = z.object({
@@ -60,7 +61,7 @@ export function RecipientEditor({
 	recipient?: SerializeFrom<
 		Pick<
 			Recipient,
-			'id' | 'name' | 'phoneNumber' | 'scheduleCron' | 'timeZone' | 'verified'
+			'id' | 'name' | 'phoneNumber' | 'scheduleCron' | 'timeZone' | 'verified' | 'disabled'
 		>
 	>
 }) {
@@ -75,7 +76,7 @@ export function RecipientEditor({
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: RecipientEditorSchema })
 		},
-		defaultValue: recipient,
+		defaultValue: recipient ? { ...recipient, disabled: recipient.disabled ?? false } : undefined,
 		shouldRevalidate: 'onBlur',
 	})
 
@@ -161,6 +162,17 @@ export function RecipientEditor({
 							)),
 						}}
 						errors={fields.timeZone.errors}
+					/>
+					<CheckboxField
+						labelProps={{
+							htmlFor: fields.disabled.id,
+							children: 'Disable sending to this recipient',
+						}}
+						buttonProps={{
+							...getInputProps(fields.disabled, { type: 'checkbox' }),
+							form: form.id,
+						}}
+						errors={fields.disabled.errors}
 					/>
 				</div>
 				<ErrorList id={form.errorId} errors={form.errors} />

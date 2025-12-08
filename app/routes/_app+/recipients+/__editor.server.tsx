@@ -55,6 +55,7 @@ type RecipientActionArgs = {
 		name: string
 		phoneNumber: string
 		verified: boolean
+		disabled: boolean
 	}
 	formData: FormData
 	request: Request
@@ -68,7 +69,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	const recipient = recipientId
 		? await prisma.recipient.findUnique({
 				where: { id: recipientId, userId },
-				select: { id: true, name: true, phoneNumber: true, verified: true },
+				select: { id: true, name: true, phoneNumber: true, verified: true, disabled: true },
 			})
 		: null
 
@@ -117,6 +118,7 @@ export async function usertRecipientAction({
 		phoneNumber,
 		scheduleCron,
 		timeZone,
+		disabled,
 	} = submission.value
 
 	const user = await prisma.user.findUnique({
@@ -139,6 +141,7 @@ export async function usertRecipientAction({
 				phoneNumber,
 				scheduleCron,
 				timeZone,
+				disabled: disabled ?? false,
 			},
 		})
 		return redirect(`/recipients/${updatedRecipient.id}`)
@@ -152,6 +155,7 @@ export async function usertRecipientAction({
 				userId,
 				timeZone,
 				verified: false,
+				disabled: disabled ?? false,
 			},
 		})
 

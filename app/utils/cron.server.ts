@@ -48,7 +48,7 @@ export async function init() {
 
 export async function sendNextTexts() {
 	const recipients = await prisma.recipient.findMany({
-		where: { verified: true, user: { stripeId: { not: null } } },
+		where: { verified: true, disabled: false, user: { stripeId: { not: null } } },
 		select: {
 			id: true,
 			name: true,

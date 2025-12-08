@@ -22,6 +22,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 			scheduleCron: true,
 			timeZone: true,
 			verified: true,
+			disabled: true,
 		},
 		where: {
 			id: params.recipientId,
