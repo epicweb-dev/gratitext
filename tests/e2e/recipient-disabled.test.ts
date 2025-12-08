@@ -1,7 +1,6 @@
 import { faker } from '@faker-js/faker'
 import { prisma } from '#app/utils/db.server.ts'
 import {
-	createMessage,
 	createRecipient,
 	expect,
 	test,
@@ -68,7 +67,6 @@ test('Users can disable sending to a recipient', async ({ page, login }) => {
 })
 
 test('Disabled recipients are excluded from scheduled message sending', async ({
-	page,
 	login,
 }) => {
 	const user = await login({ stripeId: faker.string.uuid() })
@@ -139,6 +137,6 @@ test('Disabled recipients are excluded from scheduled message sending', async ({
 	const enabledRecipientInList = recipientsForSending.find(
 		(r) => r.id === enabledRecipient.id,
 	)
-	expect(enabledRecipientInList).not.toBeUndefined()
+	expect(enabledRecipientInList).toBeDefined()
 })
 
