@@ -16,7 +16,11 @@ import { StatusButton } from '#app/components/ui/status-button.js'
 import { SimpleTooltip } from '#app/components/ui/tooltip.js'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { getHints } from '#app/utils/client-hints.js'
-import { formatSendTime, getSendTime } from '#app/utils/cron.server.js'
+import {
+	CronParseError,
+	formatSendTime,
+	getSendTime,
+} from '#app/utils/cron.server.js'
 import { prisma } from '#app/utils/db.server.ts'
 import { useDoubleCheck } from '#app/utils/misc.js'
 import { sendTextToRecipient } from '#app/utils/text.server.js'
@@ -52,6 +56,14 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 	return json({
 		optedOut: Boolean(optOut),
 		recipient: recipientProps,
+		cronError: (() => {
+			try {
+				getSendTime(recipient.scheduleCron, { tz: recipient.timeZone }, 0)
+				return null
+			} catch (error) {
+				return error instanceof CronParseError ? error.message : 'Invalid cron'
+			}
+		})(),
 		futureMessages: messages
 			.sort((m1, m2) => m1.order - m2.order)
 			.map((m, i, arr) => {
@@ -61,28 +73,37 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 					order: m.order,
 					earlierOrder: null,
 					laterOrder: null,
-					sendAtDisplay: null,
+					sendAtDisplay: null as string | null,
 				}
 				if (optOut) return base
 
-				const lastItem = arr[arr.length - 1]
-				const oneBefore = arr[i - 1]?.order ?? 0
-				const twoBefore = arr[i - 2]?.order ?? 0
-				const oneAfter = arr[i + 1]?.order ?? (lastItem?.order ?? 0) + 1
-				const twoAfter = arr[i + 2]?.order ?? (lastItem?.order ?? 0) + 1
-				const isFirst = i === 0
-				const isLast = i === arr.length - 1
-				const earlierOrder = isFirst ? null : (oneBefore + twoBefore) / 2
-				const laterOrder = isLast ? null : (oneAfter + twoAfter) / 2
-				const sendAtDisplay = formatSendTime(
-					getSendTime(recipient.scheduleCron, { tz: recipient.timeZone }, i),
-					hints.timeZone || recipient.timeZone,
-				)
-				return {
-					...base,
-					earlierOrder,
-					laterOrder,
-					sendAtDisplay,
+				try {
+					const lastItem = arr[arr.length - 1]
+					const oneBefore = arr[i - 1]?.order ?? 0
+					const twoBefore = arr[i - 2]?.order ?? 0
+					const oneAfter = arr[i + 1]?.order ?? (lastItem?.order ?? 0) + 1
+					const twoAfter = arr[i + 2]?.order ?? (lastItem?.order ?? 0) + 1
+					const isFirst = i === 0
+					const isLast = i === arr.length - 1
+					const earlierOrder = isFirst ? null : (oneBefore + twoBefore) / 2
+					const laterOrder = isLast ? null : (oneAfter + twoAfter) / 2
+					const sendAtDisplay = formatSendTime(
+						getSendTime(recipient.scheduleCron, { tz: recipient.timeZone }, i),
+						hints.timeZone || recipient.timeZone,
+					)
+					return {
+						...base,
+						earlierOrder,
+						laterOrder,
+						sendAtDisplay,
+					}
+				} catch (error) {
+					return {
+						...base,
+						sendAtDisplay: error instanceof CronParseError
+							? `Invalid cron: ${error.cronString}`
+							: 'Invalid schedule',
+					}
 				}
 			}),
 	})
@@ -271,22 +292,34 @@ export default function RecipientRoute() {
 	const data = useLoaderData<typeof loader>()
 
 	return (
-		<ul className="flex flex-col gap-6 sm:gap-12">
-			{data.futureMessages.length ? (
-				data.futureMessages.map((m) => (
-					<li
-						key={m.id}
-						className="flex flex-col gap-4 sm:flex-row sm:justify-start sm:gap-2"
-					>
-						<MessageForms message={m} />
-					</li>
-				))
-			) : (
-				<Link to="new" className="underline">
-					Create a new message
-				</Link>
-			)}
-		</ul>
+		<>
+			{data.cronError ? (
+				<div className="mb-4 rounded-md border border-destructive bg-destructive/10 p-4 text-destructive">
+					<strong className="font-bold">Invalid Cron Schedule:</strong>{' '}
+					{data.cronError}
+					<br />
+					<Link to="edit" className="underline">
+						Please update the schedule
+					</Link>
+				</div>
+			) : null}
+			<ul className="flex flex-col gap-6 sm:gap-12">
+				{data.futureMessages.length ? (
+					data.futureMessages.map((m) => (
+						<li
+							key={m.id}
+							className="flex flex-col gap-4 sm:flex-row sm:justify-start sm:gap-2"
+						>
+							<MessageForms message={m} />
+						</li>
+					))
+				) : (
+					<Link to="new" className="underline">
+						Create a new message
+					</Link>
+				)}
+			</ul>
+		</>
 	)
 }
 

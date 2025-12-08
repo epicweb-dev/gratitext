@@ -13,6 +13,7 @@ import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { ErrorList, Field, SelectField } from '#app/components/forms.tsx'
 import { Icon } from '#app/components/ui/icon.js'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
+import { validateCronString } from '#app/utils/cron.server.ts'
 import { useDoubleCheck, useIsPending } from '#app/utils/misc.tsx'
 import {
 	type deleteRecipientAction,
@@ -28,7 +29,21 @@ export const RecipientEditorSchema = z.object({
 	id: z.string().optional(),
 	name: z.string().min(1).max(100),
 	phoneNumber: z.string().min(1).max(100),
-	scheduleCron: z.string(),
+	scheduleCron: z
+		.string()
+		.min(1, 'Cron string is required')
+		.refine(
+			(cronString) => {
+				const validation = validateCronString(cronString)
+				return validation.valid
+			},
+			(cronString) => {
+				const validation = validateCronString(cronString)
+				return {
+					message: validation.error || 'Invalid cron string',
+				}
+			},
+		),
 	timeZone: z.string(),
 })
 

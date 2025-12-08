@@ -12,7 +12,7 @@ import {
 import { Icon } from '#app/components/ui/icon.tsx'
 import { SimpleTooltip } from '#app/components/ui/tooltip.js'
 import { requireUserId } from '#app/utils/auth.server.js'
-import { getNextScheduledTime } from '#app/utils/cron.server.ts'
+import { CronParseError, getNextScheduledTime } from '#app/utils/cron.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { cn } from '#app/utils/misc.tsx'
 
@@ -36,13 +36,25 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 	// Calculate next scheduled time for each recipient and sort
 	const sortedRecipients = recipients
-		.map((recipient) => ({
-			...recipient,
-			nextScheduledAt: getNextScheduledTime(
-				recipient.scheduleCron,
-				recipient.timeZone,
-			),
-		}))
+		.map((recipient) => {
+			try {
+				return {
+					...recipient,
+					nextScheduledAt: getNextScheduledTime(
+						recipient.scheduleCron,
+						recipient.timeZone,
+					),
+					cronError: null as string | null,
+				}
+			} catch (error) {
+				return {
+					...recipient,
+					nextScheduledAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365), // Far future date for sorting
+					cronError:
+						error instanceof CronParseError ? error.message : 'Invalid cron',
+				}
+			}
+		})
 		.sort((a, b) => a.nextScheduledAt.getTime() - b.nextScheduledAt.getTime())
 
 	return json({ recipients: sortedRecipients })
@@ -101,7 +113,17 @@ export default function RecipientsLayout() {
 													)}
 												/>
 												{recipient.name}
-												{recipient._count.messages > 0 ? null : (
+												{recipient.cronError ? (
+													<SimpleTooltip
+														content={`Invalid cron: ${recipient.cronError}`}
+													>
+														<Icon
+															name="exclamation-circle-outline"
+															className="text-destructive"
+															title="invalid cron schedule"
+														/>
+													</SimpleTooltip>
+												) : recipient._count.messages > 0 ? null : (
 													<SimpleTooltip content="No messages scheduled">
 														<Icon
 															name="exclamation-circle-outline"

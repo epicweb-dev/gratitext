@@ -12,6 +12,43 @@ import {
 import { prisma } from './db.server.ts'
 import { sendText, sendTextToRecipient } from './text.server.ts'
 
+export class CronParseError extends Error {
+	constructor(
+		message: string,
+		public readonly cronString: string,
+	) {
+		super(message)
+		this.name = 'CronParseError'
+	}
+}
+
+export function validateCronString(cronString: string): {
+	valid: boolean
+	error?: string
+} {
+	try {
+		cronParser.parseExpression(cronString)
+		return { valid: true }
+	} catch (error) {
+		const errorMessage =
+			error instanceof Error ? error.message : 'Invalid cron string'
+		return {
+			valid: false,
+			error: errorMessage,
+		}
+	}
+}
+
+function parseCronExpression(cronString: string, options?: { tz?: string }) {
+	try {
+		return cronParser.parseExpression(cronString, options)
+	} catch (error) {
+		const errorMessage =
+			error instanceof Error ? error.message : 'Invalid cron string'
+		throw new CronParseError(errorMessage, cronString)
+	}
+}
+
 const cronIntervalRef = remember<{
 	current: ReturnType<typeof setIntervalAsync> | null
 }>('cronInterval', () => ({ current: null }))
@@ -46,25 +83,35 @@ export async function sendNextTexts() {
 		.map((recipient) => {
 			const { scheduleCron, messages, lastRemindedAt } = recipient
 			const lastMessage = messages[0]
-			const interval = cronParser.parseExpression(scheduleCron, {
-				tz: recipient.timeZone,
-			})
-			const lastSent = new Date(lastMessage?.sentAt ?? 0)
-			const prev = interval.prev().toDate()
-			const next = interval.next().toDate()
-			const nextIsSoon = next.getTime() - Date.now() < 1000 * 60 * 30
-			const due = lastSent < prev
-			const remind =
-				nextIsSoon && (lastRemindedAt?.getTime() ?? 0) < prev.getTime()
+			try {
+				const interval = parseCronExpression(scheduleCron, {
+					tz: recipient.timeZone,
+				})
+				const lastSent = new Date(lastMessage?.sentAt ?? 0)
+				const prev = interval.prev().toDate()
+				const next = interval.next().toDate()
+				const nextIsSoon = next.getTime() - Date.now() < 1000 * 60 * 30
+				const due = lastSent < prev
+				const remind =
+					nextIsSoon && (lastRemindedAt?.getTime() ?? 0) < prev.getTime()
 
-			return {
-				recipient,
-				due,
-				remind,
-				prev,
+				return {
+					recipient,
+					due,
+					remind,
+					prev,
+				}
+			} catch (error) {
+				console.error(
+					`Invalid cron string "${scheduleCron}" for recipient ${recipient.id}:`,
+					error instanceof Error ? error.message : error,
+				)
+				return null
 			}
 		})
-		.filter((r) => r.due || r.remind)
+		.filter(
+			(r): r is NonNullable<typeof r> => r !== null && (r.due || r.remind),
+		)
 
 	if (!messagesToSend.length) return
 
@@ -116,14 +163,14 @@ export function getSendTime(
 	options: { tz: string },
 	number: number,
 ) {
-	const interval = cronParser.parseExpression(scheduleCron, options)
+	const interval = parseCronExpression(scheduleCron, options)
 	let next = interval.next().toDate()
 	while (number-- > 0) next = interval.next().toDate()
 	return next
 }
 
 export function getNextScheduledTime(scheduleCron: string, timeZone: string) {
-	const interval = cronParser.parseExpression(scheduleCron, { tz: timeZone })
+	const interval = parseCronExpression(scheduleCron, { tz: timeZone })
 	return interval.next().toDate()
 }
 

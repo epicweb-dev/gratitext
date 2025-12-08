@@ -7,7 +7,11 @@ import { Icon } from '#app/components/ui/icon.js'
 import { SimpleTooltip } from '#app/components/ui/tooltip.js'
 import { requireUserId } from '#app/utils/auth.server.js'
 import { getHints } from '#app/utils/client-hints.js'
-import { formatSendTime, getSendTime } from '#app/utils/cron.server.js'
+import {
+	CronParseError,
+	formatSendTime,
+	getSendTime,
+} from '#app/utils/cron.server.js'
 import { prisma } from '#app/utils/db.server.js'
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
@@ -31,13 +35,28 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 		select: { id: true },
 	})
 
+	let formattedNextSendTime: string
+	let cronError: string | null = null
+	try {
+		formattedNextSendTime = formatSendTime(
+			getSendTime(recipient.scheduleCron, { tz: recipient.timeZone }, 0),
+			hints.timeZone || recipient.timeZone,
+		)
+	} catch (error) {
+		if (error instanceof CronParseError) {
+			formattedNextSendTime = `Invalid cron: ${error.cronString}`
+			cronError = error.message
+		} else {
+			formattedNextSendTime = 'Invalid schedule'
+			cronError = error instanceof Error ? error.message : 'Unknown error'
+		}
+	}
+
 	return json({
 		optedOut: Boolean(optedOut),
 		recipient,
-		formattedNextSendTime: formatSendTime(
-			getSendTime(recipient.scheduleCron, { tz: recipient.timeZone }, 0),
-			hints.timeZone || recipient.timeZone,
-		),
+		formattedNextSendTime,
+		cronError,
 	})
 }
 
@@ -86,8 +105,18 @@ export default function RecipientRoute() {
 								(unverified)
 							</Link>
 						)}
-						<SimpleTooltip content="Next send time">
-							<button className="cursor-default">
+						<SimpleTooltip
+							content={
+								data.cronError
+									? `Cron error: ${data.cronError}`
+									: 'Next send time'
+							}
+						>
+							<button
+								className={`cursor-default ${
+									data.cronError ? 'text-destructive' : ''
+								}`}
+							>
 								{data.formattedNextSendTime}
 							</button>
 						</SimpleTooltip>
