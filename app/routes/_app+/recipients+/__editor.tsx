@@ -13,7 +13,7 @@ import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { ErrorList, Field, SelectField } from '#app/components/forms.tsx'
 import { Icon } from '#app/components/ui/icon.js'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
-import { validateCronString } from '#app/utils/cron.server.ts'
+import { validateCronString } from '#app/utils/cron.ts'
 import { useDoubleCheck, useIsPending } from '#app/utils/misc.tsx'
 import {
 	type deleteRecipientAction,
