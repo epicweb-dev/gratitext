@@ -46,25 +46,34 @@ export async function sendNextTexts() {
 		.map((recipient) => {
 			const { scheduleCron, messages, lastRemindedAt } = recipient
 			const lastMessage = messages[0]
-			const interval = cronParser.parseExpression(scheduleCron, {
-				tz: recipient.timeZone,
-			})
-			const lastSent = new Date(lastMessage?.sentAt ?? 0)
-			const prev = interval.prev().toDate()
-			const next = interval.next().toDate()
-			const nextIsSoon = next.getTime() - Date.now() < 1000 * 60 * 30
-			const due = lastSent < prev
-			const remind =
-				nextIsSoon && (lastRemindedAt?.getTime() ?? 0) < prev.getTime()
+			
+			try {
+				const interval = cronParser.parseExpression(scheduleCron, {
+					tz: recipient.timeZone,
+				})
+				const lastSent = new Date(lastMessage?.sentAt ?? 0)
+				const prev = interval.prev().toDate()
+				const next = interval.next().toDate()
+				const nextIsSoon = next.getTime() - Date.now() < 1000 * 60 * 30
+				const due = lastSent < prev
+				const remind =
+					nextIsSoon && (lastRemindedAt?.getTime() ?? 0) < prev.getTime()
 
-			return {
-				recipient,
-				due,
-				remind,
-				prev,
+				return {
+					recipient,
+					due,
+					remind,
+					prev,
+				}
+			} catch (error) {
+				console.error(
+					`Skipping recipient ${recipient.id} (${recipient.name}) due to invalid cron expression: ${scheduleCron}`,
+					error,
+				)
+				return null
 			}
 		})
-		.filter((r) => r.due || r.remind)
+		.filter((r) => r !== null && (r.due || r.remind))
 
 	if (!messagesToSend.length) return
 
@@ -116,15 +125,27 @@ export function getSendTime(
 	options: { tz: string },
 	number: number,
 ) {
-	const interval = cronParser.parseExpression(scheduleCron, options)
-	let next = interval.next().toDate()
-	while (number-- > 0) next = interval.next().toDate()
-	return next
+	try {
+		const interval = cronParser.parseExpression(scheduleCron, options)
+		let next = interval.next().toDate()
+		while (number-- > 0) next = interval.next().toDate()
+		return next
+	} catch (error) {
+		console.error(`Invalid cron expression: ${scheduleCron}`, error)
+		// Return a date far in the future to indicate invalid schedule
+		return new Date('2099-12-31T23:59:59Z')
+	}
 }
 
 export function getNextScheduledTime(scheduleCron: string, timeZone: string) {
-	const interval = cronParser.parseExpression(scheduleCron, { tz: timeZone })
-	return interval.next().toDate()
+	try {
+		const interval = cronParser.parseExpression(scheduleCron, { tz: timeZone })
+		return interval.next().toDate()
+	} catch (error) {
+		console.error(`Invalid cron expression: ${scheduleCron}`, error)
+		// Return a date far in the future so invalid schedules appear last in sorting
+		return new Date('2099-12-31T23:59:59Z')
+	}
 }
 
 export function formatSendTime(date: Date, timezone: string): string {
