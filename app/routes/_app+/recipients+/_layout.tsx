@@ -24,6 +24,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			name: true,
 			scheduleCron: true,
 			timeZone: true,
+			disabled: true,
 			_count: { select: { messages: { where: { sentAt: null } } } },
 			messages: {
 				where: { sentAt: null },
@@ -55,7 +56,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
 				}
 			}
 		})
-		.sort((a, b) => a.nextScheduledAt.getTime() - b.nextScheduledAt.getTime())
+		.sort((a, b) => {
+			// Put disabled recipients at the bottom
+			if (a.disabled !== b.disabled) {
+				return a.disabled ? 1 : -1
+			}
+			// Then sort by next scheduled time
+			return a.nextScheduledAt.getTime() - b.nextScheduledAt.getTime()
+		})
 
 	return json({ recipients: sortedRecipients })
 }
@@ -113,7 +121,15 @@ export default function RecipientsLayout() {
 													)}
 												/>
 												{recipient.name}
-												{recipient.cronError ? (
+												{recipient.disabled ? (
+													<SimpleTooltip content="Recipient is disabled">
+														<Icon
+															name="lock-closed"
+															className="text-muted-foreground"
+															title="recipient is disabled"
+														/>
+													</SimpleTooltip>
+												) : recipient.cronError ? (
 													<SimpleTooltip
 														content={`Invalid cron: ${recipient.cronError}`}
 													>
