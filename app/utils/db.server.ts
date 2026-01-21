@@ -1,5 +1,6 @@
 import { remember } from '@epic-web/remember'
 import { PrismaClient } from '@prisma/client'
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 import chalk from 'chalk'
 
 export const prisma = remember('prisma', () => {
@@ -9,7 +10,14 @@ export const prisma = remember('prisma', () => {
 	// Feel free to change this log threshold to something that makes sense for you
 	const logThreshold = 20
 
+	const databaseUrl = process.env.DATABASE_URL
+	if (!databaseUrl) {
+		throw new Error('DATABASE_URL is required to initialize Prisma')
+	}
+
+	const adapter = new PrismaBetterSqlite3({ url: databaseUrl })
 	const client = new PrismaClient({
+		adapter,
 		log: [
 			{ level: 'query', emit: 'event' },
 			{ level: 'error', emit: 'stdout' },
