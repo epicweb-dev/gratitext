@@ -1,4 +1,3 @@
-import { appendFile } from 'node:fs/promises'
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4'
 import {
@@ -27,25 +26,6 @@ const LoginFormSchema = z.object({
 	remember: z.boolean().optional(),
 })
 
-const debugLogPath = '/tmp/login-debug.log'
-
-async function writeDebugLog(payload: {
-	hypothesisId: string
-	location: string
-	message: string
-	data: Record<string, unknown>
-	timestamp: number
-}) {
-	try {
-		await appendFile(
-			debugLogPath,
-			`e2e-login-debug: ${JSON.stringify(payload)}\n`,
-		)
-	} catch {
-		// Ignore logging errors to avoid impacting requests.
-	}
-}
-
 export async function loader({ request }: LoaderFunctionArgs) {
 	await requireAnonymous(request)
 	return json({})
@@ -54,42 +34,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export async function action({ request }: ActionFunctionArgs) {
 	await requireAnonymous(request)
 	const formData = await request.formData()
-	const usernameValue = formData.get('username')
-	const passwordValue = formData.get('password')
-	await writeDebugLog({
-		hypothesisId: 'B',
-		location: 'login.action.start',
-		message: 'received login form data',
-		data: {
-			hasUsername: typeof usernameValue === 'string',
-			hasPassword: typeof passwordValue === 'string',
-			usernameLength:
-				typeof usernameValue === 'string' ? usernameValue.length : null,
-			passwordLength:
-				typeof passwordValue === 'string' ? passwordValue.length : null,
-		},
-		timestamp: Date.now(),
-	})
 	await checkHoneypot(formData)
-	await writeDebugLog({
-		hypothesisId: 'C',
-		location: 'login.action.honeypot',
-		message: 'honeypot check passed',
-		data: {},
-		timestamp: Date.now(),
-	})
-	let loginOutcome: 'skipped' | 'invalid' | 'success' = 'skipped'
 	const submission = await parseWithZod(formData, {
 		schema: (intent) =>
 			LoginFormSchema.transform(async (data, ctx) => {
-				if (intent !== null) {
-					loginOutcome = 'skipped'
-					return { ...data, session: null }
-				}
+				if (intent !== null) return { ...data, session: null }
 
 				const session = await login(data)
 				if (!session) {
-					loginOutcome = 'invalid'
 					ctx.addIssue({
 						code: z.ZodIssueCode.custom,
 						message: 'Invalid username or password',
@@ -97,21 +49,9 @@ export async function action({ request }: ActionFunctionArgs) {
 					return z.NEVER
 				}
 
-				loginOutcome = 'success'
 				return { ...data, session }
 			}),
 		async: true,
-	})
-	await writeDebugLog({
-		hypothesisId: 'A',
-		location: 'login.action.result',
-		message: 'login submission processed',
-		data: {
-			submissionStatus: submission.status,
-			loginOutcome,
-			hasSession: Boolean(submission.value?.session),
-		},
-		timestamp: Date.now(),
 	})
 
 	if (submission.status !== 'success' || !submission.value.session) {
