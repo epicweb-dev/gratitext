@@ -35,6 +35,7 @@ export default defineConfig({
 		stdout: 'pipe',
 		stderr: 'pipe',
 		env: {
+			DOTENV_CONFIG_PATH: '.env.example',
 			PORT,
 		},
 	},
