@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url'
 import filenamify from 'filenamify'
 import fsExtra from 'fs-extra'
 import { z } from 'zod'
-import { waitFor } from '#tests/playwright-utils.js'
+import { waitFor } from '#tests/playwright-utils.ts'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const fixturesDirPath = path.join(__dirname, '..', 'fixtures')
