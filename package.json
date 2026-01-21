@@ -160,7 +160,10 @@
   "engines": {
     "node": "22"
   },
-  "epic-stack": true,
+  "epic-stack": {
+    "head": "40bc4bfa50913ea186e52d6332cc216865ae06bb",
+    "date": "2025-12-03T22:27:28Z"
+  },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   }
