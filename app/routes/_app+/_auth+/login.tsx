@@ -145,7 +145,7 @@ export default function LoginPage() {
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: LoginFormSchema })
 		},
-		shouldRevalidate: 'onBlur',
+		shouldRevalidate: 'onInput',
 	})
 
 	return (
