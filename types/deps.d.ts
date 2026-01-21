@@ -4,3 +4,8 @@
 // declare module 'some-untyped-pkg' {
 // 	export function foo(): void;
 // }
+
+declare module 'virtual:remix/server-build' {
+	const build: import('@remix-run/node').ServerBuild
+	export = build
+}
