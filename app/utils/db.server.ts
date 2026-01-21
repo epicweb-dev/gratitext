@@ -10,7 +10,7 @@ export const prisma = remember('prisma', () => {
 	// Feel free to change this log threshold to something that makes sense for you
 	const logThreshold = 20
 
-	const databaseUrl = process.env.DATABASE_URL
+	const databaseUrl = process.env.DATABASE_URL ?? ''
 	if (!databaseUrl) {
 		throw new Error('DATABASE_URL is required to initialize Prisma')
 	}

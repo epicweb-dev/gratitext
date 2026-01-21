@@ -32,18 +32,15 @@ export const RecipientEditorSchema = z.object({
 	scheduleCron: z
 		.string()
 		.min(1, 'Cron string is required')
-		.refine(
-			(cronString) => {
-				const validation = validateCronString(cronString)
-				return validation.valid
-			},
-			(cronString) => {
-				const validation = validateCronString(cronString)
-				return {
+		.superRefine((cronString, ctx) => {
+			const validation = validateCronString(cronString)
+			if (!validation.valid) {
+				ctx.addIssue({
+					code: z.ZodIssueCode.custom,
 					message: validation.error || 'Invalid cron string',
-				}
-			},
-		),
+				})
+			}
+		}),
 	timeZone: z.string(),
 	disabled: z.coerce.boolean().optional().default(false),
 })
@@ -76,7 +73,12 @@ export function RecipientEditor({
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: RecipientEditorSchema })
 		},
-		defaultValue: recipient ? { ...recipient, disabled: recipient.disabled ?? false } : undefined,
+		defaultValue: recipient
+			? {
+					...recipient,
+					disabled: recipient.disabled ? 'on' : undefined,
+				}
+			: undefined,
 		shouldRevalidate: 'onBlur',
 	})
 

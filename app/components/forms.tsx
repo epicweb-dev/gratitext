@@ -4,7 +4,7 @@ import {
 	REGEXP_ONLY_DIGITS,
 	type OTPInputProps,
 } from 'input-otp'
-import React, { useId } from 'react'
+import React, { useId, type JSX } from 'react'
 import { Checkbox, type CheckboxProps } from './ui/checkbox.tsx'
 import {
 	InputOTP,

@@ -91,7 +91,7 @@ export async function prepareVerification({
 	const verifyUrl = getRedirectToUrl({ request, type, target })
 	const redirectTo = new URL(verifyUrl.toString())
 
-	const { otp, ...verificationConfig } = generateTOTP({
+	const { otp, ...verificationConfig } = await generateTOTP({
 		algorithm: 'SHA256',
 		// Leaving off 0 and O on purpose to avoid confusing users.
 		charSet,
@@ -132,7 +132,7 @@ export async function isCodeValid({
 		select: { algorithm: true, secret: true, period: true, charSet: true },
 	})
 	if (!verification) return false
-	const result = verifyTOTP({
+	const result = await verifyTOTP({
 		otp: code,
 		...verification,
 	})
