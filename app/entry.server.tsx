@@ -139,12 +139,7 @@ export function handleError(
 	}
 	if (error instanceof Error) {
 		console.error(chalk.red(error.stack))
-		void Sentry.captureRemixServerException(
-			error,
-			'remix.server',
-			request,
-			true,
-		)
+		void Sentry.captureRemixServerException(error, 'remix.server', request)
 	} else {
 		console.error(chalk.red(error))
 		Sentry.captureException(error)
