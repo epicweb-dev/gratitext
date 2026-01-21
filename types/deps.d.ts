@@ -6,7 +6,7 @@
 // }
 
 declare module 'virtual:remix/server-build' {
-	import type { ServerBuild } from '@remix-run/node'
+	import { type ServerBuild } from '@remix-run/node'
 
 	const build: ServerBuild
 	export = build
