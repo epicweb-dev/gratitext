@@ -29,12 +29,6 @@ import { sendTextToRecipient } from '#app/utils/text.server.js'
 import { createToastHeaders } from '#app/utils/toast.server.js'
 
 type FutureMessage = SerializeFrom<typeof loader>['futureMessages'][number]
-type RecipientMessage = {
-	id: string
-	content: string
-	sentAt: Date | null
-	order: number
-}
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
 	const userId = await requireUserId(request)
@@ -73,8 +67,8 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 			}
 		})(),
 		futureMessages: messages
-			.sort((m1: RecipientMessage, m2: RecipientMessage) => m1.order - m2.order)
-			.map((m: RecipientMessage, i: number, arr: RecipientMessage[]) => {
+			.sort((m1, m2) => m1.order - m2.order)
+			.map((m, i, arr) => {
 				const base = {
 					id: m.id,
 					content: m.content,
@@ -318,7 +312,7 @@ export default function RecipientRoute() {
 			) : null}
 			<ul className="flex flex-col gap-6 sm:gap-12">
 				{data.futureMessages.length ? (
-					data.futureMessages.map((m: FutureMessage) => (
+					data.futureMessages.map((m) => (
 						<li
 							key={m.id}
 							className="flex flex-col gap-4 sm:flex-row sm:justify-start sm:gap-2"

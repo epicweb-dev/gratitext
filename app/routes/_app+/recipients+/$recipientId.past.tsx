@@ -27,23 +27,14 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 	invariantResponse(recipient, 'Not found', { status: 404 })
 
 	const { messages, ...recipientProps } = recipient
-	type RecipientMessage = {
-		id: string
-		content: string
-		sentAt: Date | null
-		order: number
-	}
 
 	return json({
 		recipient: recipientProps,
 		messageCountDisplay: messages.length.toLocaleString(),
 		pastMessages: messages
-			.filter((m: RecipientMessage) => m.sentAt)
-			.sort(
-				(m1: RecipientMessage, m2: RecipientMessage) =>
-					m2.sentAt!.getTime() - m1.sentAt!.getTime(),
-			)
-			.map((m: RecipientMessage) => ({
+			.filter((m) => m.sentAt)
+			.sort((m1, m2) => m2.sentAt!.getTime() - m1.sentAt!.getTime())
+			.map((m) => ({
 				id: m.id,
 				sentAtDisplay: m.sentAt!.toLocaleDateString('en-US', {
 					weekday: 'short',

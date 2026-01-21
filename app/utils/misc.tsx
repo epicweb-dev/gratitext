@@ -3,7 +3,6 @@ import { clsx, type ClassValue } from 'clsx'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSpinDelay } from 'spin-delay'
 import { extendTailwindMerge } from 'tailwind-merge'
-import { extendedTheme } from './extended-theme.ts'
 
 export function getErrorMessage(error: unknown) {
 	if (typeof error === 'string') return error
@@ -19,31 +18,61 @@ export function getErrorMessage(error: unknown) {
 	return 'Unknown Error'
 }
 
-function formatColors() {
-	const colors = []
-	for (const [key, color] of Object.entries(extendedTheme.colors)) {
-		if (typeof color === 'string') {
-			colors.push(key)
-		} else {
-			const colorGroup = Object.keys(color).map((subKey) =>
-				subKey === 'DEFAULT' ? '' : subKey,
-			)
-			colors.push({ [key]: colorGroup })
-		}
-	}
-	return colors
-}
+const customColors = [
+	'background',
+	'foreground',
+	'foreground-destructive',
+	'border',
+	'input',
+	'input-invalid',
+	'ring',
+	'card',
+	'card-foreground',
+	'popover',
+	'popover-foreground',
+	'primary',
+	'primary-foreground',
+	'secondary',
+	'secondary-foreground',
+	'muted',
+	'muted-foreground',
+	'muted-secondary',
+	'muted-secondary-foreground',
+	'accent',
+	'accent-foreground',
+	'destructive',
+	'destructive-foreground',
+]
+
+const customFontSizes = [
+	'mega',
+	'h1',
+	'h2',
+	'h3',
+	'h4',
+	'h5',
+	'h6',
+	'body-2xl',
+	'body-xl',
+	'body-lg',
+	'body-md',
+	'body-sm',
+	'body-xs',
+	'body-2xs',
+	'caption',
+	'button',
+]
 
 const customTwMerge = extendTailwindMerge<string, string>({
 	extend: {
 		theme: {
-			colors: formatColors(),
-			borderRadius: Object.keys(extendedTheme.borderRadius),
+			colors: customColors,
+			borderRadius: ['sm', 'md', 'lg', 'xl'],
 		},
 		classGroups: {
 			'font-size': [
 				{
-					text: Object.keys(extendedTheme.fontSize),
+					text: customFontSizes,
 				},
 			],
 		},

@@ -29,8 +29,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	return json({ sourceNumbers })
 }
 
-type SourceNumber = SerializeFrom<typeof loader>['sourceNumbers'][number]
-
 type SourceActionArgs = {
 	request: Request
 	formData: FormData
@@ -137,7 +135,7 @@ export default function Source() {
 			<div>
 				<h2 className="text-h2">Source Numbers</h2>
 				<ul>
-					{data.sourceNumbers.map((sourceNumber: SourceNumber) => (
+					{data.sourceNumbers.map((sourceNumber) => (
 						<li key={sourceNumber.id}>
 							<EditSourceForm
 								id={sourceNumber.id}

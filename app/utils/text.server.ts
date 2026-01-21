@@ -1,7 +1,3 @@
-import { mkdir, writeFile } from 'node:fs/promises'
-import path from 'node:path'
-import { createId as cuid } from '@paralleldrive/cuid2'
-import filenamify from 'filenamify'
 import { z } from 'zod'
 import { prisma } from './db.server.ts'
 import { getCustomerProducts } from './stripe.server.ts'
@@ -135,23 +131,6 @@ export async function sendText({
 		return { status: 'error', error: 'No source number found' }
 	}
 
-	if (process.env.MOCKS === 'true') {
-		await writeMockText({
-			to,
-			from: sourceNumber.phoneNumber,
-			body: message,
-		})
-		return {
-			status: 'success',
-			data: {
-				sid: cuid(),
-				status: 'queued',
-				error_code: null,
-				error_message: null,
-			},
-		}
-	}
-
 	const params = new URLSearchParams({
 		To: to,
 		From: sourceNumber.phoneNumber,
@@ -190,27 +169,4 @@ export async function sendText({
 	} else {
 		return { status: 'error', error: parsed.error.message }
 	}
-}
-
-async function writeMockText({
-	to,
-	from,
-	body,
-}: {
-	to: string
-	from: string
-	body: string
-}) {
-	const fixturesDir = path.join(process.cwd(), 'tests', 'fixtures', 'texts')
-	await mkdir(fixturesDir, { recursive: true })
-	const filename = filenamify(to)
-	const payload = {
-		To: to,
-		From: from,
-		Body: body,
-	}
-	await writeFile(
-		path.join(fixturesDir, `${filename}.json`),
-		JSON.stringify(payload, null, 2),
-	)
 }
