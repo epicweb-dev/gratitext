@@ -1,3 +1,4 @@
+import { createId as cuid } from '@paralleldrive/cuid2'
 import { z } from 'zod'
 import { prisma } from './db.server.ts'
 import { getCustomerProducts } from './stripe.server.ts'
@@ -131,22 +132,47 @@ export async function sendText({
 		return { status: 'error', error: 'No source number found' }
 	}
 
+	if (process.env.MOCKS === 'true') {
+		const { writeText } = await import('#tests/mocks/utils.ts')
+		await writeText({
+			To: to,
+			From: sourceNumber.phoneNumber,
+			Body: message,
+		})
+		return {
+			status: 'success',
+			data: {
+				sid: cuid(),
+				status: 'queued',
+				error_code: null,
+				error_message: null,
+			},
+		}
+	}
+
 	const params = new URLSearchParams({
 		To: to,
 		From: sourceNumber.phoneNumber,
 		Body: message,
 	})
-	const response = await fetch(
-		`https://api.twilio.com/2010-04-01/Accounts/${TWILIO_SID}/Messages.json`,
-		{
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded',
-				Authorization: `Basic ${Buffer.from(`${TWILIO_SID}:${TWILIO_TOKEN}`).toString('base64')}`,
+	let response: Response
+	try {
+		response = await fetch(
+			`https://api.twilio.com/2010-04-01/Accounts/${TWILIO_SID}/Messages.json`,
+			{
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded',
+					Authorization: `Basic ${Buffer.from(`${TWILIO_SID}:${TWILIO_TOKEN}`).toString('base64')}`,
+				},
+				body: params.toString(),
 			},
-			body: params.toString(),
-		},
-	)
+		)
+	} catch (error) {
+		const errorMessage =
+			error instanceof Error ? error.message : 'Failed to send text'
+		return { status: 'error', error: errorMessage }
+	}
 	if (!response.ok) {
 		return { status: 'error', error: await response.text() }
 	}
