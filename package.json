@@ -8,18 +8,17 @@
     "#tests/*": "./tests/*"
   },
   "scripts": {
-    "build": "run-s build:*",
+    "build": "run-s build:icons build:remix",
     "build:icons": "tsx ./other/build-icons.ts",
     "build:remix": "remix vite:build",
-    "build:server": "tsx ./other/build-server.ts",
     "predev": "npm run build:icons --silent",
-    "dev": "node ./server/dev-server.js",
+    "dev": "cross-env NODE_ENV=development MOCKS=true node index.ts",
     "prisma:studio": "prisma studio",
     "format": "prettier --write .",
     "lint": "eslint .",
     "setup": "npm run build && prisma generate && prisma migrate deploy && prisma db seed && playwright install",
-    "start": "cross-env NODE_ENV=production node .",
-    "start:mocks": "cross-env NODE_ENV=production MOCKS=true tsx .",
+    "start": "cross-env NODE_ENV=production node index.ts",
+    "start:mocks": "cross-env NODE_ENV=production MOCKS=true node index.ts",
     "test": "vitest",
     "coverage": "vitest run --coverage",
     "test:e2e": "npm run test:e2e:dev --silent",
@@ -35,8 +34,7 @@
     "/node_modules",
     "/build",
     "/public/build",
-    "/playwright-report",
-    "/server-build"
+    "/playwright-report"
   ],
   "dependencies": {
     "@conform-to/react": "^1.1.5",
@@ -161,8 +159,8 @@
     "node": "22"
   },
   "epic-stack": {
-    "head": "40bc4bfa50913ea186e52d6332cc216865ae06bb",
-    "date": "2025-12-03T22:27:28Z"
+    "head": "2abbd5bb0e2d5eaada5f27d81e01ee291eeced9e",
+    "date": "2026-01-20T15:46:19-03:00"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

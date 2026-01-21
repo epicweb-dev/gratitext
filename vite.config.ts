@@ -6,11 +6,12 @@ import { defineConfig } from 'vite'
 
 const MODE = process.env.NODE_ENV
 
-export default defineConfig({
+export default defineConfig(async (config) => ({
 	build: {
 		cssMinify: MODE === 'production',
 
 		rollupOptions: {
+			input: config.isSsrBuild ? './server/app.ts' : undefined,
 			external: [/node:.*/, 'stream', 'crypto', 'fsevents'],
 		},
 
@@ -62,12 +63,9 @@ export default defineConfig({
 						},
 					},
 					sourcemaps: {
-						filesToDeleteAfterUpload: await glob([
-							'./build/**/*.map',
-							'.server-build/**/*.map',
-						]),
+						filesToDeleteAfterUpload: await glob(['./build/**/*.map']),
 					},
 				})
 			: null,
 	],
-})
+}))
