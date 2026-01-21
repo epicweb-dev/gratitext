@@ -15,7 +15,9 @@ export const prisma = remember('prisma', () => {
 		throw new Error('DATABASE_URL is required to initialize Prisma')
 	}
 
-	const adapter = new PrismaBetterSqlite3({ url: databaseUrl })
+	const adapter = new PrismaBetterSqlite3({
+		url: databaseUrl.split('?')[0],
+	})
 	const client = new PrismaClient({
 		adapter,
 		log: [
