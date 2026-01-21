@@ -1,6 +1,7 @@
 import { getFormProps, getTextareaProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4'
 import { invariantResponse } from '@epic-web/invariant'
+import { createId as cuid } from '@paralleldrive/cuid2'
 import {
 	json,
 	type ActionFunctionArgs,
@@ -11,6 +12,7 @@ import { Link, useFetcher, useLoaderData } from '@remix-run/react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { ErrorList, TextareaField } from '#app/components/forms.js'
+import { useToast } from '#app/components/toaster.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.js'
 import { SimpleTooltip } from '#app/components/ui/tooltip.js'
@@ -212,15 +214,17 @@ async function sendMessageAction({ formData, userId }: MessageActionArgs) {
 		data: { sentAt: new Date() },
 	})
 
+	const toast = {
+		id: cuid(),
+		type: 'success',
+		title: 'Message sent',
+		description: 'Your message has been sent',
+	} as const
 	return json(
-		{ result: submission.reply() },
+		{ result: submission.reply(), toast },
 		{
 			status: 200,
-			headers: await createToastHeaders({
-				type: 'success',
-				title: 'Message sent',
-				description: 'Your message has been sent',
-			}),
+			headers: await createToastHeaders(toast),
 		},
 	)
 }
@@ -449,6 +453,7 @@ function SendNowForm({ message }: { message: Pick<FutureMessage, 'id'> }) {
 		},
 		shouldRevalidate: 'onBlur',
 	})
+	useToast(fetcher.data?.toast)
 
 	return (
 		<fetcher.Form method="POST" {...getFormProps(form)}>
