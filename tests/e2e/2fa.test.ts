@@ -21,8 +21,15 @@ test('Users can add 2FA to their account and use it when logging in', async ({
 
 	const otpUri = new URL(otpUriString)
 	const options = Object.fromEntries(otpUri.searchParams)
+	const normalizedOptions = {
+		...options,
+		algorithm:
+			typeof options.algorithm === 'string'
+				? options.algorithm.replace(/^SHA(\d+)$/, 'SHA-$1')
+				: undefined,
+	}
 
-	const { otp: firstOtp } = await generateTOTP(options)
+	const { otp: firstOtp } = await generateTOTP(normalizedOptions)
 	await main.getByRole('textbox', { name: /code/i }).fill(firstOtp)
 	await main.getByRole('button', { name: /submit/i }).click()
 
@@ -39,7 +46,7 @@ test('Users can add 2FA to their account and use it when logging in', async ({
 	await page.getByLabel(/^password$/i).fill(password)
 	await page.getByRole('button', { name: /log in/i }).click()
 
-	const { otp: secondOtp } = await generateTOTP(options)
+	const { otp: secondOtp } = await generateTOTP(normalizedOptions)
 	await page.getByRole('textbox', { name: /code/i }).fill(secondOtp)
 
 	await page.getByRole('button', { name: /submit/i }).click()
