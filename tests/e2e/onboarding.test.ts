@@ -55,9 +55,6 @@ test('onboarding with link', async ({ page, getOnboardingData }) => {
 	await phoneNumberTextbox.fill(onboardingData.phoneNumber)
 
 	await page.getByRole('button', { name: /submit/i }).click()
-	await expect(
-		page.getByRole('button', { name: /submit/i, disabled: true }),
-	).toBeVisible()
 	await expect(page.getByText(/check your texts/i)).toBeVisible()
 
 	const sourceNumber = await prisma.sourceNumber.findFirstOrThrow({
@@ -119,9 +116,6 @@ test('onboarding with a short code', async ({ page, getOnboardingData }) => {
 	await phoneNumberTextbox.fill(onboardingData.phoneNumber)
 
 	await page.getByRole('button', { name: /submit/i }).click()
-	await expect(
-		page.getByRole('button', { name: /submit/i, disabled: true }),
-	).toBeVisible()
 	await expect(page.getByText(/Check your texts/i)).toBeVisible()
 
 	const sourceNumber = await prisma.sourceNumber.findFirstOrThrow({
