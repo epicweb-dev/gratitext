@@ -22,8 +22,10 @@ export async function setup() {
 		}
 	}
 
+	await fsExtra.ensureDir(path.dirname(BASE_DATABASE_PATH))
+	await fsExtra.remove(BASE_DATABASE_PATH)
 	await execaCommand(
-		'npx prisma migrate reset --force --skip-seed --skip-generate',
+		'npx prisma migrate deploy',
 		{
 			stdio: 'inherit',
 			env: {
