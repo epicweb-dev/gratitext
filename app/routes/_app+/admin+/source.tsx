@@ -5,6 +5,7 @@ import {
 	type LoaderFunctionArgs,
 	json,
 	type ActionFunctionArgs,
+	type SerializeFrom,
 } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
 import { z } from 'zod'
@@ -27,6 +28,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	})
 	return json({ sourceNumbers })
 }
+
+type SourceNumber = SerializeFrom<typeof loader>['sourceNumbers'][number]
 
 type SourceActionArgs = {
 	request: Request
@@ -134,7 +137,7 @@ export default function Source() {
 			<div>
 				<h2 className="text-h2">Source Numbers</h2>
 				<ul>
-					{data.sourceNumbers.map((sourceNumber) => (
+					{data.sourceNumbers.map((sourceNumber: SourceNumber) => (
 						<li key={sourceNumber.id}>
 							<EditSourceForm
 								id={sourceNumber.id}
