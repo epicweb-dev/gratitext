@@ -1,4 +1,5 @@
 import crypto from 'crypto'
+import { createRequestHandler } from '@remix-run/express'
 import { installGlobals } from '@remix-run/node'
 import { ip as ipAddress } from 'address'
 import chalk from 'chalk'
@@ -219,7 +220,18 @@ if (IS_DEV) {
 	// Everything else (like favicon.ico) is cached for an hour. You may want to be
 	// more aggressive with this caching.
 	app.use(express.static('build/client', { maxAge: '1h' }))
-	app.use(await import(BUILD_PATH).then((mod) => mod.app))
+	const build = await import(BUILD_PATH)
+	app.all(
+		'*',
+		createRequestHandler({
+			mode: MODE,
+			build,
+			getLoadContext: (_req, res) => ({
+				cspNonce: res.locals.cspNonce,
+				serverBuild: build,
+			}),
+		}),
+	)
 }
 
 const desiredPort = Number(process.env.PORT || 3000)
