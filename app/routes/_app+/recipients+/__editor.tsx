@@ -4,7 +4,7 @@ import {
 	getSelectProps,
 	useForm,
 } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4'
 import { type Recipient } from '@prisma/client'
 import { type SerializeFrom } from '@remix-run/node'
 import { Form, useActionData, useFetcher } from '@remix-run/react'

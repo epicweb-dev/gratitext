@@ -1,5 +1,5 @@
 import { type Submission } from '@conform-to/react'
-import { parseWithZod } from '@conform-to/zod'
+import { parseWithZod } from '@conform-to/zod/v4'
 import { json } from '@remix-run/node'
 import { z } from 'zod'
 import { handleVerification as handleChangePhoneNumberVerification } from '#app/routes/_app+/settings.profile+/change-number.server.tsx'
