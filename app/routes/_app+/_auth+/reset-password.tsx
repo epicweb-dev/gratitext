@@ -1,3 +1,4 @@
+import { appendFile } from 'node:fs/promises'
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4'
 import {
@@ -11,7 +12,11 @@ import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { ErrorList, Field } from '#app/components/forms.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
-import { requireAnonymous, resetUserPassword } from '#app/utils/auth.server.ts'
+import {
+	requireAnonymous,
+	resetUserPassword,
+	verifyUserPassword,
+} from '#app/utils/auth.server.ts'
 import { useIsPending } from '#app/utils/misc.tsx'
 import { PasswordAndConfirmPasswordSchema } from '#app/utils/user-validation.ts'
 import { verifySessionStorage } from '#app/utils/verification.server.ts'
@@ -19,6 +24,25 @@ import { verifySessionStorage } from '#app/utils/verification.server.ts'
 export const resetPasswordUsernameSessionKey = 'resetPasswordUsername'
 
 const ResetPasswordSchema = PasswordAndConfirmPasswordSchema
+
+const debugLogPath = '/tmp/login-debug.log'
+
+async function writeDebugLog(payload: {
+	hypothesisId: string
+	location: string
+	message: string
+	data: Record<string, unknown>
+	timestamp: number
+}) {
+	try {
+		await appendFile(
+			debugLogPath,
+			`e2e-login-debug: ${JSON.stringify(payload)}\n`,
+		)
+	} catch {
+		// Ignore logging errors to avoid impacting requests.
+	}
+}
 
 async function requireResetPasswordUsername(request: Request) {
 	await requireAnonymous(request)
@@ -42,8 +66,20 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export async function action({ request }: ActionFunctionArgs) {
 	const resetPasswordUsername = await requireResetPasswordUsername(request)
 	const formData = await request.formData()
+	const passwordValue = formData.get('password')
 	const submission = parseWithZod(formData, {
 		schema: ResetPasswordSchema,
+	})
+	await writeDebugLog({
+		hypothesisId: 'A',
+		location: 'reset-password.action.parse',
+		message: 'reset password submission parsed',
+		data: {
+			submissionStatus: submission.status,
+			passwordLength:
+				typeof passwordValue === 'string' ? passwordValue.length : null,
+		},
+		timestamp: Date.now(),
 	})
 	if (submission.status !== 'success') {
 		return json(
@@ -54,6 +90,20 @@ export async function action({ request }: ActionFunctionArgs) {
 	const { password } = submission.value
 
 	await resetUserPassword({ username: resetPasswordUsername, password })
+	const passwordMatches = await verifyUserPassword(
+		{ username: resetPasswordUsername },
+		password,
+	)
+	await writeDebugLog({
+		hypothesisId: 'A',
+		location: 'reset-password.action.verify',
+		message: 'verified password after reset',
+		data: {
+			passwordMatches: Boolean(passwordMatches),
+			usernameLength: resetPasswordUsername.length,
+		},
+		timestamp: Date.now(),
+	})
 	const verifySession = await verifySessionStorage.getSession()
 	return redirect('/login', {
 		headers: {
