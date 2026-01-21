@@ -1,4 +1,7 @@
+import { mkdir, writeFile } from 'node:fs/promises'
+import path from 'node:path'
 import { createId as cuid } from '@paralleldrive/cuid2'
+import filenamify from 'filenamify'
 import { z } from 'zod'
 import { prisma } from './db.server.ts'
 import { getCustomerProducts } from './stripe.server.ts'
@@ -133,11 +136,10 @@ export async function sendText({
 	}
 
 	if (process.env.MOCKS === 'true') {
-		const { writeText } = await import('#tests/mocks/utils.ts')
-		await writeText({
-			To: to,
-			From: sourceNumber.phoneNumber,
-			Body: message,
+		await writeMockText({
+			to,
+			from: sourceNumber.phoneNumber,
+			body: message,
 		})
 		return {
 			status: 'success',
@@ -188,4 +190,27 @@ export async function sendText({
 	} else {
 		return { status: 'error', error: parsed.error.message }
 	}
+}
+
+async function writeMockText({
+	to,
+	from,
+	body,
+}: {
+	to: string
+	from: string
+	body: string
+}) {
+	const fixturesDir = path.join(process.cwd(), 'tests', 'fixtures', 'texts')
+	await mkdir(fixturesDir, { recursive: true })
+	const filename = filenamify(to)
+	const payload = {
+		To: to,
+		From: from,
+		Body: body,
+	}
+	await writeFile(
+		path.join(fixturesDir, `${filename}.json`),
+		JSON.stringify(payload, null, 2),
+	)
 }
