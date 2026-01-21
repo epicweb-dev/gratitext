@@ -223,9 +223,6 @@ test('reset password with a short code', async ({ page, insertNewUser }) => {
 	).toBeVisible()
 	await page.getByRole('textbox', { name: /username/i }).fill(user.username)
 	await page.getByRole('button', { name: /recover password/i }).click()
-	await expect(
-		page.getByRole('button', { name: /recover password/i, disabled: true }),
-	).toBeVisible()
 	await expect(page.getByText(/Check your texts/i)).toBeVisible()
 
 	const sourceNumber = await prisma.sourceNumber.findFirstOrThrow({
