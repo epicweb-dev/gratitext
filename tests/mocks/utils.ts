@@ -3,7 +3,6 @@ import { fileURLToPath } from 'node:url'
 import filenamify from 'filenamify'
 import fsExtra from 'fs-extra'
 import { z } from 'zod'
-import { waitFor } from '#tests/playwright-utils.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const fixturesDirPath = path.join(__dirname, '..', 'fixtures')
@@ -54,6 +53,34 @@ export async function waitForText(
 	options: Parameters<typeof waitFor>[1] = {},
 ) {
 	return waitFor(() => requireText(recipient), options)
+}
+
+/**
+ * This allows you to wait for something (like a text to be available).
+ *
+ * It calls the callback every 50ms until it returns a value (and does not throw
+ * an error). After the timeout, it will throw the last error that was thrown or
+ * throw the error message provided as a fallback
+ */
+export async function waitFor<ReturnValue>(
+	cb: () => ReturnValue | Promise<ReturnValue>,
+	{
+		errorMessage = 'waitFor call timed out',
+		timeout = 5000,
+	}: { errorMessage?: string; timeout?: number } = {},
+) {
+	const endTime = Date.now() + timeout
+	let lastError: unknown = new Error(errorMessage)
+	while (Date.now() < endTime) {
+		try {
+			const response = await cb()
+			if (response) return response
+		} catch (e: unknown) {
+			lastError = e
+		}
+		await new Promise((r) => setTimeout(r, 100))
+	}
+	throw lastError
 }
 
 export function requireHeader(headers: Headers, header: string) {

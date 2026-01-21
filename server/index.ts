@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 import { createRequestHandler } from '@remix-run/express'
-import { type ServerBuild, installGlobals } from '@remix-run/node'
+import { installGlobals } from '@remix-run/node'
 import { ip as ipAddress } from 'address'
 import chalk from 'chalk'
 import closeWithGrace from 'close-with-grace'
@@ -17,18 +17,12 @@ const MODE = process.env.NODE_ENV ?? 'development'
 const IS_PROD = MODE === 'production'
 const IS_DEV = MODE === 'development'
 const ALLOW_INDEXING = process.env.ALLOW_INDEXING !== 'false'
+const SENTRY_ENABLED = IS_PROD && process.env.SENTRY_DSN
+const BUILD_PATH = '../build/server/index.js'
 
-if (IS_PROD && process.env.SENTRY_DSN) {
-	void import('./utils/monitoring.js').then(({ init }) => init())
+if (SENTRY_ENABLED) {
+	void import('./utils/monitoring.ts').then(({ init }) => init())
 }
-
-const viteDevServer = IS_PROD
-	? undefined
-	: await import('vite').then((vite) =>
-			vite.createServer({
-				server: { middlewareMode: true },
-			}),
-		)
 
 const app = express()
 
@@ -66,20 +60,6 @@ app.use(compression())
 
 // http://expressjs.com/en/advanced/best-practice-security.html#at-a-minimum-disable-x-powered-by-header
 app.disable('x-powered-by')
-
-if (viteDevServer) {
-	app.use(viteDevServer.middlewares)
-} else {
-	// Remix fingerprints its assets so we can cache forever.
-	app.use(
-		'/assets',
-		express.static('build/client/assets', { immutable: true, maxAge: '1y' }),
-	)
-
-	// Everything else (like favicon.ico) is cached for an hour. You may want to be
-	// more aggressive with this caching.
-	app.use(express.static('build/client', { maxAge: '1h' }))
-}
 
 app.get(['/img/*', '/favicons/*'], (_req, res) => {
 	// if we made it past the express.static for these, then we're missing something.
@@ -197,16 +177,6 @@ app.use((req, res, next) => {
 	return generalRateLimit(req, res, next)
 })
 
-async function getBuild() {
-	const build = viteDevServer
-		? viteDevServer.ssrLoadModule('virtual:remix/server-build')
-		: // @ts-ignore this should exist before running the server
-			// but it may not exist just yet.
-			await import('../build/server/index.js')
-	// not sure how to make this happy 🤷‍♂️
-	return build as unknown as ServerBuild
-}
-
 if (!ALLOW_INDEXING) {
 	app.use((_, res, next) => {
 		res.set('X-Robots-Tag', 'noindex, nofollow')
@@ -214,17 +184,55 @@ if (!ALLOW_INDEXING) {
 	})
 }
 
-app.all(
-	'*',
-	createRequestHandler({
-		getLoadContext: (_: any, res: any) => ({
-			cspNonce: res.locals.cspNonce,
-			serverBuild: getBuild(),
+if (IS_DEV) {
+	console.log('Starting development server')
+	const viteDevServer = await import('vite').then((vite) =>
+		vite.createServer({
+			server: { middlewareMode: true },
+			// We tell Vite we are running a custom app instead of
+			// the SPA default so it doesn't run HTML middleware
+			appType: 'custom',
 		}),
-		mode: MODE,
-		build: getBuild,
-	}),
-)
+	)
+	app.use(viteDevServer.middlewares)
+	app.use(async (req, res, next) => {
+		try {
+			const source = await viteDevServer.ssrLoadModule('./server/app.ts')
+			return await source.app(req, res, next)
+		} catch (error) {
+			if (typeof error === 'object' && error instanceof Error) {
+				viteDevServer.ssrFixStacktrace(error)
+			}
+			next(error)
+		}
+	})
+} else {
+	console.log('Starting production server')
+	// Remix fingerprints its assets so we can cache forever.
+	app.use(
+		'/assets',
+		express.static('build/client/assets', {
+			immutable: true,
+			maxAge: '1y',
+			fallthrough: false,
+		}),
+	)
+	// Everything else (like favicon.ico) is cached for an hour. You may want to be
+	// more aggressive with this caching.
+	app.use(express.static('build/client', { maxAge: '1h' }))
+	const build = await import(BUILD_PATH)
+	app.all(
+		'*',
+		createRequestHandler({
+			mode: MODE,
+			build,
+			getLoadContext: (_req, res) => ({
+				cspNonce: res.locals.cspNonce,
+				serverBuild: build,
+			}),
+		}),
+	)
+}
 
 const desiredPort = Number(process.env.PORT || 3000)
 const portToUse = await getPort({

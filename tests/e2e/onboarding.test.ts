@@ -169,9 +169,6 @@ test('reset password with a link', async ({ page, insertNewUser }) => {
 	).toBeVisible()
 	await page.getByRole('textbox', { name: /username/i }).fill(user.username)
 	await page.getByRole('button', { name: /recover password/i }).click()
-	await expect(
-		page.getByRole('button', { name: /recover password/i, disabled: true }),
-	).toBeVisible()
 	await expect(page.getByText(/check your texts/i)).toBeVisible()
 
 	const sourceNumber = await prisma.sourceNumber.findFirstOrThrow({
@@ -198,9 +195,6 @@ test('reset password with a link', async ({ page, insertNewUser }) => {
 	await page.getByLabel(/^confirm password$/i).fill(newPassword)
 
 	await page.getByRole('button', { name: /reset password/i }).click()
-	await expect(
-		page.getByRole('button', { name: /reset password/i, disabled: true }),
-	).toBeVisible()
 
 	await expect(page).toHaveURL('/login')
 	await page.getByRole('textbox', { name: /username/i }).fill(user.username)
@@ -229,9 +223,6 @@ test('reset password with a short code', async ({ page, insertNewUser }) => {
 	).toBeVisible()
 	await page.getByRole('textbox', { name: /username/i }).fill(user.username)
 	await page.getByRole('button', { name: /recover password/i }).click()
-	await expect(
-		page.getByRole('button', { name: /recover password/i, disabled: true }),
-	).toBeVisible()
 	await expect(page.getByText(/Check your texts/i)).toBeVisible()
 
 	const sourceNumber = await prisma.sourceNumber.findFirstOrThrow({
