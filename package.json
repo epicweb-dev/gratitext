@@ -156,7 +156,7 @@
     "vitest": "^2.0.3"
   },
   "engines": {
-    "node": "22"
+    "node": "^22.18.0"
   },
   "epic-stack": {
     "head": "2abbd5bb0e2d5eaada5f27d81e01ee291eeced9e",
