@@ -5,7 +5,6 @@ import {
 	type LoaderFunctionArgs,
 	json,
 	type ActionFunctionArgs,
-	type SerializeFrom,
 } from '@remix-run/node'
 import { useFetcher, useLoaderData } from '@remix-run/react'
 import { z } from 'zod'
