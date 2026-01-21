@@ -10,6 +10,20 @@
   </p>
 </div>
 
+## Setup
+
+1. Copy the example environment file:
+
+   cp .env.example .env
+
+2. Install dependencies:
+
+   npm install
+
+3. Run the development server:
+
+   npm run dev
+
 ## Thanks
 
 You rock 🪨
