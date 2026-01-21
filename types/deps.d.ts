@@ -5,9 +5,9 @@
 // 	export function foo(): void;
 // }
 
-import { type ServerBuild } from '@remix-run/node'
-
 declare module 'virtual:remix/server-build' {
+	import type { ServerBuild } from '@remix-run/node'
+
 	const build: ServerBuild
 	export = build
 }
