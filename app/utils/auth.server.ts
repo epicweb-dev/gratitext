@@ -1,4 +1,7 @@
-import { type Password, type User } from '@prisma/client'
+import {
+	type Password,
+	type User,
+} from '#app/utils/prisma-generated.server/client.ts'
 import { redirect } from '@remix-run/node'
 import bcrypt from 'bcryptjs'
 import { safeRedirect } from 'remix-utils/safe-redirect'

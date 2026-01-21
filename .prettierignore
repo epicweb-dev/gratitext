@@ -10,5 +10,6 @@ node_modules
 /tests/fixtures/texts/*.json
 /coverage
 /prisma/migrations
+/app/utils/prisma-generated.server
 
 package-lock.json

@@ -1,5 +1,7 @@
 import { test as base } from '@playwright/test'
-import { type User as UserModel } from '@prisma/client'
+import {
+	type User as UserModel,
+} from '#app/utils/prisma-generated.server/client.ts'
 import * as setCookieParser from 'set-cookie-parser'
 import {
 	getPasswordHash,
