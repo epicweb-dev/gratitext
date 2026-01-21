@@ -29,7 +29,7 @@ function TestComponent({ safeDelayMs = 0 }: { safeDelayMs?: number }) {
 
 test('prevents default on the first click, and does not on the second', async () => {
 	const user = userEvent.setup()
-	render(<TestComponent safeDelayMs={50} />)
+	render(<TestComponent safeDelayMs={250} />)
 
 	const status = screen.getByRole('status')
 	const button = screen.getByRole('button')
