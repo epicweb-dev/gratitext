@@ -35,7 +35,7 @@ export const VerifySchema = z.object({
 
 export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData()
-	checkHoneypot(formData)
+	await checkHoneypot(formData)
 	return validateRequest(request, formData)
 }
 

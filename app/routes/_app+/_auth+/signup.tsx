@@ -26,7 +26,7 @@ const SignupSchema = z.object({
 export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData()
 
-	checkHoneypot(formData)
+	await checkHoneypot(formData)
 
 	const submission = await parseWithZod(formData, {
 		schema: SignupSchema.superRefine(async (data, ctx) => {

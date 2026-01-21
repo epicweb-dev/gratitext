@@ -46,7 +46,7 @@ app.use((req, res, next) => {
 
 // no ending slashes for SEO reasons
 // https://github.com/epicweb-dev/epic-stack/discussions/108
-app.get('*', (req, res, next) => {
+app.get(/.*/, (req, res, next) => {
 	if (req.path.endsWith('/') && req.path.length > 1) {
 		const query = req.url.slice(req.path.length)
 		const safepath = req.path.slice(0, -1).replace(/\/+/g, '/')
@@ -61,7 +61,7 @@ app.use(compression())
 // http://expressjs.com/en/advanced/best-practice-security.html#at-a-minimum-disable-x-powered-by-header
 app.disable('x-powered-by')
 
-app.get(['/img/*', '/favicons/*'], (_req, res) => {
+app.get(/^\/(?:img|favicons)\//, (_req, res) => {
 	// if we made it past the express.static for these, then we're missing something.
 	// So we'll just send a 404 and won't bother calling other middleware.
 	return res.status(404).send('Not found')
