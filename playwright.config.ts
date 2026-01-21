@@ -36,6 +36,7 @@ export default defineConfig({
 		stderr: 'pipe',
 		env: {
 			PORT,
+			PLAYWRIGHT_TEST_BASE_URL: `http://localhost:${PORT}`,
 		},
 	},
 })

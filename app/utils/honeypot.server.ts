@@ -1,7 +1,10 @@
 import { Honeypot, SpamError } from 'remix-utils/honeypot/server'
 
+const shouldDisableValidFrom =
+	process.env.NODE_ENV === 'test' || Boolean(process.env.PLAYWRIGHT_TEST_BASE_URL)
+
 export const honeypot = new Honeypot({
-	validFromFieldName: process.env.NODE_ENV === 'test' ? null : undefined,
+	validFromFieldName: shouldDisableValidFrom ? null : undefined,
 	encryptionSeed: process.env.HONEYPOT_SECRET,
 })
 
