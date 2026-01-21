@@ -14,7 +14,7 @@
     "predev": "npm run build:icons --silent",
     "dev": "cross-env NODE_ENV=development MOCKS=true node index.ts",
     "prisma:studio": "prisma studio",
-		"prisma:generate": "cross-env DATABASE_URL=file:./prisma/data.db prisma generate",
+    "prisma:generate": "cross-env DATABASE_URL=file:./prisma/data.db prisma generate",
     "format": "prettier --write .",
     "lint": "eslint .",
     "setup": "npm run build && prisma generate && prisma migrate deploy && prisma db seed && playwright install",
@@ -28,7 +28,7 @@
     "test:e2e:run": "cross-env CI=true playwright test",
     "test:e2e:install": "npx playwright install --with-deps chromium",
     "typecheck": "tsc",
-		"validate": "run-s prisma:generate && run-p \"test -- --run\" lint typecheck test:e2e:run"
+    "validate": "run-s prisma:generate && run-p \"test -- --run\" lint typecheck test:e2e:run"
   },
   "prettier": "@epic-web/config/prettier",
   "eslintIgnore": [
@@ -46,6 +46,7 @@
     "@epic-web/remember": "^1.1.0",
     "@epic-web/totp": "^4.0.1",
     "@nasa-gcn/remix-seo": "^2.0.1",
+    "@oslojs/crypto": "^1.0.1",
     "@paralleldrive/cuid2": "^3.0.6",
     "@prisma/adapter-better-sqlite3": "^7.3.0",
     "@prisma/client": "^7.3.0",
