@@ -1,6 +1,6 @@
 import { remember } from '@epic-web/remember'
-import { PrismaClient } from '@prisma/client'
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
+import { PrismaClient } from '@prisma/client'
 import chalk from 'chalk'
 
 export const prisma = remember('prisma', () => {
