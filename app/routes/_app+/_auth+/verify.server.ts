@@ -132,9 +132,15 @@ export async function isCodeValid({
 		select: { algorithm: true, secret: true, period: true, charSet: true },
 	})
 	if (!verification) return false
+	// Normalize algorithm format from 'SHA256' to 'SHA-256' for Web Crypto API compatibility
+	const normalizedAlgorithm = verification.algorithm.replace(
+		/^SHA(\d+)$/,
+		'SHA-$1',
+	)
 	const result = await verifyTOTP({
 		otp: code,
 		...verification,
+		algorithm: normalizedAlgorithm,
 	})
 	if (!result) return false
 
