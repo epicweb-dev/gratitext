@@ -26,7 +26,6 @@ import {
 import { prisma } from '#app/utils/db.server.ts'
 import { useDoubleCheck } from '#app/utils/misc.js'
 import { sendTextToRecipient } from '#app/utils/text.server.js'
-import { createToastHeaders } from '#app/utils/toast.server.js'
 
 type FutureMessage = SerializeFrom<typeof loader>['futureMessages'][number]
 
@@ -223,13 +222,7 @@ async function sendMessageAction({ formData, userId }: MessageActionArgs) {
 		title: 'Message sent',
 		description: 'Your message has been sent',
 	} as const
-	return json(
-		{ result: submission.reply(), toast },
-		{
-			status: 200,
-			headers: await createToastHeaders(toast),
-		},
-	)
+	return json({ result: submission.reply(), toast }, { status: 200 })
 }
 
 const DeleteMessageSchema = z.object({ id: z.string() })
