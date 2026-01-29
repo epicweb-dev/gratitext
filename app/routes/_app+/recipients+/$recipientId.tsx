@@ -87,42 +87,48 @@ export default function RecipientRoute() {
 	return (
 		<div className="px-10 py-6">
 			<div className="flex flex-col justify-between gap-4 md:flex-row">
-				<div className="mb-2 pt-12 lg:mb-6">
-					<h2 className="text-h2">{data.recipient.name}</h2>
-					<small className="flex gap-1 text-sm font-normal text-secondary-foreground">
-						{data.recipient.phoneNumber}
-						{data.optedOut ? (
-							<span className="text-destructive">Opted out</span>
-						) : null}
-						{data.recipient.verified ? (
-							''
-						) : (
-							<Link
-								preventScrollReset
-								to="edit"
-								className="text-body-2xs text-destructive underline"
-							>
-								(unverified)
-							</Link>
-						)}
-						<SimpleTooltip
-							content={
-								data.cronError
-									? `Cron error: ${data.cronError}`
-									: 'Next send time'
-							}
-						>
-							<button
-								className={`cursor-default ${
-									data.cronError ? 'text-destructive' : ''
-								}`}
-							>
-								{data.formattedNextSendTime}
-							</button>
-						</SimpleTooltip>
-					</small>
+				<div className="mb-2 min-w-0 pt-12 lg:mb-6">
+					<div className="overflow-x-auto">
+						<div className="min-w-max">
+							<h2 className="text-h2 whitespace-nowrap">
+								{data.recipient.name}
+							</h2>
+							<small className="flex gap-1 text-sm font-normal text-secondary-foreground whitespace-nowrap">
+								{data.recipient.phoneNumber}
+								{data.optedOut ? (
+									<span className="text-destructive">Opted out</span>
+								) : null}
+								{data.recipient.verified ? (
+									''
+								) : (
+									<Link
+										preventScrollReset
+										to="edit"
+										className="text-body-2xs text-destructive underline"
+									>
+										(unverified)
+									</Link>
+								)}
+								<SimpleTooltip
+									content={
+										data.cronError
+											? `Cron error: ${data.cronError}`
+											: 'Next send time'
+									}
+								>
+									<button
+										className={`cursor-default ${
+											data.cronError ? 'text-destructive' : ''
+										}`}
+									>
+										{data.formattedNextSendTime}
+									</button>
+								</SimpleTooltip>
+							</small>
+						</div>
+					</div>
 				</div>
-				<nav>
+				<nav className="shrink-0">
 					<Link
 						to="."
 						preventScrollReset
