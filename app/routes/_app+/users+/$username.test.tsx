@@ -12,6 +12,9 @@ import { authSessionStorage } from '#app/utils/session.server.ts'
 import { createUser } from '#tests/db-utils.ts'
 import { default as UsernameRoute, loader } from './$username.tsx'
 
+type RootLoaderArgs = Parameters<typeof rootLoader>[0]
+type UsernameLoaderArgs = Parameters<typeof loader>[0]
+
 test('The user profile when not logged in as self', async () => {
 	const user = await prisma.user.create({
 		select: { id: true, username: true, name: true },
@@ -57,7 +60,7 @@ test('The user profile when logged in as self', async () => {
 		{
 			id: 'root',
 			path: '/',
-			loader: async (args) => {
+			loader: async (args: RootLoaderArgs) => {
 				// add the cookie header to the request
 				args.request.headers.set('cookie', cookieHeader)
 				return rootLoader(args)
@@ -66,7 +69,7 @@ test('The user profile when logged in as self', async () => {
 				{
 					path: 'users/:username',
 					Component: UsernameRoute,
-					loader: async (args) => {
+					loader: async (args: UsernameLoaderArgs) => {
 						// add the cookie header to the request
 						args.request.headers.set('cookie', cookieHeader)
 						return loader(args)
