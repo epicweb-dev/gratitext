@@ -1,6 +1,5 @@
 {
 	"include": ["**/*.ts", "**/*.tsx"],
-	"exclude": ["tmp", "tmp/**"],
 	"extends": ["@epic-web/config/typescript"],
 	"compilerOptions": {
 		"paths": {
