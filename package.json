@@ -58,7 +58,7 @@
     "@radix-ui/react-tooltip": "^1.1.2",
     "@remix-run/express": "^2.17.4",
     "@remix-run/node": "^2.17.4",
-    "@remix-run/react": "2.10.3",
+    "@remix-run/react": "^2.17.4",
     "@sentry/profiling-node": "^8.18.0",
     "@sentry/remix": "^8.18.0",
     "address": "^2.0.3",
