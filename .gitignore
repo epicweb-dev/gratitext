@@ -6,8 +6,9 @@ node_modules
 .env
 .cache
 
-/prisma/data.db
-/prisma/data.db-journal
+/prisma/sqlite.db
+/prisma/sqlite.db-journal
+/app/utils/prisma-generated.server
 /tests/prisma
 
 /test-results/
