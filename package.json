@@ -141,7 +141,7 @@
     "esbuild": "^0.27.2",
     "eslint": "^9.39.2",
     "filenamify": "^6.0.0",
-    "fs-extra": "^11.2.0",
+    "fs-extra": "^11.3.3",
     "jsdom": "^24.1.0",
     "msw": "2.3.1",
     "node-html-parser": "^6.1.13",
