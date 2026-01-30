@@ -75,6 +75,8 @@ async function getOrInsertUser({
 		username ??= userData.username
 		password ??= userData.username
 		phoneNumber ??= userData.phoneNumber
+		// Hash password before db operation to avoid await in non-async context
+		const passwordHash = await getPasswordHash(password)
 		return await retryDbOperation(() =>
 			prisma.user.create({
 				select,
@@ -84,7 +86,7 @@ async function getOrInsertUser({
 					username,
 					stripeId,
 					roles: { connect: { name: 'user' } },
-					password: { create: { hash: await getPasswordHash(password) } },
+					password: { create: { hash: passwordHash } },
 				},
 			}),
 		)
