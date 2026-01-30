@@ -1,4 +1,3 @@
-import { nodeProfilingIntegration } from '@sentry/profiling-node'
 import Sentry from '@sentry/remix'
 
 export function init() {
@@ -20,7 +19,6 @@ export function init() {
 		integrations: [
 			Sentry.httpIntegration(),
 			Sentry.prismaIntegration(),
-			nodeProfilingIntegration(),
 		],
 		tracesSampler(samplingContext) {
 			// ignore healthcheck transactions by other services (consul, etc.)
