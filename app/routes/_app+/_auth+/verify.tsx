@@ -84,7 +84,7 @@ export default function VerifyRoute() {
 	const resendRoutes: Record<VerificationTypes, string> = {
 		onboarding: '/signup',
 		'reset-password': '/forgot-password',
-		'change-phone-number': '/settings/profile',
+		'change-phone-number': '/settings/profile/change-number',
 		'2fa': '/login',
 		'validate-recipient': '/recipients',
 	}

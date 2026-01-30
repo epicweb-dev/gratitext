@@ -175,26 +175,30 @@ export default function Index() {
 								<p className="text-2xl font-bold text-[hsl(var(--palette-cloud))]">
 									$4.99
 								</p>
-							</div>
-							<div className="mt-6">
-								<Button variant="secondary">Get started</Button>
-							</div>
+					</div>
+					<div className="mt-6">
+						<Button asChild variant="secondary">
+							<Link to="/login">Get started</Link>
+						</Button>
+					</div>
+				</div>
+				<div className="rounded-[28px] border border-border bg-card p-6 shadow-sm">
+					<div className="flex items-center justify-between">
+						<div>
+							<h3 className="text-xl font-bold text-foreground">Premium</h3>
+							<p className="text-body-xs text-muted-foreground">
+								10 messages per day
+							</p>
 						</div>
-						<div className="rounded-[28px] border border-border bg-card p-6 shadow-sm">
-							<div className="flex items-center justify-between">
-								<div>
-									<h3 className="text-xl font-bold text-foreground">Premium</h3>
-									<p className="text-body-xs text-muted-foreground">
-										10 messages per day
-									</p>
-								</div>
-								<p className="text-2xl font-bold text-[hsl(var(--palette-chestnut))]">
-									$14.99
-								</p>
-							</div>
-							<div className="mt-6">
-								<Button>Get started</Button>
-							</div>
+						<p className="text-2xl font-bold text-[hsl(var(--palette-chestnut))]">
+							$14.99
+						</p>
+					</div>
+					<div className="mt-6">
+						<Button asChild>
+							<Link to="/login">Get started</Link>
+						</Button>
+					</div>
 						</div>
 					</div>
 				</div>

@@ -161,20 +161,21 @@ export function RecipientEditor({
 						<p className="text-sm font-semibold text-foreground">
 							Create a Schedule
 						</p>
-				<label className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground transition hover:text-foreground">
-					<input
-						{...getInputProps(fields.disabled, { type: 'checkbox' })}
-						className="peer sr-only"
-						onChange={(e) => {
-							setIsDisabled(e.target.checked)
-							const conformOnChange = getInputProps(fields.disabled, { type: 'checkbox' }).onChange
-							if (conformOnChange) {
-								conformOnChange(e)
-							}
-						}}
-					/>
-					<span className="peer-checked:text-foreground">{pauseLabel}</span>
-				</label>
+			<label className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground transition hover:text-foreground">
+				<input
+					{...getInputProps(fields.disabled, { type: 'checkbox' })}
+					className="peer sr-only"
+					onChange={(e) => {
+						setIsDisabled(e.target.checked)
+						// Type assertion needed as conform's types don't expose onChange
+						const props = getInputProps(fields.disabled, { type: 'checkbox' }) as any
+						if (props.onChange) {
+							props.onChange(e)
+						}
+					}}
+				/>
+				<span className="peer-checked:text-foreground">{pauseLabel}</span>
+			</label>
 					</div>
 					<Field
 						labelProps={{ children: 'Schedule' }}

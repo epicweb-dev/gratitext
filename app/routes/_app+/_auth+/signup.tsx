@@ -80,8 +80,9 @@ export async function action({ request }: ActionFunctionArgs) {
 		})
 	}
 
-		const { phoneNumber, countryCode } = submission.value
-		const fullPhoneNumber = `${countryCode}${phoneNumber}`.replace(/\s+/g, '')
+	const { phoneNumber, countryCode } = submission.value
+	const digitsOnly = phoneNumber.replace(/\D/g, '')
+	const fullPhoneNumber = `${countryCode}${digitsOnly}`.replace(/\s+/g, '')
 	const { verifyUrl, redirectTo, otp } = await prepareVerification({
 		period: 10 * 60,
 		request,
