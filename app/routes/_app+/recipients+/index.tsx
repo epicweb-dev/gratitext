@@ -1,9 +1,9 @@
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
-import { Link, type MetaFunction, type SerializeFrom, useOutletContext } from 'react-router'
+import { Link, type MetaFunction, useOutletContext } from 'react-router'
 import { ButtonLink } from '#app/components/ui/button.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { type loader as rootLoader } from '#app/root.tsx'
-import { type loader as recipientsLoader } from './_layout.tsx'
+import { type RecipientsOutletContext } from './_layout.tsx'
 
 export const handle: SEOHandle = {
 	getSitemapEntries: () => null,
@@ -11,7 +11,7 @@ export const handle: SEOHandle = {
 
 export default function RecipientsIndexRoute() {
 	const { recipients, subscriptionStatus } =
-		useOutletContext<SerializeFrom<typeof recipientsLoader>>()
+		useOutletContext<RecipientsOutletContext>()
 	const hasRecipients = recipients.length > 0
 	const showTrialBanner = subscriptionStatus === 'none'
 	const showUpgradeBanner = subscriptionStatus === 'basic'

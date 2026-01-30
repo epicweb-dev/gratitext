@@ -1,6 +1,6 @@
 import { parseWithZod } from '@conform-to/zod'
 import { invariant, invariantResponse } from '@epic-web/invariant'
-import { json, redirect, type ActionFunctionArgs } from 'react-router'
+import { data as json, redirect, type ActionFunctionArgs } from 'react-router'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { sendText } from '#app/utils/text.server.js'

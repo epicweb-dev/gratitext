@@ -6,7 +6,7 @@ import {
 } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import {
-	json,
+	data as json,
 	type ActionFunctionArgs,
 	type LoaderFunctionArgs,
 	type MetaFunction,

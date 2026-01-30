@@ -1,6 +1,6 @@
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import {
-	json,
+	data as json,
 	type LoaderFunctionArgs,
 	type ActionFunctionArgs,
 } from 'react-router'

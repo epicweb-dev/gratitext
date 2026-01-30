@@ -1,7 +1,9 @@
-import { type SerializeFrom, useRouteLoaderData } from 'react-router'
+import { useRouteLoaderData } from 'react-router'
 import { type loader as rootLoader } from '#app/root.tsx'
 
-function isUser(user: any): user is SerializeFrom<typeof rootLoader>['user'] {
+type RootLoaderData = Awaited<ReturnType<typeof rootLoader>>['data']
+
+function isUser(user: any): user is RootLoaderData['user'] {
 	return user && typeof user === 'object' && typeof user.id === 'string'
 }
 

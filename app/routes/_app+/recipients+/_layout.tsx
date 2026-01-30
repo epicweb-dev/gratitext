@@ -1,7 +1,6 @@
 import {
-	json,
+	data as json,
 	type LoaderFunctionArgs,
-	type SerializeFrom,
 	Outlet,
 	useLoaderData,
 } from 'react-router'
@@ -102,9 +101,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	return json({ recipients: recipientsWithDisplay, subscriptionStatus })
 }
 
+type LoaderData = Awaited<ReturnType<typeof loader>>['data']
+
 export type RecipientsOutletContext = {
-	recipients: SerializeFrom<typeof loader>['recipients']
-	subscriptionStatus: SerializeFrom<typeof loader>['subscriptionStatus']
+	recipients: LoaderData['recipients']
+	subscriptionStatus: LoaderData['subscriptionStatus']
 }
 
 export default function RecipientsLayout() {

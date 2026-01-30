@@ -1,5 +1,5 @@
 import {
-	json,
+	data as json,
 	type HeadersFunction,
 	Links,
 	type LinksFunction,

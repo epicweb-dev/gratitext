@@ -1,5 +1,5 @@
 import { invariant } from '@epic-web/invariant'
-import { json } from 'react-router'
+import { data as json } from 'react-router'
 import {
 	requireRecentVerification,
 	type VerifyFunctionArgs,

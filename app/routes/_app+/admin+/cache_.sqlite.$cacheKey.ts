@@ -1,5 +1,5 @@
 import { invariantResponse } from '@epic-web/invariant'
-import { json, type LoaderFunctionArgs } from 'react-router'
+import { data as json, type LoaderFunctionArgs } from 'react-router'
 import { cache } from '#app/utils/cache.server.ts'
 import {
 	getAllInstances,

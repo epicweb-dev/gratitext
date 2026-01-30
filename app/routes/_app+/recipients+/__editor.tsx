@@ -5,7 +5,7 @@ import {
 	useForm,
 } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { type SerializeFrom, Form, useActionData, useFetcher } from 'react-router'
+import { Form, useActionData, useFetcher } from 'react-router'
 import { useState } from 'react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
@@ -59,11 +59,9 @@ export function RecipientEditor({
 	recipient,
 }: {
 	supportedTimeZones: Array<string>
-	recipient?: SerializeFrom<
-		Pick<
-			Recipient,
-			'id' | 'name' | 'phoneNumber' | 'scheduleCron' | 'timeZone' | 'verified' | 'disabled'
-		>
+	recipient?: Pick<
+		Recipient,
+		'id' | 'name' | 'phoneNumber' | 'scheduleCron' | 'timeZone' | 'verified' | 'disabled'
 	>
 }) {
 	const actionData = useActionData<typeof usertRecipientAction>()

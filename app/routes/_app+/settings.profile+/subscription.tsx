@@ -1,5 +1,5 @@
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
-import { json, Link, useLoaderData } from 'react-router'
+import { data as json, Link, useLoaderData } from 'react-router'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.js'
 import { Button } from '#app/components/ui/button.js'
 import { Icon } from '#app/components/ui/icon.js'

@@ -3,7 +3,7 @@ import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { invariantResponse } from '@epic-web/invariant'
 import {
 	type ActionFunctionArgs,
-	json,
+	data as json,
 	type LoaderFunctionArgs,
 	type MetaFunction,
 	Form,

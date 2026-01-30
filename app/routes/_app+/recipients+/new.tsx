@@ -1,7 +1,7 @@
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import {
 	type MetaFunction,
-	json,
+	data as json,
 	type LoaderFunctionArgs,
 } from 'react-router'
 import { useLoaderData } from 'react-router'

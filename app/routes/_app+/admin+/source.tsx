@@ -3,7 +3,7 @@ import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import {
 	type LoaderFunctionArgs,
-	json,
+	data as json,
 	type ActionFunctionArgs,
 } from 'react-router'
 import { useFetcher, useLoaderData } from 'react-router'

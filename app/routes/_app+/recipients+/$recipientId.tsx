@@ -1,6 +1,6 @@
 import { invariantResponse } from '@epic-web/invariant'
 import { type LoaderFunctionArgs, type MetaFunction } from 'react-router'
-import { Link, Outlet, json, useLoaderData, useMatches } from 'react-router'
+import { Link, Outlet, data as json, useLoaderData, useMatches } from 'react-router'
 import { useEffect, useRef } from 'react'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.js'
 import { ButtonLink } from '#app/components/ui/button.tsx'

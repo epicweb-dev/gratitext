@@ -2,10 +2,9 @@ import { getFormProps, getTextareaProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { invariantResponse } from '@epic-web/invariant'
 import {
-	json,
+	data as json,
 	type ActionFunctionArgs,
 	type LoaderFunctionArgs,
-	type SerializeFrom,
 	Link,
 	useFetcher,
 	useLoaderData,
@@ -28,7 +27,8 @@ import { useDoubleCheck } from '#app/utils/misc.js'
 import { sendTextToRecipient } from '#app/utils/text.server.js'
 import { createToastHeaders } from '#app/utils/toast.server.js'
 
-type FutureMessage = SerializeFrom<typeof loader>['futureMessages'][number]
+type LoaderData = Awaited<ReturnType<typeof loader>>['data']
+type FutureMessage = LoaderData['futureMessages'][number]
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
 	const userId = await requireUserId(request)

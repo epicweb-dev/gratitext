@@ -1,7 +1,7 @@
 import { invariantResponse } from '@epic-web/invariant'
 import {
 	type MetaFunction,
-	json,
+	data as json,
 	type LoaderFunctionArgs,
 } from 'react-router'
 import { Link, useLoaderData, useSearchParams } from 'react-router'

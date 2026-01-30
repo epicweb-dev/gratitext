@@ -1,6 +1,6 @@
 import { invariantResponse } from '@epic-web/invariant'
 import {
-	json,
+	data as json,
 	type LoaderFunctionArgs,
 	Form,
 	Link,
