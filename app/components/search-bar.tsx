@@ -22,7 +22,7 @@ export function SearchBar({
 	const submit = useSubmit()
 	const isSubmitting = useIsPending({
 		formMethod: 'GET',
-		formAction: action ?? '/users',
+		formAction: action,
 	})
 
 	const handleFormChange = useDebounce((form: HTMLFormElement) => {
