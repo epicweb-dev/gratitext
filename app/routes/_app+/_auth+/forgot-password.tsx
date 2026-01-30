@@ -44,7 +44,7 @@ function getIdentifier({
 	phoneNumber: string
 }) {
 	const raw = phoneNumber.trim()
-	if (/[a-z]/i.test(raw)) {
+	if (/[a-z]/i.test(raw) || raw.startsWith('+') || raw.includes('-')) {
 		return raw
 	}
 	return `${countryCode}${raw}`.replace(/\s+/g, '')
