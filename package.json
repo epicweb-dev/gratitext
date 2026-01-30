@@ -46,6 +46,7 @@
     "@epic-web/remember": "^1.1.0",
     "@epic-web/totp": "^4.0.1",
     "@nasa-gcn/remix-seo": "^2.0.1",
+    "@oslojs/crypto": "^1.0.1",
     "@paralleldrive/cuid2": "^3.3.0",
     "@prisma/adapter-better-sqlite3": "^7.3.0",
     "@prisma/client": "^7.3.0",
