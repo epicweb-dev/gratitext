@@ -66,21 +66,21 @@ export default function Subscribe() {
 								1 message per day
 							</p>
 						</div>
-					<p className="text-2xl font-bold text-[hsl(var(--palette-cloud))]">
-						$4.99
-					</p>
+						<p className="text-2xl font-bold text-[hsl(var(--palette-cloud))]">
+							$4.99
+						</p>
 					</div>
-				<div className="mt-6">
-					{isBasic || isPremium ? (
-						<Button variant="secondary" disabled>
-							Select
-						</Button>
-					) : (
-						<Button asChild variant="secondary">
-							<a href={data.basicPaymentUrl}>Select</a>
-						</Button>
-					)}
-				</div>
+					<div className="mt-6">
+						{isBasic || isPremium ? (
+							<Button variant="secondary" disabled>
+								Select
+							</Button>
+						) : (
+							<Button asChild variant="secondary">
+								<a href={data.basicPaymentUrl}>Select</a>
+							</Button>
+						)}
+					</div>
 				</div>
 				<div className="rounded-[28px] border border-border bg-card p-6 shadow-sm">
 					<div className="flex items-center justify-between">
@@ -90,21 +90,21 @@ export default function Subscribe() {
 								10 messages per day
 							</p>
 						</div>
-					<p className="text-2xl font-bold text-[hsl(var(--palette-chestnut))]">
-						$14.99
-					</p>
+						<p className="text-2xl font-bold text-[hsl(var(--palette-chestnut))]">
+							$14.99
+						</p>
 					</div>
-				<div className="mt-6">
-					{isPremium ? (
-						<Button disabled>
-							Select
-						</Button>
-					) : (
-						<Button asChild>
-							<a href={data.premiumPaymentUrl}>Select</a>
-						</Button>
-					)}
-				</div>
+					<div className="mt-6">
+						{isPremium ? (
+							<Button disabled>
+								Select
+							</Button>
+						) : (
+							<Button asChild>
+								<a href={data.premiumPaymentUrl}>Select</a>
+							</Button>
+						)}
+					</div>
 				</div>
 			</div>
 			{cancelAtDisplay ? (
