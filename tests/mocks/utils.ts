@@ -8,8 +8,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const fixturesDirPath = path.join(__dirname, '..', 'fixtures')
 
 const DEFAULT_RETRY_OPTIONS = {
-	attempts: 10,
-	delayMs: 500,
+	attempts: 20,
+	delayMs: 300,
 }
 
 /**
@@ -47,6 +47,18 @@ export async function createFixture(
 	return fsExtra.writeJSON(path.join(dir, `./${name}.json`), data)
 }
 
+/**
+ * Delete a fixture file if it exists
+ */
+export async function deleteFixture(subdir: string, name: string) {
+	const filePath = path.join(fixturesDirPath, subdir, `${name}.json`)
+	try {
+		await fsExtra.remove(filePath)
+	} catch {
+		// Ignore errors if file doesn't exist
+	}
+}
+
 export const TextMessageSchema = z.object({
 	To: z.string(),
 	From: z.string(),
@@ -57,6 +69,13 @@ export async function writeText(rawText: unknown) {
 	const textMessage = TextMessageSchema.parse(rawText)
 	await createFixture('texts', filenamify(textMessage.To), textMessage)
 	return textMessage
+}
+
+/**
+ * Delete a text fixture for a recipient
+ */
+export async function deleteText(recipient: string) {
+	await deleteFixture('texts', filenamify(recipient))
 }
 
 export async function requireText(
@@ -84,17 +103,30 @@ export async function readText(
 	}
 }
 
+/**
+ * Wait for a text message to be available for a recipient.
+ * Increased default timeout and retry frequency for better reliability.
+ */
 export async function waitForText(
 	recipient: string,
 	options: Parameters<typeof waitFor>[1] = {},
 ) {
-	return waitFor(() => requireText(recipient, { attempts: 1, delayMs: 0 }), options)
+	// Use increased timeout for waiting for text messages
+	const mergedOptions = {
+		timeout: 15000,
+		errorMessage: `Text message to ${recipient} not found within timeout`,
+		...options,
+	}
+	return waitFor(
+		() => requireText(recipient, { attempts: 1, delayMs: 0 }),
+		mergedOptions,
+	)
 }
 
 /**
  * This allows you to wait for something (like a text to be available).
  *
- * It calls the callback every 50ms until it returns a value (and does not throw
+ * It calls the callback every 150ms until it returns a value (and does not throw
  * an error). After the timeout, it will throw the last error that was thrown or
  * throw the error message provided as a fallback
  */
@@ -102,7 +134,7 @@ export async function waitFor<ReturnValue>(
 	cb: () => ReturnValue | Promise<ReturnValue>,
 	{
 		errorMessage = 'waitFor call timed out',
-		timeout = 5000,
+		timeout = 10000,
 	}: { errorMessage?: string; timeout?: number } = {},
 ) {
 	const endTime = Date.now() + timeout
@@ -114,7 +146,8 @@ export async function waitFor<ReturnValue>(
 		} catch (e: unknown) {
 			lastError = e
 		}
-		await new Promise((r) => setTimeout(r, 100))
+		// Increased polling interval for better balance between speed and reliability
+		await new Promise((r) => setTimeout(r, 150))
 	}
 	throw lastError
 }

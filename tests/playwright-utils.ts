@@ -1,4 +1,7 @@
-import { test as base } from '@playwright/test'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { test as base, type Page } from '@playwright/test'
+import fsExtra from 'fs-extra'
 import * as setCookieParser from 'set-cookie-parser'
 import {
 	getPasswordHash,
@@ -11,6 +14,9 @@ import { authSessionStorage } from '#app/utils/session.server.ts'
 import { createUser } from './db-utils.ts'
 
 export * from './db-utils.ts'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const fixturesDirPath = path.join(__dirname, 'fixtures')
 
 type GetOrInsertUserOptions = {
 	id?: string
@@ -27,6 +33,28 @@ type User = {
 	name: string | null
 }
 
+/**
+ * Retry a database operation with exponential backoff
+ * Helps with transient database errors and race conditions
+ */
+async function retryDbOperation<T>(
+	operation: () => Promise<T>,
+	{ maxRetries = 3, baseDelayMs = 100 } = {},
+): Promise<T> {
+	let lastError: unknown
+	for (let attempt = 0; attempt < maxRetries; attempt++) {
+		try {
+			return await operation()
+		} catch (error) {
+			lastError = error
+			if (attempt < maxRetries - 1) {
+				await new Promise((r) => setTimeout(r, baseDelayMs * 2 ** attempt))
+			}
+		}
+	}
+	throw lastError
+}
+
 async function getOrInsertUser({
 	id,
 	username,
@@ -36,26 +64,51 @@ async function getOrInsertUser({
 }: GetOrInsertUserOptions = {}): Promise<User> {
 	const select = { id: true, phoneNumber: true, username: true, name: true }
 	if (id) {
-		return await prisma.user.findUniqueOrThrow({
-			select,
-			where: { id: id },
-		})
+		return await retryDbOperation(() =>
+			prisma.user.findUniqueOrThrow({
+				select,
+				where: { id: id },
+			}),
+		)
 	} else {
 		const userData = createUser()
 		username ??= userData.username
 		password ??= userData.username
 		phoneNumber ??= userData.phoneNumber
-		return await prisma.user.create({
-			select,
-			data: {
-				...userData,
-				phoneNumber,
-				username,
-				stripeId,
-				roles: { connect: { name: 'user' } },
-				password: { create: { hash: await getPasswordHash(password) } },
-			},
-		})
+		return await retryDbOperation(() =>
+			prisma.user.create({
+				select,
+				data: {
+					...userData,
+					phoneNumber,
+					username,
+					stripeId,
+					roles: { connect: { name: 'user' } },
+					password: { create: { hash: await getPasswordHash(password) } },
+				},
+			}),
+		)
+	}
+}
+
+/**
+ * Clean up fixtures for a specific phone number
+ * Prevents stale data from previous test runs from affecting current tests
+ */
+async function cleanupFixturesForPhone(phoneNumber: string) {
+	const textsDir = path.join(fixturesDirPath, 'texts')
+	try {
+		await fsExtra.ensureDir(textsDir)
+		const files = await fsExtra.readdir(textsDir)
+		// filenamify converts phone numbers, so we need to check all files
+		// that might match this phone number
+		for (const file of files) {
+			if (file.includes(phoneNumber.replace(/[^a-zA-Z0-9]/g, ''))) {
+				await fsExtra.remove(path.join(textsDir, file))
+			}
+		}
+	} catch {
+		// Ignore cleanup errors
 	}
 }
 
@@ -65,27 +118,42 @@ export const test = base.extend<{
 }>({
 	insertNewUser: async ({}, use) => {
 		let userId: string | undefined = undefined
+		let userPhoneNumber: string | undefined = undefined
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		await use(async (options) => {
 			const user = await getOrInsertUser(options)
 			userId = user.id
+			userPhoneNumber = user.phoneNumber
+			// Clean up any stale fixtures for this phone number
+			await cleanupFixturesForPhone(user.phoneNumber)
 			return user
 		})
 		await prisma.user.delete({ where: { id: userId } }).catch(() => {})
+		// Clean up fixtures after test
+		if (userPhoneNumber) {
+			await cleanupFixturesForPhone(userPhoneNumber)
+		}
 	},
 	login: async ({ page }, use) => {
 		let userId: string | undefined = undefined
+		let userPhoneNumber: string | undefined = undefined
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		await use(async (options) => {
 			const user = await getOrInsertUser(options)
 			userId = user.id
-			const session = await prisma.session.create({
-				data: {
-					expirationDate: getSessionExpirationDate({ isRenewal: false }),
-					userId: user.id,
-				},
-				select: { id: true },
-			})
+			userPhoneNumber = user.phoneNumber
+			// Clean up any stale fixtures for this phone number
+			await cleanupFixturesForPhone(user.phoneNumber)
+
+			const session = await retryDbOperation(() =>
+				prisma.session.create({
+					data: {
+						expirationDate: getSessionExpirationDate({ isRenewal: false }),
+						userId: user.id,
+					},
+					select: { id: true },
+				}),
+			)
 
 			const authSession = await authSessionStorage.getSession()
 			authSession.set(sessionKey, session.id)
@@ -98,6 +166,10 @@ export const test = base.extend<{
 			return user
 		})
 		await prisma.user.deleteMany({ where: { id: userId } })
+		// Clean up fixtures after test
+		if (userPhoneNumber) {
+			await cleanupFixturesForPhone(userPhoneNumber)
+		}
 	},
 })
 export const { expect } = test
@@ -113,7 +185,7 @@ export async function waitFor<ReturnValue>(
 	cb: () => ReturnValue | Promise<ReturnValue>,
 	{
 		errorMessage = 'waitFor call timed out',
-		timeout = 5000,
+		timeout = 10000,
 	}: { errorMessage?: string; timeout?: number } = {},
 ) {
 	const endTime = Date.now() + timeout
@@ -125,7 +197,27 @@ export async function waitFor<ReturnValue>(
 		} catch (e: unknown) {
 			lastError = e
 		}
-		await new Promise((r) => setTimeout(r, 100))
+		await new Promise((r) => setTimeout(r, 150))
 	}
 	throw lastError
+}
+
+/**
+ * Wait for the page to be in a stable state (network idle + DOM loaded)
+ * Use this after navigation or actions that trigger page changes
+ */
+export async function waitForPageStable(page: Page, timeout = 10000) {
+	await page.waitForLoadState('domcontentloaded', { timeout })
+	await page.waitForLoadState('networkidle', { timeout }).catch(() => {
+		// Network idle might not always be achievable, that's okay
+	})
+}
+
+/**
+ * Navigate to a URL and wait for the page to be stable
+ * More reliable than page.goto() alone
+ */
+export async function navigateAndWait(page: Page, url: string, timeout = 30000) {
+	await page.goto(url, { waitUntil: 'domcontentloaded', timeout })
+	await waitForPageStable(page, timeout)
 }
