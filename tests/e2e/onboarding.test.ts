@@ -12,7 +12,8 @@ function extractUrl(text: string) {
 	return match?.groups?.url
 }
 function formatPhoneNumber(phoneNumber: string, countryCode = defaultCountryCode) {
-	return `${countryCode}${phoneNumber}`.replace(/\s+/g, '')
+	const digitsOnly = phoneNumber.replace(/\D/g, '')
+	return `${countryCode}${digitsOnly}`.replace(/\s+/g, '')
 }
 
 const test = base.extend<{
