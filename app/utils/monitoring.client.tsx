@@ -7,7 +7,7 @@ import {
 import {
 	browserProfilingIntegration,
 	init as sentryInit,
-	reactRouterV6BrowserTracingIntegration,
+	reactRouterV7BrowserTracingIntegration,
 	replayIntegration,
 } from '@sentry/react'
 import { useEffect } from 'react'
@@ -30,7 +30,7 @@ export function init() {
 			return event
 		},
 		integrations: [
-			reactRouterV6BrowserTracingIntegration({
+			reactRouterV7BrowserTracingIntegration({
 				useEffect,
 				useLocation,
 				useNavigationType,

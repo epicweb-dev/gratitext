@@ -30,7 +30,6 @@ export function GeneralErrorBoundary({
 	useEffect(() => {
 		if (
 			typeof document !== 'undefined' &&
-			error instanceof Error &&
 			!isRouteErrorResponse(error)
 		) {
 			Sentry.captureException(error, {
