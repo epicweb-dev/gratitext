@@ -1,5 +1,3 @@
-import { type Config } from 'tailwindcss'
-
 export const extendedTheme = {
 	colors: {
 		border: 'hsl(var(--border))',
@@ -94,13 +92,4 @@ export const extendedTheme = {
 		/** 12px size / 16px high / bold */
 		button: ['0.75rem', { lineHeight: '1rem', fontWeight: '700' }],
 	},
-	keyframes: {
-		'caret-blink': {
-			'0%,70%,100%': { opacity: '1' },
-			'20%,50%': { opacity: '0' },
-		},
-	},
-	animation: {
-		'caret-blink': 'caret-blink 1.25s ease-out infinite',
-	},
-} satisfies Config['theme']
+} as const
