@@ -13,7 +13,6 @@ import {
 	ScrollRestoration,
 	useLoaderData,
 } from '@remix-run/react'
-import { withSentry } from '@sentry/remix'
 import { HoneypotProvider } from 'remix-utils/honeypot/react'
 import { GeneralErrorBoundary } from './components/error-boundary.tsx'
 import { EpicProgress } from './components/progress-bar.tsx'
@@ -205,7 +204,7 @@ function AppWithProviders() {
 	)
 }
 
-export default withSentry(AppWithProviders)
+export default AppWithProviders
 
 export function ErrorBoundary() {
 	// the nonce doesn't rely on the loader so we can access that

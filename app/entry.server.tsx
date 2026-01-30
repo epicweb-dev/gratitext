@@ -6,7 +6,7 @@ import {
 	type HandleDocumentRequestFunction,
 } from '@remix-run/node'
 import { RemixServer } from '@remix-run/react'
-import * as Sentry from '@sentry/remix'
+import * as Sentry from '@sentry/react-router'
 import chalk from 'chalk'
 import { isbot } from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
@@ -139,12 +139,12 @@ export function handleError(
 	}
 	if (error instanceof Error) {
 		console.error(chalk.red(error.stack))
-		void Sentry.captureRemixServerException(
-			error,
-			'remix.server',
-			request,
-			true,
-		)
+		Sentry.captureException(error, {
+			mechanism: {
+				type: 'react-router',
+				handled: false,
+			},
+		})
 	} else {
 		console.error(chalk.red(error))
 		Sentry.captureException(error)
