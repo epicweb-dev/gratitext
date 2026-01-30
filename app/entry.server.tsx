@@ -136,11 +136,18 @@ export function handleError(
 	if (request.signal.aborted) {
 		return
 	}
+	const requestContext = {
+		url: request.url,
+		method: request.method,
+		headers: Object.fromEntries(request.headers),
+	}
 	if (error instanceof Error) {
 		console.error(chalk.red(error.stack))
-		Sentry.captureException(error)
 	} else {
 		console.error(chalk.red(error))
-		Sentry.captureException(error)
 	}
+	Sentry.withScope((scope) => {
+		scope.setContext('request', requestContext)
+		Sentry.captureException(error)
+	})
 }
