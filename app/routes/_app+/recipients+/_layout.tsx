@@ -85,11 +85,15 @@ export default function RecipientsLayout() {
 			<div className="bg-background-alt flex min-h-0 flex-1 flex-col">
 				<div className="flex flex-col gap-4 overflow-visible border-b-2 py-4 pl-1 pr-4">
 					<details
-						className="rounded-lg border border-border/60 bg-background px-3 py-2 shadow-sm"
+						className="group rounded-lg border border-border/60 bg-background px-3 py-2 shadow-sm"
 						open={recipients.length === 0}
 					>
-						<summary className="cursor-pointer text-sm font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-							Recipient links
+						<summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-md px-2 py-1 text-sm font-semibold text-foreground hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 md:text-base">
+							<span>Recipient links</span>
+							<Icon
+								name="chevron-down"
+								className="text-muted-foreground transition-transform group-open:rotate-180"
+							/>
 						</summary>
 						<div className="mt-3 flex flex-col gap-1 pb-2">
 							{recipients.length === 0 ? (
