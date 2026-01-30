@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { test as base, type Page } from '@playwright/test'
+import { test as base } from '@playwright/test'
 import filenamify from 'filenamify'
 import fsExtra from 'fs-extra'
 import * as setCookieParser from 'set-cookie-parser'
@@ -13,8 +13,10 @@ import { prisma } from '#app/utils/db.server.ts'
 import { type User as UserModel } from '#app/utils/prisma-generated.server/client.ts'
 import { authSessionStorage } from '#app/utils/session.server.ts'
 import { createUser } from './db-utils.ts'
+import { waitFor } from './mocks/utils.ts'
 
 export * from './db-utils.ts'
+export { waitFor } from './mocks/utils.ts'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const fixturesDirPath = path.join(__dirname, 'fixtures')
@@ -105,8 +107,9 @@ async function cleanupFixturesForPhone(phoneNumber: string) {
 		const files = await fsExtra.readdir(textsDir)
 		// Use filenamify to match how fixtures are actually created
 		const filenamePrefix = filenamify(phoneNumber)
+		const targetFile = `${filenamePrefix}.json`
 		for (const file of files) {
-			if (file.startsWith(filenamePrefix)) {
+			if (file === targetFile) {
 				await fsExtra.remove(path.join(textsDir, file))
 			}
 		}
@@ -176,31 +179,3 @@ export const test = base.extend<{
 	},
 })
 export const { expect } = test
-
-/**
- * This allows you to wait for something (like a text to be available).
- *
- * It calls the callback every 50ms until it returns a value (and does not throw
- * an error). After the timeout, it will throw the last error that was thrown or
- * throw the error message provided as a fallback
- */
-export async function waitFor<ReturnValue>(
-	cb: () => ReturnValue | Promise<ReturnValue>,
-	{
-		errorMessage = 'waitFor call timed out',
-		timeout = 10000,
-	}: { errorMessage?: string; timeout?: number } = {},
-) {
-	const endTime = Date.now() + timeout
-	let lastError: unknown = new Error(errorMessage)
-	while (Date.now() < endTime) {
-		try {
-			const response = await cb()
-			if (response) return response
-		} catch (e: unknown) {
-			lastError = e
-		}
-		await new Promise((r) => setTimeout(r, 150))
-	}
-	throw lastError
-}
