@@ -156,14 +156,28 @@ export async function requireAnonymous(request: Request) {
 }
 
 export async function login({
-	username,
+	identifier,
 	password,
 }: {
-	username: User['username']
+	identifier: string
 	password: string
 }) {
-	const user = await verifyUserPassword({ username }, password)
-	if (!user) return null
+	const normalizedIdentifier = identifier.trim()
+	const normalizedPhone = normalizedIdentifier.replace(/\s+/g, '')
+	const user = await prisma.user.findFirst({
+		where: {
+			OR: [
+				{ username: normalizedIdentifier.toLowerCase() },
+				{ phoneNumber: normalizedPhone },
+			],
+		},
+		select: { id: true, password: { select: { hash: true } } },
+	})
+	if (!user?.password) return null
+
+	const isValid = await bcrypt.compare(password, user.password.hash)
+	if (!isValid) return null
+
 	const session = await prisma.session.create({
 		select: { id: true, expirationDate: true, userId: true },
 		data: {

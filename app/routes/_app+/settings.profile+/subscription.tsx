@@ -45,59 +45,71 @@ export default function Subscribe() {
 	const isPremium = products.includes('premium')
 	const isSubscribed = products.length > 0
 	return (
-		<div className="container">
-			{isSubscribed ? (
-				<p>You are currently subscribed to {products.join(', ')}</p>
-			) : (
-				<p>
-					You are not subscribed to any products. Your loved ones will not
-					receive messages until you subscribe.
+		<div className="container flex flex-col items-center justify-center pb-20 pt-16">
+			<div className="text-center">
+				<p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+					GratiText
 				</p>
-			)}
+				<h1 className="mt-3 text-3xl font-bold text-foreground md:text-4xl">
+					Select Your Plan
+				</h1>
+				<p className="mt-3 text-body-sm text-muted-foreground">
+					Choose a plan that matches how often you want to send messages.
+				</p>
+			</div>
+			<div className="mt-10 grid w-full max-w-4xl gap-6 md:grid-cols-2">
+				<div className="rounded-[28px] border border-border bg-card p-6 shadow-sm">
+					<div className="flex items-center justify-between">
+						<div>
+							<h3 className="text-xl font-bold text-foreground">Basic</h3>
+							<p className="text-body-xs text-muted-foreground">
+								1 message per day
+							</p>
+						</div>
+						<p className="text-2xl font-bold text-[hsl(var(--palette-cloud))]">
+							$4
+						</p>
+					</div>
+					<div className="mt-6">
+						<Button asChild variant="secondary" disabled={isBasic}>
+							<a href={data.basicPaymentUrl}>Select</a>
+						</Button>
+					</div>
+				</div>
+				<div className="rounded-[28px] border border-border bg-card p-6 shadow-sm">
+					<div className="flex items-center justify-between">
+						<div>
+							<h3 className="text-xl font-bold text-foreground">Premium</h3>
+							<p className="text-body-xs text-muted-foreground">
+								10 messages per day
+							</p>
+						</div>
+						<p className="text-2xl font-bold text-[hsl(var(--palette-chestnut))]">
+							$14
+						</p>
+					</div>
+					<div className="mt-6">
+						<Button asChild disabled={isPremium}>
+							<a href={data.premiumPaymentUrl}>Select</a>
+						</Button>
+					</div>
+				</div>
+			</div>
 			{cancelAtDisplay ? (
-				<p className="text-destructive">
+				<p className="mt-6 text-sm text-foreground-destructive">
 					Your subscription will be cancelled at{' '}
-					<strong>{cancelAtDisplay}</strong>
+					<strong>{cancelAtDisplay}</strong>.
 				</p>
 			) : null}
-			{isSubscribed ? null : (
-				<table className="my-4 w-full table-auto">
-					<thead>
-						<tr>
-							<th className="px-4 py-2">Plan</th>
-							<th className="px-4 py-2">Messages per day</th>
-							<th className="px-4 py-2">Price</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td className="border px-4 py-2">Basic</td>
-							<td className="border px-4 py-2">1</td>
-							<td className="border px-4 py-2">$5/month</td>
-						</tr>
-						<tr>
-							<td className="border px-4 py-2">Premium</td>
-							<td className="border px-4 py-2">10</td>
-							<td className="border px-4 py-2">$15/month</td>
-						</tr>
-					</tbody>
-				</table>
-			)}
-			{isBasic || isPremium ? null : (
-				<Button asChild variant="secondary">
-					<a href={data.basicPaymentUrl}>Subscribe to Basic</a>
-				</Button>
-			)}
-			{isPremium ? null : (
-				<Button asChild>
-					<a href={data.premiumPaymentUrl}>Subscribe to Premium</a>
-				</Button>
-			)}
 			{isSubscribed ? (
-				<Link className="underline" to="/manage-subscription">
+				<Link className="mt-4 text-sm font-semibold underline" to="/manage-subscription">
 					Manage your subscription
 				</Link>
-			) : null}
+			) : (
+				<Link className="mt-4 text-sm font-semibold underline" to="/recipients">
+					Skip for now
+				</Link>
+			)}
 		</div>
 	)
 }

@@ -1,4 +1,9 @@
-import { getFormProps, getInputProps, useForm } from '@conform-to/react'
+import {
+	getFormProps,
+	getInputProps,
+	getSelectProps,
+	useForm,
+} from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import {
 	json,
@@ -10,7 +15,7 @@ import { Form, useActionData } from '@remix-run/react'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
-import { ErrorList, Field } from '#app/components/forms.tsx'
+import { ErrorList, Field, SelectField } from '#app/components/forms.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 import { checkHoneypot } from '#app/utils/honeypot.server.ts'
@@ -20,20 +25,33 @@ import { PhoneNumberSchema } from '#app/utils/user-validation.ts'
 import { prepareVerification } from './verify.server.ts'
 
 const SignupSchema = z.object({
+	countryCode: z.string().min(1, 'Country code is required'),
 	phoneNumber: PhoneNumberSchema,
 })
+
+const countryCodes = [
+	{ label: 'United States (+1)', value: '+1' },
+	{ label: 'United Kingdom (+44)', value: '+44' },
+	{ label: 'Czech Republic (+420)', value: '+420' },
+	{ label: 'Canada (+1)', value: '+1' },
+	{ label: 'Australia (+61)', value: '+61' },
+]
 
 export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData()
 
 	checkHoneypot(formData)
 
-	const submission = await parseWithZod(formData, {
-		schema: SignupSchema.superRefine(async (data, ctx) => {
-			const existingUser = await prisma.user.findUnique({
-				where: { phoneNumber: data.phoneNumber },
-				select: { id: true },
-			})
+		const submission = await parseWithZod(formData, {
+			schema: SignupSchema.superRefine(async (data, ctx) => {
+				const fullPhoneNumber = `${data.countryCode}${data.phoneNumber}`.replace(
+					/\s+/g,
+					'',
+				)
+				const existingUser = await prisma.user.findUnique({
+					where: { phoneNumber: fullPhoneNumber },
+					select: { id: true },
+				})
 			if (existingUser) {
 				ctx.addIssue({
 					path: ['phoneNumber'],
@@ -62,16 +80,17 @@ export async function action({ request }: ActionFunctionArgs) {
 		})
 	}
 
-	const { phoneNumber } = submission.value
+		const { phoneNumber, countryCode } = submission.value
+		const fullPhoneNumber = `${countryCode}${phoneNumber}`.replace(/\s+/g, '')
 	const { verifyUrl, redirectTo, otp } = await prepareVerification({
 		period: 10 * 60,
 		request,
 		type: 'onboarding',
-		target: phoneNumber,
+			target: fullPhoneNumber,
 	})
 
-	const response = await sendText({
-		to: phoneNumber,
+		const response = await sendText({
+			to: fullPhoneNumber,
 		message: `Welcome to GratiText!\nHere's your verification code: ${otp}\n\nOr click the link to get started: ${verifyUrl}`,
 	})
 
@@ -96,6 +115,7 @@ export default function SignupRoute() {
 	const [form, fields] = useForm({
 		id: 'signup-form',
 		constraint: getZodConstraint(SignupSchema),
+		defaultValue: { countryCode: countryCodes[0]?.value ?? '+1' },
 		lastResult: actionData?.result,
 		onValidate({ formData }) {
 			const result = parseWithZod(formData, { schema: SignupSchema })
@@ -104,42 +124,61 @@ export default function SignupRoute() {
 		shouldRevalidate: 'onBlur',
 	})
 
-	return (
-		<div className="container flex flex-col justify-center pb-32 pt-20">
-			<div className="text-center">
-				<h1 className="text-h1">Let's start your journey!</h1>
-				<p className="mt-3 text-body-md text-muted-foreground">
-					Please enter your phone number along with your country code.
-				</p>
+		return (
+			<div className="container flex flex-col items-center justify-center pb-32 pt-20">
+				<div className="text-center">
+					<p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+						GratiText
+					</p>
+					<h1 className="mt-3 text-h1">
+						Create and Nurture Lasting Bonds With Your Loved Ones
+					</h1>
+					<p className="mt-3 text-body-md text-muted-foreground">
+						Please enter your phone number along with your country code.
+					</p>
+				</div>
+				<div className="mt-8 w-full max-w-lg rounded-[32px] border border-border bg-card px-6 py-8 shadow-sm">
+					<Form method="POST" {...getFormProps(form)} className="space-y-6">
+						<HoneypotInputs />
+						<div className="grid gap-4 md:grid-cols-[200px_1fr]">
+							<SelectField
+								labelProps={{ children: 'Country Code' }}
+								selectProps={{
+									...getSelectProps(fields.countryCode),
+									children: countryCodes.map((code) => (
+										<option key={`${code.value}-${code.label}`} value={code.value}>
+											{code.label}
+										</option>
+									)),
+								}}
+								errors={fields.countryCode.errors}
+							/>
+							<Field
+								labelProps={{
+									htmlFor: fields.phoneNumber.id,
+									children: 'Phone Number',
+								}}
+								inputProps={{
+									...getInputProps(fields.phoneNumber, { type: 'tel' }),
+									autoFocus: true,
+									autoComplete: 'tel',
+								}}
+								errors={fields.phoneNumber.errors}
+							/>
+						</div>
+						<ErrorList errors={form.errors} id={form.errorId} />
+						<StatusButton
+							className="w-full bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))]"
+							status={isPending ? 'pending' : (form.status ?? 'idle')}
+							type="submit"
+							disabled={isPending}
+						>
+							Continue
+						</StatusButton>
+					</Form>
+				</div>
 			</div>
-			<div className="mx-auto mt-16 min-w-full max-w-sm sm:min-w-[368px]">
-				<Form method="POST" {...getFormProps(form)}>
-					<HoneypotInputs />
-					<Field
-						labelProps={{
-							htmlFor: fields.phoneNumber.id,
-							children: 'Phone Number',
-						}}
-						inputProps={{
-							...getInputProps(fields.phoneNumber, { type: 'tel' }),
-							autoFocus: true,
-							autoComplete: 'tel',
-						}}
-						errors={fields.phoneNumber.errors}
-					/>
-					<ErrorList errors={form.errors} id={form.errorId} />
-					<StatusButton
-						className="w-full"
-						status={isPending ? 'pending' : (form.status ?? 'idle')}
-						type="submit"
-						disabled={isPending}
-					>
-						Submit
-					</StatusButton>
-				</Form>
-			</div>
-		</div>
-	)
+		)
 }
 
 export function ErrorBoundary() {

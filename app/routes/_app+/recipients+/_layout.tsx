@@ -4,6 +4,7 @@ import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { requireUserId } from '#app/utils/auth.server.js'
 import { CronParseError, getNextScheduledTime } from '#app/utils/cron.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
+import { getCustomerProducts } from '#app/utils/stripe.server.ts'
 
 function formatScheduleDisplay(date: Date, timeZone: string) {
 	const formatter = new Intl.DateTimeFormat('en-US', {
@@ -80,11 +81,25 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		return { ...rest, scheduleDisplay }
 	})
 
-	return json({ recipients: recipientsWithDisplay })
+	const user = await prisma.user.findUniqueOrThrow({
+		where: { id: userId },
+		select: { stripeId: true },
+	})
+	const productsData = user.stripeId
+		? await getCustomerProducts(user.stripeId)
+		: { products: [], cancelAt: null }
+	const subscriptionStatus = productsData.products.includes('premium')
+		? 'premium'
+		: productsData.products.includes('basic')
+			? 'basic'
+			: 'none'
+
+	return json({ recipients: recipientsWithDisplay, subscriptionStatus })
 }
 
 export type RecipientsOutletContext = {
 	recipients: SerializeFrom<typeof loader>['recipients']
+	subscriptionStatus: SerializeFrom<typeof loader>['subscriptionStatus']
 }
 
 export default function RecipientsLayout() {

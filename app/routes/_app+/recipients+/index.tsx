@@ -11,11 +11,29 @@ export const handle: SEOHandle = {
 }
 
 export default function RecipientsIndexRoute() {
-	const { recipients } =
+	const { recipients, subscriptionStatus } =
 		useOutletContext<SerializeFrom<typeof recipientsLoader>>()
 	const hasRecipients = recipients.length > 0
+	const showTrialBanner = subscriptionStatus === 'none'
+	const showUpgradeBanner = subscriptionStatus === 'basic'
 	return (
 		<div className="flex flex-col gap-8">
+			{showTrialBanner ? (
+				<div className="rounded-[20px] bg-[hsl(var(--palette-sunny))] px-6 py-3 text-sm font-semibold text-[hsl(var(--palette-dark-navy))]">
+					Upgrade to text unlimited loved ones!{' '}
+					<Link className="underline" to="/settings/profile/subscription">
+						Start your free trial
+					</Link>
+				</div>
+			) : null}
+			{showUpgradeBanner ? (
+				<div className="rounded-[20px] bg-[hsl(var(--palette-green-300))] px-6 py-3 text-sm font-semibold text-[hsl(var(--palette-dark-navy))]">
+					Upgrade to Premium to text more loved ones.{' '}
+					<Link className="underline" to="/settings/profile/subscription">
+						Upgrade to Premium
+					</Link>
+				</div>
+			) : null}
 			<div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 				<div>
 					<p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
@@ -105,11 +123,19 @@ export default function RecipientsIndexRoute() {
 						})}
 					</div>
 				) : (
-					<div className="px-8 py-16 text-center text-body-sm text-muted-foreground">
-						No recipients yet.{' '}
-						<Link to="new" className="text-foreground underline">
-							Add one to get started.
-						</Link>
+					<div className="flex flex-col items-center gap-4 px-8 py-16 text-center text-body-sm text-muted-foreground">
+						<div>
+							<p className="text-base font-semibold text-foreground">
+								Start by adding your first recipient
+							</p>
+							<p className="mt-1">Add someone you want to keep in touch with.</p>
+						</div>
+						<ButtonLink
+							to="new"
+							className="flex items-center gap-2 bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))]"
+						>
+							<Icon name="plus">Add Recipient</Icon>
+						</ButtonLink>
 					</div>
 				)}
 			</div>

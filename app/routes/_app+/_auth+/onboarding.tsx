@@ -7,12 +7,7 @@ import {
 	type ActionFunctionArgs,
 	type MetaFunction,
 } from '@remix-run/node'
-import {
-	Form,
-	useActionData,
-	useLoaderData,
-	useSearchParams,
-} from '@remix-run/react'
+import { Form, useActionData, useSearchParams } from '@remix-run/react'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { safeRedirect } from 'remix-utils/safe-redirect'
 import { z } from 'zod'
@@ -130,7 +125,6 @@ export const meta: MetaFunction = () => {
 }
 
 export default function SignupRoute() {
-	const data = useLoaderData<typeof loader>()
 	const actionData = useActionData<typeof action>()
 	const isPending = useIsPending()
 	const [searchParams] = useSearchParams()
@@ -148,21 +142,29 @@ export default function SignupRoute() {
 	})
 
 	return (
-		<div className="container flex min-h-full flex-col justify-center pb-32 pt-20">
-			<div className="mx-auto w-full max-w-lg">
-				<div className="flex flex-col gap-3 text-center">
-					<h1 className="text-h1">Welcome aboard {data.phoneNumber}!</h1>
-					<p className="text-body-md text-muted-foreground">
-						Please enter your details.
-					</p>
-				</div>
-				<Spacer size="xs" />
-				<Form
-					method="POST"
-					className="mx-auto min-w-full max-w-sm sm:min-w-[368px]"
-					{...getFormProps(form)}
-				>
+		<div className="container flex min-h-full flex-col items-center justify-center pb-32 pt-20">
+			<div className="text-center">
+				<p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+					GratiText
+				</p>
+				<h1 className="mt-3 text-h1">Stay Connected, Stay Grateful</h1>
+				<p className="text-body-md text-muted-foreground">
+					Almost there! Finish creating your account.
+				</p>
+			</div>
+			<Spacer size="xs" />
+			<div className="mt-8 w-full max-w-lg rounded-[32px] border border-border bg-card px-6 py-8 shadow-sm">
+				<Form method="POST" {...getFormProps(form)} className="space-y-6">
 					<HoneypotInputs />
+					<Field
+						labelProps={{ htmlFor: fields.name.id, children: 'Name' }}
+						inputProps={{
+							...getInputProps(fields.name, { type: 'text' }),
+							autoComplete: 'name',
+							autoFocus: true,
+						}}
+						errors={fields.name.errors}
+					/>
 					<Field
 						labelProps={{ htmlFor: fields.username.id, children: 'Username' }}
 						inputProps={{
@@ -173,14 +175,6 @@ export default function SignupRoute() {
 						errors={fields.username.errors}
 					/>
 					<Field
-						labelProps={{ htmlFor: fields.name.id, children: 'Name' }}
-						inputProps={{
-							...getInputProps(fields.name, { type: 'text' }),
-							autoComplete: 'name',
-						}}
-						errors={fields.name.errors}
-					/>
-					<Field
 						labelProps={{ htmlFor: fields.password.id, children: 'Password' }}
 						inputProps={{
 							...getInputProps(fields.password, { type: 'password' }),
@@ -188,7 +182,6 @@ export default function SignupRoute() {
 						}}
 						errors={fields.password.errors}
 					/>
-
 					<Field
 						labelProps={{
 							htmlFor: fields.confirmPassword.id,
@@ -200,7 +193,6 @@ export default function SignupRoute() {
 						}}
 						errors={fields.confirmPassword.errors}
 					/>
-
 					<CheckboxField
 						labelProps={{
 							htmlFor: fields.agreeToTermsOfServiceAndPrivacyPolicy.id,
@@ -213,28 +205,16 @@ export default function SignupRoute() {
 						)}
 						errors={fields.agreeToTermsOfServiceAndPrivacyPolicy.errors}
 					/>
-					<CheckboxField
-						labelProps={{
-							htmlFor: fields.remember.id,
-							children: 'Remember me',
-						}}
-						buttonProps={getInputProps(fields.remember, { type: 'checkbox' })}
-						errors={fields.remember.errors}
-					/>
-
 					<input {...getInputProps(fields.redirectTo, { type: 'hidden' })} />
 					<ErrorList errors={form.errors} id={form.errorId} />
-
-					<div className="flex items-center justify-between gap-6">
-						<StatusButton
-							className="w-full"
-							status={isPending ? 'pending' : (form.status ?? 'idle')}
-							type="submit"
-							disabled={isPending}
-						>
-							Create an account
-						</StatusButton>
-					</div>
+					<StatusButton
+						className="w-full bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))]"
+						status={isPending ? 'pending' : (form.status ?? 'idle')}
+						type="submit"
+						disabled={isPending}
+					>
+						Create an Account
+					</StatusButton>
 				</Form>
 			</div>
 		</div>

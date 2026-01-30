@@ -69,8 +69,9 @@ export function RecipientEditor({
 	const actionData = useActionData<typeof usertRecipientAction>()
 	const isPending = useIsPending()
 	const needsVerification = recipient?.verified === false
-	const pageTitle = recipient ? 'Edit Recipient' : 'Create Recipient'
+	const pageTitle = recipient ? 'Edit Recipient' : 'Add New Recipient'
 	const pauseLabel = recipient?.disabled ? 'Resume this schedule' : 'Pause this schedule'
+	const submitLabel = recipient ? 'Save Changes' : 'Add New Recipient'
 
 	const [form, fields] = useForm({
 		id: 'recipient-editor',
@@ -209,7 +210,7 @@ export function RecipientEditor({
 							value={upsertRecipientActionIntent}
 							className="bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))]"
 						>
-							<Icon name="check">Save Changes</Icon>
+							<Icon name="check">{submitLabel}</Icon>
 						</StatusButton>
 					</div>
 				</div>
