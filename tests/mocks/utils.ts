@@ -7,8 +7,34 @@ import { z } from 'zod'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const fixturesDirPath = path.join(__dirname, '..', 'fixtures')
 
-export async function readFixture(subdir: string, name: string) {
-	return fsExtra.readJSON(path.join(fixturesDirPath, subdir, `${name}.json`))
+const DEFAULT_RETRY_OPTIONS = {
+	attempts: 10,
+	delayMs: 500,
+}
+
+/**
+ * Read a fixture file with retry logic for async writes (e.g. background email/sms).
+ * Retries with delay to allow async processes to finish writing.
+ */
+export async function readFixture(
+	subdir: string,
+	name: string,
+	options: { attempts?: number; delayMs?: number } = {},
+) {
+	const { attempts, delayMs } = { ...DEFAULT_RETRY_OPTIONS, ...options }
+	const filePath = path.join(fixturesDirPath, subdir, `${name}.json`)
+	let lastError: unknown
+	for (let attempt = 1; attempt <= attempts; attempt++) {
+		try {
+			return await fsExtra.readJSON(filePath)
+		} catch (e) {
+			lastError = e
+			if (attempt < attempts) {
+				await new Promise((r) => setTimeout(r, delayMs))
+			}
+		}
+	}
+	throw lastError
 }
 
 export async function createFixture(
@@ -39,9 +65,16 @@ export async function requireText(recipient: string) {
 	return textMessage
 }
 
-export async function readText(recipient: string) {
+export async function readText(
+	recipient: string,
+	options: { attempts?: number; delayMs?: number } = {},
+) {
 	try {
-		const textMessage = await readFixture('texts', filenamify(recipient))
+		const textMessage = await readFixture(
+			'texts',
+			filenamify(recipient),
+			options,
+		)
 		return TextMessageSchema.parse(textMessage)
 	} catch {
 		return null
