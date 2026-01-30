@@ -3,6 +3,7 @@ import { type LoaderFunctionArgs, type MetaFunction } from '@remix-run/node'
 import { Link, Outlet, json, useLoaderData, useMatches } from '@remix-run/react'
 import { useEffect, useRef } from 'react'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.js'
+import { ButtonLink } from '#app/components/ui/button.tsx'
 import { Icon } from '#app/components/ui/icon.js'
 import { SimpleTooltip } from '#app/components/ui/tooltip.js'
 import { requireUserId } from '#app/utils/auth.server.js'
@@ -13,6 +14,7 @@ import {
 	getSendTime,
 } from '#app/utils/cron.server.js'
 import { prisma } from '#app/utils/db.server.js'
+import { cn } from '#app/utils/misc.tsx'
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
 	const userId = await requireUserId(request)
@@ -85,95 +87,126 @@ export default function RecipientRoute() {
 	}, [currentPath])
 
 	return (
-		<div className="px-10 py-6">
-			<div className="flex flex-col justify-between gap-4 md:flex-row">
-				<div className="mb-2 pt-12 lg:mb-6">
-					<h2 className="text-h2">{data.recipient.name}</h2>
-					<small className="flex gap-1 text-sm font-normal text-secondary-foreground">
-						{data.recipient.phoneNumber}
-						{data.optedOut ? (
-							<span className="text-destructive">Opted out</span>
-						) : null}
-						{data.recipient.verified ? (
-							''
-						) : (
-							<Link
-								preventScrollReset
-								to="edit"
-								className="text-body-2xs text-destructive underline"
-							>
-								(unverified)
-							</Link>
-						)}
-						<SimpleTooltip
-							content={
-								data.cronError
-									? `Cron error: ${data.cronError}`
-									: 'Next send time'
-							}
-						>
-							<button
-								className={`cursor-default ${
-									data.cronError ? 'text-destructive' : ''
-								}`}
-							>
-								{data.formattedNextSendTime}
-							</button>
-						</SimpleTooltip>
-					</small>
+		<div className="grid gap-10 lg:grid-cols-[320px_1fr]">
+			<aside className="space-y-6">
+				<Link
+					to="/recipients"
+					className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground transition hover:text-foreground"
+				>
+					<Icon name="arrow-left" size="sm" />
+					All Recipients
+				</Link>
+				<div className="flex flex-wrap items-start justify-between gap-4">
+					<div>
+						<h2 className="text-3xl font-bold text-foreground">
+							{data.recipient.name}
+						</h2>
+						<div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+							<span>{data.recipient.phoneNumber}</span>
+							{data.optedOut ? (
+								<span className="rounded-full bg-destructive/10 px-3 py-1 text-foreground-destructive">
+									Opted out
+								</span>
+							) : null}
+							{data.recipient.verified ? null : (
+								<Link
+									preventScrollReset
+									to="edit"
+									className="rounded-full border border-destructive/40 px-3 py-1 text-foreground-destructive"
+								>
+									Unverified
+								</Link>
+							)}
+						</div>
+					</div>
+					<ButtonLink variant="secondary" to="edit" className="gap-2">
+						<Icon name="settings">Settings</Icon>
+					</ButtonLink>
 				</div>
-				<nav>
+				<div className="space-y-3">
+					<div className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-sm">
+						<span className="rounded-xl bg-muted p-2 text-muted-foreground">
+							<Icon name="phone" size="sm" />
+						</span>
+						<span className="text-sm font-medium text-foreground">
+							{data.recipient.phoneNumber}
+						</span>
+					</div>
+					<SimpleTooltip
+						content={
+							data.cronError ? `Cron error: ${data.cronError}` : 'Next send time'
+						}
+					>
+						<div
+							className={cn(
+								'flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 text-sm font-medium text-foreground shadow-sm',
+								data.cronError && 'text-foreground-destructive',
+							)}
+						>
+							<span className="rounded-xl bg-muted p-2 text-muted-foreground">
+								<Icon name="clock" size="sm" />
+							</span>
+							<span>{data.formattedNextSendTime}</span>
+						</div>
+					</SimpleTooltip>
+				</div>
+			</aside>
+			<section className="rounded-[32px] border border-border bg-muted px-6 py-8 shadow-sm">
+				<nav className="mb-6 flex flex-wrap gap-2">
 					<Link
 						to="."
 						preventScrollReset
-						className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${
-							currentPath === '.'
-								? 'bg-accent text-accent-foreground'
-								: 'hover:bg-accent/50'
-						}`}
+						className={cn(
+							'flex items-center gap-2 rounded-full border border-border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground transition hover:bg-card hover:text-foreground',
+							currentPath === '.' && 'bg-card text-foreground shadow-sm',
+						)}
 						ref={firstLinkRef}
 					>
-						<Icon name="clock">Upcoming</Icon>
+						<Icon name="clock" size="sm">
+							Upcoming
+						</Icon>
 					</Link>
 					<Link
 						to="new"
 						preventScrollReset
-						className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${
-							currentPath === 'new'
-								? 'bg-accent text-accent-foreground'
-								: 'hover:bg-accent/50'
-						}`}
+						className={cn(
+							'flex items-center gap-2 rounded-full border border-border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground transition hover:bg-card hover:text-foreground',
+							currentPath === 'new' && 'bg-card text-foreground shadow-sm',
+						)}
 					>
-						<Icon name="plus">New</Icon>
+						<Icon name="plus" size="sm">
+							New
+						</Icon>
 					</Link>
 					<Link
 						to="past"
 						preventScrollReset
-						className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${
-							currentPath === 'past'
-								? 'bg-accent text-accent-foreground'
-								: 'hover:bg-accent/50'
-						}`}
+						className={cn(
+							'flex items-center gap-2 rounded-full border border-border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground transition hover:bg-card hover:text-foreground',
+							currentPath === 'past' && 'bg-card text-foreground shadow-sm',
+						)}
 					>
-						<Icon name="chevron-down">Past</Icon>
+						<Icon name="chevron-down" size="sm">
+							Past
+						</Icon>
 					</Link>
-
 					<Link
 						to="edit"
 						preventScrollReset
-						className={`flex items-center gap-2 rounded-md px-3 py-2 transition-colors ${
-							currentPath === 'edit'
-								? 'bg-accent text-accent-foreground'
-								: 'hover:bg-accent/50'
-						}`}
+						className={cn(
+							'flex items-center gap-2 rounded-full border border-border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground transition hover:bg-card hover:text-foreground',
+							currentPath === 'edit' && 'bg-card text-foreground shadow-sm',
+						)}
 					>
-						<Icon name="pencil-1">Edit</Icon>
+						<Icon name="pencil-1" size="sm">
+							Edit
+						</Icon>
 					</Link>
 				</nav>
-			</div>
-			<div className="overflow-y-auto px-4 py-6">
-				<Outlet />
-			</div>
+				<div className="overflow-y-auto">
+					<Outlet />
+				</div>
+			</section>
 		</div>
 	)
 }

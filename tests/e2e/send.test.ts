@@ -33,24 +33,30 @@ test('Users can write and send a message immediately', async ({
 	await page.goto(`/recipients/${recipient.id}`)
 	await page.waitForLoadState('domcontentloaded')
 
-	const newMessageLink = page.getByRole('main').getByRole('link', { name: /new message/i })
+	const newMessageLink = page.getByRole('link', { name: /^new$/i })
 	await newMessageLink.waitFor({ state: 'visible' })
 	await newMessageLink.click()
 
 	await page.waitForLoadState('domcontentloaded')
 
 	const { content: textMessageContent } = createMessage()
-	const messageTextbox = page.getByRole('main').getByRole('textbox', { name: /message/i })
+	const messageTextbox = page.getByRole('textbox', { name: /message/i })
 	await messageTextbox.waitFor({ state: 'visible' })
 	await messageTextbox.fill(textMessageContent)
 
-	await page.getByRole('main').getByRole('button', { name: /save/i }).click()
-
-	await expect(page.getByText(/message created/i)).toBeVisible({ timeout: 15000 })
-
-	const closeToastButton = page.getByRole('button', { name: /close toast/i })
-	await closeToastButton.waitFor({ state: 'visible' })
-	await closeToastButton.click()
+	await page.getByRole('button', { name: /save/i }).click()
+	await waitFor(
+		async () => {
+			const createdMessage = await prisma.message.findFirst({
+				select: { id: true },
+				where: { recipientId: recipient.id, content: textMessageContent },
+			})
+			if (createdMessage) return createdMessage
+		},
+		{ timeout: 15000, errorMessage: 'Message not created' },
+	)
+	await page.goto(`/recipients/${recipient.id}`)
+	await page.waitForLoadState('domcontentloaded')
 
 	const sendNowButton = page.getByRole('button', { name: /send now/i })
 	await sendNowButton.waitFor({ state: 'visible' })
@@ -101,7 +107,7 @@ test('Scheduled messages go out on schedule', async ({ page, login }) => {
 
 	await page.goto(`/recipients/${recipient.id}/past`)
 	await page.waitForLoadState('domcontentloaded')
-	await expect(page.getByText(/no past messages yet/i)).toBeVisible({
+	await expect(page.getByText(/no past messages/i)).toBeVisible({
 		timeout: 15000,
 	})
 

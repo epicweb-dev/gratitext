@@ -156,14 +156,48 @@ export async function requireAnonymous(request: Request) {
 }
 
 export async function login({
-	username,
+	identifier,
+	countryCode,
 	password,
 }: {
-	username: User['username']
+	identifier: string
+	countryCode?: string
 	password: string
 }) {
-	const user = await verifyUserPassword({ username }, password)
-	if (!user) return null
+	const normalizedIdentifier = identifier.trim()
+	const phoneCandidates = new Set<string>()
+	if (normalizedIdentifier) {
+		phoneCandidates.add(normalizedIdentifier)
+		phoneCandidates.add(normalizedIdentifier.replace(/\s+/g, ''))
+	}
+
+	const digitsOnly = normalizedIdentifier.replace(/\D/g, '')
+	if (digitsOnly) {
+		phoneCandidates.add(digitsOnly)
+		if (countryCode) {
+			phoneCandidates.add(`${countryCode}${digitsOnly}`.replace(/\s+/g, ''))
+		}
+		if (normalizedIdentifier.startsWith('+')) {
+			phoneCandidates.add(`+${digitsOnly}`)
+		}
+	}
+	const phoneCandidateList = [...phoneCandidates].filter(Boolean)
+	const user = await prisma.user.findFirst({
+		where: {
+			OR: [
+				{ username: normalizedIdentifier.toLowerCase() },
+				...(phoneCandidateList.length
+					? [{ phoneNumber: { in: phoneCandidateList } }]
+					: []),
+			],
+		},
+		select: { id: true, password: { select: { hash: true } } },
+	})
+	if (!user?.password) return null
+
+	const isValid = await bcrypt.compare(password, user.password.hash)
+	if (!isValid) return null
+
 	const session = await prisma.session.create({
 		select: { id: true, expirationDate: true, userId: true },
 		data: {

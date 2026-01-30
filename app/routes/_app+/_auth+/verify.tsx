@@ -1,7 +1,7 @@
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { type ActionFunctionArgs } from '@remix-run/node'
-import { Form, useActionData, useSearchParams } from '@remix-run/react'
+import { Form, Link, useActionData, useSearchParams } from '@remix-run/react'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
@@ -81,6 +81,14 @@ export default function VerifyRoute() {
 		),
 	}
 
+	const resendRoutes: Record<VerificationTypes, string> = {
+		onboarding: '/signup',
+		'reset-password': '/forgot-password',
+		'change-phone-number': '/settings/profile/change-number',
+		'2fa': '/login',
+		'validate-recipient': '/recipients',
+	}
+
 	const [form, fields] = useForm({
 		id: 'verify-form',
 		constraint: getZodConstraint(VerifySchema),
@@ -97,56 +105,59 @@ export default function VerifyRoute() {
 	})
 
 	return (
-		<main className="container flex flex-col justify-center pb-32 pt-20">
+		<main className="container flex flex-col items-center justify-center pb-32 pt-20">
 			<div className="text-center">
+				<p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+					GratiText
+				</p>
 				{type ? headings[type] : 'Invalid Verification Type'}
 			</div>
 
 			<Spacer size="xs" />
 
-			<div className="mx-auto flex w-72 max-w-full flex-col justify-center gap-1">
-				<div>
-					<ErrorList errors={form.errors} id={form.errorId} />
-				</div>
-				<div className="flex w-full gap-2">
-					<Form method="POST" {...getFormProps(form)} className="flex-1">
-						<HoneypotInputs />
-						<div className="flex items-center justify-center">
-							<OTPField
-								type="digits-and-characters"
-								labelProps={{
-									htmlFor: fields[codeQueryParam].id,
-									children: 'Code',
-								}}
-								inputProps={{
-									...getInputProps(fields[codeQueryParam], { type: 'text' }),
-									autoComplete: 'one-time-code',
-									autoFocus: true,
-								}}
-								errors={fields[codeQueryParam].errors}
-							/>
-						</div>
-						<input
-							{...getInputProps(fields[typeQueryParam], { type: 'hidden' })}
+			<div className="mt-8 w-full max-w-md rounded-[32px] border border-border bg-card px-6 py-8 shadow-sm">
+				<ErrorList errors={form.errors} id={form.errorId} />
+				<Form method="POST" {...getFormProps(form)} className="space-y-6">
+					<HoneypotInputs />
+					<div className="flex items-center justify-center">
+						<OTPField
+							type="digits-and-characters"
+							labelProps={{
+								htmlFor: fields[codeQueryParam].id,
+								children: 'Verification Code',
+							}}
+							inputProps={{
+								...getInputProps(fields[codeQueryParam], { type: 'text' }),
+								autoComplete: 'one-time-code',
+								autoFocus: true,
+							}}
+							errors={fields[codeQueryParam].errors}
 						/>
-						<input
-							{...getInputProps(fields[targetQueryParam], { type: 'hidden' })}
-						/>
-						<input
-							{...getInputProps(fields[redirectToQueryParam], {
-								type: 'hidden',
-							})}
-						/>
-						<StatusButton
-							className="w-full"
-							status={isPending ? 'pending' : (form.status ?? 'idle')}
-							type="submit"
-							disabled={isPending}
-						>
-							Submit
-						</StatusButton>
-					</Form>
-				</div>
+					</div>
+					<div className="text-center text-body-xs text-muted-foreground">
+						<span>Didn't get it? </span>
+						<Link to={type ? resendRoutes[type] : '.'} className="font-semibold text-foreground underline">
+							Resend the Code
+						</Link>
+					</div>
+					<input {...getInputProps(fields[typeQueryParam], { type: 'hidden' })} />
+					<input
+						{...getInputProps(fields[targetQueryParam], { type: 'hidden' })}
+					/>
+					<input
+						{...getInputProps(fields[redirectToQueryParam], {
+							type: 'hidden',
+						})}
+					/>
+					<StatusButton
+						className="w-full bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))]"
+						status={isPending ? 'pending' : (form.status ?? 'idle')}
+						type="submit"
+						disabled={isPending}
+					>
+						Continue
+					</StatusButton>
+				</Form>
 			</div>
 		</main>
 	)

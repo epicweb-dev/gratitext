@@ -7,78 +7,105 @@
 	/* --font-sans: here if you have one */
 	/* --font-mono: here if you got it... */
 
+	--palette-dark-navy: 210 33.3% 14.1%;
+	--palette-navy: 210 25% 25.1%;
+	--palette-storm-grey: 211 16.4% 39.4%;
+	--palette-cloud: 210 15.6% 52.2%;
+	--palette-smoke: 213 15.1% 85.7%;
+	--palette-green-900: 147 48.5% 19.8%;
+	--palette-green-700: 147 30.4% 31.6%;
+	--palette-green-500: 147 49% 38.4%;
+	--palette-green-300: 148 34.1% 64.9%;
+	--palette-green-100: 150 33.3% 92.9%;
+	--palette-chocolate: 8 100% 13.9%;
+	--palette-chestnut: 19 92.6% 32%;
+	--palette-hot-fire-red: 19 83.3% 53.1%;
+	--palette-fire-red: 19 100% 61%;
+	--palette-orange: 30 100% 63.9%;
+	--palette-sunny: 44 94.3% 58.8%;
+	--palette-rose-pink: 332 61.3% 69.6%;
+	--palette-dust-pink: 14 62% 80.4%;
+	--palette-beige: 35 43.6% 92.4%;
+	--palette-cream: 38 52.4% 95.9%;
+	--palette-lilac: 231 35.5% 81.8%;
+	--palette-baby-blue: 183 38% 80.4%;
+	--palette-blues: 212 65.4% 54.7%;
+
 	/* prefixed with foreground because it should look good on the background */
-	--foreground-destructive: 345 82.7% 40.8%;
+	--foreground-destructive: var(--palette-fire-red);
 
-	--background: 0 0% 100%;
-	--foreground: 222.2 84% 4.9%;
+	--background: var(--palette-cream);
+	--foreground: var(--palette-dark-navy);
 
-	--muted: 210 40% 93%;
-	--muted-foreground: 215.4 16.3% 30%;
+	--muted: var(--palette-beige);
+	--muted-foreground: var(--palette-storm-grey);
 
-	--muted-secondary: 210 40% 93%;
-	--muted-secondary-foreground: 215.4 9.3% 41%;
+	--muted-secondary: var(--palette-smoke);
+	--muted-secondary-foreground: var(--palette-cloud);
 
-	--popover: 0 0% 100%;
-	--popover-foreground: 222.2 84% 4.9%;
+	--popover: var(--palette-beige);
+	--popover-foreground: var(--palette-dark-navy);
 
-	--card: 0 0% 100%;
-	--card-foreground: 222.2 84% 4.9%;
+	--card: var(--palette-cream);
+	--card-foreground: var(--palette-dark-navy);
 
-	--border: 214.3 31.8% 91.4%;
-	--input: 214.3 31.8% 91.4%;
-	--input-invalid: 0 84.2% 60.2%;
+	--border: var(--palette-smoke);
+	--input: var(--palette-smoke);
+	--input-invalid: var(--palette-fire-red);
 
-	--primary: 222.2 47.4% 11.2%;
-	--primary-foreground: 210 40% 98%;
+	--primary: var(--palette-navy);
+	--primary-foreground: var(--palette-cream);
 
-	--secondary: 210 20% 83%;
-	--secondary-foreground: 222.2 47.4% 11.2%;
+	--secondary: var(--palette-beige);
+	--secondary-foreground: var(--palette-navy);
 
-	--accent: 210 40% 90%;
-	--accent-foreground: 222.2 47.4% 11.2%;
+	--accent: var(--palette-green-100);
+	--accent-foreground: var(--palette-dark-navy);
 
-	--destructive: 0 70% 50%;
-	--destructive-foreground: 210 40% 98%;
+	--destructive: var(--palette-hot-fire-red);
+	--destructive-foreground: var(--palette-cream);
 
-	--ring: 215 20.2% 65.1%;
+	--ring: var(--palette-green-300);
 
 	--radius: 0.5rem;
 }
 
 .dark {
-	--background: 222.2 84% 4.9%;
-	--foreground: 210 40% 98%;
+	--background: var(--palette-dark-navy);
+	--foreground: var(--palette-cream);
 
 	/* prefixed with foreground because it should look good on the background */
-	--foreground-destructive: -4 84% 60%;
+	--foreground-destructive: var(--palette-fire-red);
 
-	--muted: 217.2 32.6% 12%;
-	--muted-foreground: 215 20.2% 65.1%;
+	--muted: var(--palette-navy);
+	--muted-foreground: var(--palette-smoke);
 
-	--popover: 222.2 84% 4.9%;
-	--popover-foreground: 210 40% 98%;
+	--muted-secondary: var(--palette-storm-grey);
+	--muted-secondary-foreground: var(--palette-smoke);
 
-	--card: 222.2 84% 4.9%;
-	--card-foreground: 210 40% 98%;
+	--popover: var(--palette-navy);
+	--popover-foreground: var(--palette-cream);
 
-	--border: 217.2 32.6% 17.5%;
-	--input: 217.2 32.6% 17.5%;
-	--input-invalid: 0 62.8% 30.6%;
+	--card: var(--palette-navy);
+	--card-foreground: var(--palette-cream);
 
-	--primary: 210 40% 98%;
-	--primary-foreground: 222.2 47.4% 11.2%;
+	--border: var(--palette-storm-grey);
+	--input: var(--palette-storm-grey);
+	--input-invalid: var(--palette-fire-red);
 
-	--secondary: 217.2 20% 24%;
-	--secondary-foreground: 210 40% 98%;
+	--primary: var(--palette-sunny);
+	--primary-foreground: var(--palette-dark-navy);
 
-	--accent: 217.2 32.6% 10%;
-	--accent-foreground: 210 40% 98%;
+	--secondary: var(--palette-navy);
+	--secondary-foreground: var(--palette-cream);
 
-	--destructive: 0 60% 40%;
-	--destructive-foreground: 0 85.7% 97.3%;
+	--accent: var(--palette-green-500);
+	--accent-foreground: var(--palette-cream);
 
-	--ring: 217.2 32.6% 60%;
+	--destructive: var(--palette-fire-red);
+	--destructive-foreground: var(--palette-cream);
+
+	--ring: var(--palette-green-300);
 }
 
 @theme inline {

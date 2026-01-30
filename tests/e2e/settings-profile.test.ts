@@ -15,13 +15,9 @@ test('Users can update their basic info', async ({ page, login }) => {
 
 	const newUserData = createUser()
 
-	const nameInput = page.getByRole('textbox', { name: /^name/i })
+	const nameInput = page.getByRole('textbox', { name: /your name/i })
 	await nameInput.waitFor({ state: 'visible' })
 	await nameInput.fill(newUserData.name)
-
-	await page
-		.getByRole('textbox', { name: /^username/i })
-		.fill(newUserData.username)
 
 	await page.getByRole('button', { name: /^save/i }).click()
 
@@ -51,7 +47,7 @@ test('Users can update their password', async ({ page, login }) => {
 		.getByRole('textbox', { name: /^confirm new password/i })
 		.fill(newPassword)
 
-	await page.getByRole('button', { name: /^change password/i }).click()
+	await page.getByRole('button', { name: /^save/i }).click()
 
 	await expect(page).toHaveURL(`/settings/profile`, { timeout: 15000 })
 
@@ -78,7 +74,7 @@ test('Users can change their phone number', async ({ page, login }) => {
 	await page.goto('/settings/profile')
 	await page.waitForLoadState('domcontentloaded')
 
-	const changeNumberLink = page.getByRole('link', { name: /change number/i })
+	const changeNumberLink = page.getByRole('link', { name: /edit your phone number/i })
 	await changeNumberLink.waitFor({ state: 'visible' })
 	await changeNumberLink.click()
 
@@ -102,7 +98,7 @@ test('Users can change their phone number', async ({ page, login }) => {
 	const codeInput = page.getByRole('textbox', { name: /code/i })
 	await codeInput.waitFor({ state: 'visible' })
 	await codeInput.fill(code)
-	await page.getByRole('button', { name: /submit/i }).click()
+	await page.getByRole('button', { name: /continue/i }).click()
 
 	await expect(page.getByText(/phone number changed/i)).toBeVisible({ timeout: 15000 })
 

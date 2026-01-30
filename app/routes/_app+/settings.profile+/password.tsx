@@ -121,45 +121,60 @@ export default function ChangePasswordRoute() {
 	})
 
 	return (
-		<Form method="POST" {...getFormProps(form)} className="mx-auto max-w-md">
-			<Field
-				labelProps={{ children: 'Current Password' }}
-				inputProps={{
-					...getInputProps(fields.currentPassword, { type: 'password' }),
-					autoComplete: 'current-password',
-				}}
-				errors={fields.currentPassword.errors}
-			/>
-			<Field
-				labelProps={{ children: 'New Password' }}
-				inputProps={{
-					...getInputProps(fields.newPassword, { type: 'password' }),
-					autoComplete: 'new-password',
-				}}
-				errors={fields.newPassword.errors}
-			/>
-			<Field
-				labelProps={{ children: 'Confirm New Password' }}
-				inputProps={{
-					...getInputProps(fields.confirmNewPassword, {
-						type: 'password',
-					}),
-					autoComplete: 'new-password',
-				}}
-				errors={fields.confirmNewPassword.errors}
-			/>
-			<ErrorList id={form.errorId} errors={form.errors} />
-			<div className="grid w-full grid-cols-2 gap-6">
-				<Button variant="secondary" asChild>
-					<Link to="..">Cancel</Link>
-				</Button>
-				<StatusButton
-					type="submit"
-					status={isPending ? 'pending' : (form.status ?? 'idle')}
-				>
-					Change Password
-				</StatusButton>
-			</div>
-		</Form>
+		<div className="container flex min-h-full items-center justify-center pb-24 pt-16">
+			<Form
+				method="POST"
+				{...getFormProps(form)}
+				className="w-full max-w-lg rounded-[32px] border border-border bg-card px-6 py-8 shadow-sm"
+			>
+				<h1 className="text-2xl font-bold text-foreground">
+					Change Your Password
+				</h1>
+				<p className="mt-2 text-sm text-muted-foreground">
+					Update your password to keep your account secure.
+				</p>
+				<div className="mt-6 space-y-6">
+					<Field
+						labelProps={{ children: 'Current Password' }}
+						inputProps={{
+							...getInputProps(fields.currentPassword, { type: 'password' }),
+							autoComplete: 'current-password',
+						}}
+						errors={fields.currentPassword.errors}
+					/>
+					<Field
+						labelProps={{ children: 'New Password' }}
+						inputProps={{
+							...getInputProps(fields.newPassword, { type: 'password' }),
+							autoComplete: 'new-password',
+						}}
+						errors={fields.newPassword.errors}
+					/>
+					<Field
+						labelProps={{ children: 'Confirm New Password' }}
+						inputProps={{
+							...getInputProps(fields.confirmNewPassword, {
+								type: 'password',
+							}),
+							autoComplete: 'new-password',
+						}}
+						errors={fields.confirmNewPassword.errors}
+					/>
+					<ErrorList id={form.errorId} errors={form.errors} />
+					<div className="grid w-full grid-cols-2 gap-6">
+						<Button variant="secondary" asChild>
+							<Link to="..">Cancel</Link>
+						</Button>
+						<StatusButton
+							type="submit"
+							status={isPending ? 'pending' : (form.status ?? 'idle')}
+							className="bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))]"
+						>
+							Save
+						</StatusButton>
+					</div>
+				</div>
+			</Form>
+		</div>
 	)
 }

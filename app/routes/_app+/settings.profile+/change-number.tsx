@@ -7,9 +7,10 @@ import {
 	type ActionFunctionArgs,
 	type LoaderFunctionArgs,
 } from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { Form, Link, useActionData, useLoaderData } from '@remix-run/react'
 import { z } from 'zod'
 import { ErrorList, Field } from '#app/components/forms.tsx'
+import { Button } from '#app/components/ui/button.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import {
@@ -117,15 +118,18 @@ export default function ChangePhoneNumberIndex() {
 
 	const isPending = useIsPending()
 	return (
-		<div>
-			<h1 className="text-h1">Change Phone Number</h1>
-			<p>You will receive an text at the new phone number to confirm.</p>
-			<p>
-				An text notice will also be sent to your old number{' '}
-				{data.user.phoneNumber}.
-			</p>
-			<div className="mx-auto mt-5 max-w-sm">
-				<Form method="POST" {...getFormProps(form)}>
+		<div className="container flex min-h-full items-center justify-center pb-24 pt-16">
+			<div className="w-full max-w-lg rounded-[32px] border border-border bg-card px-6 py-8 shadow-sm">
+				<h1 className="text-2xl font-bold text-foreground">
+					Change Phone Number
+				</h1>
+				<p className="mt-2 text-sm text-muted-foreground">
+					You will receive a text at the new phone number to confirm.
+				</p>
+				<p className="mt-2 text-sm text-muted-foreground">
+					A notice will also be sent to your old number {data.user.phoneNumber}.
+				</p>
+				<Form method="POST" {...getFormProps(form)} className="mt-6 space-y-6">
 					<Field
 						labelProps={{ children: 'New Phone Number' }}
 						inputProps={{
@@ -135,8 +139,12 @@ export default function ChangePhoneNumberIndex() {
 						errors={fields.phoneNumber.errors}
 					/>
 					<ErrorList id={form.errorId} errors={form.errors} />
-					<div>
+					<div className="flex flex-wrap gap-3">
+						<Button variant="secondary" asChild>
+							<Link to="..">Cancel</Link>
+						</Button>
 						<StatusButton
+							className="bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))]"
 							status={isPending ? 'pending' : (form.status ?? 'idle')}
 						>
 							Send Confirmation
