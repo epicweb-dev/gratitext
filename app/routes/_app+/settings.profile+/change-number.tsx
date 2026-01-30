@@ -2,12 +2,12 @@ import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import {
-	json,
+	data as json,
 	redirect,
 	type ActionFunctionArgs,
 	type LoaderFunctionArgs,
-} from '@remix-run/node'
-import { Form, Link, useActionData, useLoaderData } from '@remix-run/react'
+} from 'react-router'
+import { Form, Link, useActionData, useLoaderData } from 'react-router'
 import { z } from 'zod'
 import { ErrorList, Field } from '#app/components/forms.tsx'
 import { Button } from '#app/components/ui/button.tsx'
@@ -118,15 +118,15 @@ export default function ChangePhoneNumberIndex() {
 
 	const isPending = useIsPending()
 	return (
-		<div className="container flex min-h-full items-center justify-center pb-24 pt-16">
-			<div className="w-full max-w-lg rounded-[32px] border border-border bg-card px-6 py-8 shadow-sm">
-				<h1 className="text-2xl font-bold text-foreground">
+		<div className="container flex min-h-full items-center justify-center pt-16 pb-24">
+			<div className="border-border bg-card w-full max-w-lg rounded-[32px] border px-6 py-8 shadow-sm">
+				<h1 className="text-foreground text-2xl font-bold">
 					Change Phone Number
 				</h1>
-				<p className="mt-2 text-sm text-muted-foreground">
+				<p className="text-muted-foreground mt-2 text-sm">
 					You will receive a text at the new phone number to confirm.
 				</p>
-				<p className="mt-2 text-sm text-muted-foreground">
+				<p className="text-muted-foreground mt-2 text-sm">
 					A notice will also be sent to your old number {data.user.phoneNumber}.
 				</p>
 				<Form method="POST" {...getFormProps(form)} className="mt-6 space-y-6">

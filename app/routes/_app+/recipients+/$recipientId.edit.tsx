@@ -1,10 +1,10 @@
 import { invariantResponse } from '@epic-web/invariant'
 import {
-	json,
+	data as json,
 	type LoaderFunctionArgs,
 	type MetaFunction,
-} from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+} from 'react-router'
+import { useLoaderData } from 'react-router'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'

@@ -2,11 +2,11 @@ import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import {
-	json,
+	data as json,
 	type LoaderFunctionArgs,
 	type ActionFunctionArgs,
-} from '@remix-run/node'
-import { Form, Link, useActionData } from '@remix-run/react'
+} from 'react-router'
+import { Form, Link, useActionData } from 'react-router'
 import { z } from 'zod'
 import { ErrorList, Field } from '#app/components/forms.tsx'
 import { Button } from '#app/components/ui/button.tsx'
@@ -121,16 +121,16 @@ export default function ChangePasswordRoute() {
 	})
 
 	return (
-		<div className="container flex min-h-full items-center justify-center pb-24 pt-16">
+		<div className="container flex min-h-full items-center justify-center pt-16 pb-24">
 			<Form
 				method="POST"
 				{...getFormProps(form)}
-				className="w-full max-w-lg rounded-[32px] border border-border bg-card px-6 py-8 shadow-sm"
+				className="border-border bg-card w-full max-w-lg rounded-[32px] border px-6 py-8 shadow-sm"
 			>
-				<h1 className="text-2xl font-bold text-foreground">
+				<h1 className="text-foreground text-2xl font-bold">
 					Change Your Password
 				</h1>
-				<p className="mt-2 text-sm text-muted-foreground">
+				<p className="text-muted-foreground mt-2 text-sm">
 					Update your password to keep your account secure.
 				</p>
 				<div className="mt-6 space-y-6">

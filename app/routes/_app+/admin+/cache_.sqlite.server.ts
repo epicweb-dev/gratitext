@@ -1,4 +1,4 @@
-import { json, redirect, type ActionFunctionArgs } from '@remix-run/node'
+import { data as json, redirect, type ActionFunctionArgs } from 'react-router'
 import { z } from 'zod'
 import { cache } from '#app/utils/cache.server.ts'
 import {

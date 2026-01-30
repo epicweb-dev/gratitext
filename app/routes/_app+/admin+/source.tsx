@@ -3,10 +3,10 @@ import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import {
 	type LoaderFunctionArgs,
-	json,
+	data as json,
 	type ActionFunctionArgs,
-} from '@remix-run/node'
-import { useFetcher, useLoaderData } from '@remix-run/react'
+} from 'react-router'
+import { useFetcher, useLoaderData } from 'react-router'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.js'
 import { Field } from '#app/components/forms.js'

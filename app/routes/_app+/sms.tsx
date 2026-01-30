@@ -1,7 +1,7 @@
 // https://www.twilio.com/docs/usage/webhooks/messaging-webhooks#incoming-message-webhook
 import crypto from 'node:crypto'
 import { invariantResponse } from '@epic-web/invariant'
-import { type ActionFunctionArgs } from '@remix-run/node'
+import { type ActionFunctionArgs } from 'react-router'
 import { prisma } from '#app/utils/db.server.js'
 
 export async function action({ request }: ActionFunctionArgs) {

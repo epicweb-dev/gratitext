@@ -1,10 +1,10 @@
 import {
-	json,
+	data as json,
 	type HeadersFunction,
 	type LoaderFunctionArgs,
 	type MetaFunction,
-} from '@remix-run/node'
-import { Form, Link, Outlet, useLoaderData, useSubmit } from '@remix-run/react'
+} from 'react-router'
+import { Form, Link, Outlet, useLoaderData, useSubmit } from 'react-router'
 import { useRef } from 'react'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.js'
 import { Button } from '#app/components/ui/button.tsx'
@@ -183,7 +183,9 @@ function UserDropdown() {
 						// this prevents the menu from closing before the form submission is completed
 						onSelect={(event) => {
 							event.preventDefault()
-							submit(formRef.current)
+							if (formRef.current) {
+								void submit(formRef.current)
+							}
 						}}
 					>
 						<Form action="/logout" method="POST" ref={formRef}>

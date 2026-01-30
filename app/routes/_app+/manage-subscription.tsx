@@ -1,4 +1,4 @@
-import { redirect, type LoaderFunctionArgs } from '@remix-run/node'
+import { redirect, type LoaderFunctionArgs } from 'react-router'
 import { requireUserId } from '#app/utils/auth.server.js'
 import { prisma } from '#app/utils/db.server.js'
 import { getDomainUrl } from '#app/utils/misc.js'

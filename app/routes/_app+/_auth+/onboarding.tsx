@@ -1,13 +1,15 @@
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import {
-	json,
+	data as json,
 	redirect,
 	type LoaderFunctionArgs,
 	type ActionFunctionArgs,
 	type MetaFunction,
-} from '@remix-run/node'
-import { Form, useActionData, useSearchParams } from '@remix-run/react'
+	Form,
+	useActionData,
+	useSearchParams,
+} from 'react-router'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { safeRedirect } from 'remix-utils/safe-redirect'
 import { z } from 'zod'
@@ -142,18 +144,18 @@ export default function SignupRoute() {
 	})
 
 	return (
-		<div className="container flex min-h-full flex-col items-center justify-center pb-32 pt-20">
+		<div className="container flex min-h-full flex-col items-center justify-center pt-20 pb-32">
 			<div className="text-center">
-				<p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+				<p className="text-muted-foreground text-xs font-semibold tracking-[0.3em] uppercase">
 					GratiText
 				</p>
-				<h1 className="mt-3 text-h1">Stay Connected, Stay Grateful</h1>
+				<h1 className="text-h1 mt-3">Stay Connected, Stay Grateful</h1>
 				<p className="text-body-md text-muted-foreground">
 					Almost there! Finish creating your account.
 				</p>
 			</div>
 			<Spacer size="xs" />
-			<div className="mt-8 w-full max-w-lg rounded-[32px] border border-border bg-card px-6 py-8 shadow-sm">
+			<div className="border-border bg-card mt-8 w-full max-w-lg rounded-[32px] border px-6 py-8 shadow-sm">
 				<Form method="POST" {...getFormProps(form)} className="space-y-6">
 					<HoneypotInputs />
 					<Field
@@ -193,27 +195,27 @@ export default function SignupRoute() {
 						}}
 						errors={fields.confirmPassword.errors}
 					/>
-				<CheckboxField
-					labelProps={{
-						htmlFor: fields.agreeToTermsOfServiceAndPrivacyPolicy.id,
-						children:
-							'Do you agree to our Terms of Service and Privacy Policy?',
-					}}
-					buttonProps={getInputProps(
-						fields.agreeToTermsOfServiceAndPrivacyPolicy,
-						{ type: 'checkbox' },
-					)}
-					errors={fields.agreeToTermsOfServiceAndPrivacyPolicy.errors}
-				/>
-				<CheckboxField
-					labelProps={{
-						htmlFor: fields.remember.id,
-						children: 'Remember me',
-					}}
-					buttonProps={getInputProps(fields.remember, { type: 'checkbox' })}
-					errors={fields.remember.errors}
-				/>
-				<input {...getInputProps(fields.redirectTo, { type: 'hidden' })} />
+					<CheckboxField
+						labelProps={{
+							htmlFor: fields.agreeToTermsOfServiceAndPrivacyPolicy.id,
+							children:
+								'Do you agree to our Terms of Service and Privacy Policy?',
+						}}
+						buttonProps={getInputProps(
+							fields.agreeToTermsOfServiceAndPrivacyPolicy,
+							{ type: 'checkbox' },
+						)}
+						errors={fields.agreeToTermsOfServiceAndPrivacyPolicy.errors}
+					/>
+					<CheckboxField
+						labelProps={{
+							htmlFor: fields.remember.id,
+							children: 'Remember me',
+						}}
+						buttonProps={getInputProps(fields.remember, { type: 'checkbox' })}
+						errors={fields.remember.errors}
+					/>
+					<input {...getInputProps(fields.redirectTo, { type: 'hidden' })} />
 					<ErrorList errors={form.errors} id={form.errorId} />
 					<StatusButton
 						className="w-full bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))]"

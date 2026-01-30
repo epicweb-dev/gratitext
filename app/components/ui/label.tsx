@@ -5,7 +5,7 @@ import * as React from 'react'
 import { cn } from '#app/utils/misc.tsx'
 
 const labelVariants = cva(
-	'text-xs font-semibold uppercase leading-none tracking-[0.08em] text-muted-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
+	'text-muted-foreground text-xs leading-none font-semibold tracking-[0.08em] uppercase peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
 )
 
 const Label = React.forwardRef<

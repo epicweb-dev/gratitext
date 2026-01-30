@@ -6,5 +6,7 @@ test('Test root error boundary caught', async ({ page }) => {
 	await page.waitForLoadState('domcontentloaded')
 
 	expect(res?.status()).toBe(404)
-	await expect(page.getByText(/We can't find this page/i)).toBeVisible({ timeout: 15000 })
+	await expect(page.getByText(/We can't find this page/i)).toBeVisible({
+		timeout: 15000,
+	})
 })

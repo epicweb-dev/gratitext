@@ -31,7 +31,7 @@ export function ErrorList({
 	return (
 		<ul id={id} className="flex flex-col gap-1">
 			{errorsToRender.map((e) => (
-				<li key={e} className="text-xs font-medium text-foreground-destructive">
+				<li key={e} className="text-foreground-destructive text-xs font-medium">
 					{e}
 				</li>
 			))}
@@ -62,7 +62,7 @@ export function Field({
 				aria-describedby={errorId}
 				{...inputProps}
 			/>
-			<div className="min-h-[24px] px-4 pb-2 pt-2">
+			<div className="min-h-[24px] px-4 pt-2 pb-2">
 				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
 			</div>
 		</div>
@@ -91,17 +91,17 @@ export function SelectField({
 					id={id}
 					aria-invalid={errorId ? true : undefined}
 					aria-describedby={errorId}
-					className="flex h-12 w-full appearance-none rounded-full border border-input bg-card px-4 pr-10 text-sm font-medium text-foreground shadow-sm transition-colors placeholder:text-muted-secondary-foreground focus-visible:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground aria-[invalid]:border-input-invalid aria-[invalid]:text-foreground-destructive aria-[invalid]:focus-visible:ring-foreground-destructive"
+					className="border-input bg-card text-foreground placeholder:text-muted-secondary-foreground focus-visible:border-ring focus-visible:ring-ring disabled:bg-muted disabled:text-muted-foreground aria-[invalid]:border-input-invalid aria-[invalid]:text-foreground-destructive aria-[invalid]:focus-visible:ring-foreground-destructive flex h-12 w-full appearance-none rounded-full border px-4 pr-10 text-sm font-medium shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed"
 					{...selectProps}
 				/>
 				<Icon
 					name="chevron-down"
 					size="sm"
 					aria-hidden="true"
-					className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-secondary-foreground"
+					className="text-muted-secondary-foreground pointer-events-none absolute top-1/2 right-4 -translate-y-1/2"
 				/>
 			</div>
-			<div className="min-h-[24px] px-4 pb-2 pt-2">
+			<div className="min-h-[24px] px-4 pt-2 pb-2">
 				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
 			</div>
 		</div>
@@ -150,7 +150,7 @@ export function OTPField({
 					<InputOTPSlot index={5} />
 				</InputOTPGroup>
 			</InputOTP>
-			<div className="min-h-[24px] px-4 pb-2 pt-2">
+			<div className="min-h-[24px] px-4 pt-2 pb-2">
 				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
 			</div>
 		</div>
@@ -180,7 +180,7 @@ export function TextareaField({
 				aria-describedby={errorId}
 				{...textareaProps}
 			/>
-			<div className="min-h-[24px] px-4 pb-2 pt-2">
+			<div className="min-h-[24px] px-4 pt-2 pb-2">
 				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
 			</div>
 		</div>
@@ -240,10 +240,10 @@ export function CheckboxField({
 				<label
 					htmlFor={id}
 					{...labelProps}
-					className="self-center text-body-xs text-muted-foreground"
+					className="text-body-xs text-muted-foreground self-center"
 				/>
 			</div>
-			<div className="px-4 pb-2 pt-2">
+			<div className="px-4 pt-2 pb-2">
 				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
 			</div>
 		</div>

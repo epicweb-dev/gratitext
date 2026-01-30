@@ -3,11 +3,11 @@ import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { invariantResponse } from '@epic-web/invariant'
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import {
-	json,
+	data as json,
 	type LoaderFunctionArgs,
 	type ActionFunctionArgs,
-} from '@remix-run/node'
-import { Link, useFetcher, useLoaderData } from '@remix-run/react'
+} from 'react-router'
+import { Link, useFetcher, useLoaderData } from 'react-router'
 import { z } from 'zod'
 import { ErrorList, Field } from '#app/components/forms.tsx'
 import { ButtonLink } from '#app/components/ui/button.tsx'
@@ -97,25 +97,25 @@ export default function EditUserProfile() {
 	return (
 		<div className="mx-auto flex max-w-3xl flex-col gap-10 pb-16">
 			<div className="text-center">
-				<p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+				<p className="text-muted-foreground text-xs font-semibold tracking-[0.3em] uppercase">
 					GratiText
 				</p>
-				<h1 className="mt-3 text-4xl font-bold text-foreground">
+				<h1 className="text-foreground mt-3 text-4xl font-bold">
 					Hi {data.user.name ?? data.user.username}!
 				</h1>
 			</div>
-			<div className="rounded-[32px] border border-border bg-card p-8 shadow-sm">
+			<div className="border-border bg-card rounded-[32px] border p-8 shadow-sm">
 				<UpdateProfile />
 			</div>
-			<div className="rounded-[32px] border border-border bg-card p-6 shadow-sm">
-				<ul className="divide-y divide-border">
+			<div className="border-border bg-card rounded-[32px] border p-6 shadow-sm">
+				<ul className="divide-border divide-y">
 					<li>
 						<Link
 							to="subscription"
 							className="flex items-center justify-between gap-4 py-4"
 						>
-							<span className="flex items-center gap-3 text-sm font-semibold text-foreground">
-								<span className="rounded-xl bg-muted p-2 text-muted-foreground">
+							<span className="text-foreground flex items-center gap-3 text-sm font-semibold">
+								<span className="bg-muted text-muted-foreground rounded-xl p-2">
 									<Icon name="banknotes-outline" size="sm" />
 								</span>
 								Manage Your Subscriptions
@@ -128,8 +128,8 @@ export default function EditUserProfile() {
 							to="password"
 							className="flex items-center justify-between gap-4 py-4"
 						>
-							<span className="flex items-center gap-3 text-sm font-semibold text-foreground">
-								<span className="rounded-xl bg-muted p-2 text-muted-foreground">
+							<span className="text-foreground flex items-center gap-3 text-sm font-semibold">
+								<span className="bg-muted text-muted-foreground rounded-xl p-2">
 									<Icon name="password" size="sm" />
 								</span>
 								Change Password
@@ -144,8 +144,8 @@ export default function EditUserProfile() {
 							to="/resources/download-user-data"
 							className="flex items-center justify-between gap-4 py-4"
 						>
-							<span className="flex items-center gap-3 text-sm font-semibold text-foreground">
-								<span className="rounded-xl bg-muted p-2 text-muted-foreground">
+							<span className="text-foreground flex items-center gap-3 text-sm font-semibold">
+								<span className="bg-muted text-muted-foreground rounded-xl p-2">
 									<Icon name="download" size="sm" />
 								</span>
 								Download Your Data
@@ -158,10 +158,12 @@ export default function EditUserProfile() {
 							to="two-factor"
 							className="flex items-center justify-between gap-4 py-4"
 						>
-							<span className="flex items-center gap-3 text-sm font-semibold text-foreground">
-								<span className="rounded-xl bg-muted p-2 text-muted-foreground">
+							<span className="text-foreground flex items-center gap-3 text-sm font-semibold">
+								<span className="bg-muted text-muted-foreground rounded-xl p-2">
 									<Icon
-										name={data.isTwoFactorEnabled ? 'lock-closed' : 'lock-open-1'}
+										name={
+											data.isTwoFactorEnabled ? 'lock-closed' : 'lock-open-1'
+										}
 										size="sm"
 									/>
 								</span>
@@ -245,7 +247,7 @@ function UpdateProfile() {
 			className="flex flex-col gap-6"
 		>
 			<div className="flex flex-wrap items-center justify-between gap-3">
-				<p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+				<p className="text-muted-foreground text-xs font-semibold tracking-[0.3em] uppercase">
 					Your Name
 				</p>
 				<StatusButton
@@ -260,22 +262,22 @@ function UpdateProfile() {
 				>
 					Save Changes
 				</StatusButton>
-		</div>
-		<Field
-			labelProps={{ htmlFor: fields.username.id, children: 'Username' }}
-			inputProps={{
-				...getInputProps(fields.username, { type: 'text' }),
-				className: 'lowercase',
-			}}
-			errors={fields.username.errors}
-		/>
-		<Field
-			labelProps={{ htmlFor: fields.name.id, children: 'Your Name' }}
-			inputProps={getInputProps(fields.name, { type: 'text' })}
-			errors={fields.name.errors}
-		/>
+			</div>
+			<Field
+				labelProps={{ htmlFor: fields.username.id, children: 'Username' }}
+				inputProps={{
+					...getInputProps(fields.username, { type: 'text' }),
+					className: 'lowercase',
+				}}
+				errors={fields.username.errors}
+			/>
+			<Field
+				labelProps={{ htmlFor: fields.name.id, children: 'Your Name' }}
+				inputProps={getInputProps(fields.name, { type: 'text' })}
+				errors={fields.name.errors}
+			/>
 			<div className="flex flex-wrap items-center justify-between gap-3">
-				<p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+				<p className="text-muted-foreground text-xs font-semibold tracking-[0.3em] uppercase">
 					Your Phone Number
 				</p>
 				<ButtonLink variant="secondary" size="sm" to="change-number">
@@ -283,10 +285,10 @@ function UpdateProfile() {
 				</ButtonLink>
 			</div>
 			<div className="grid gap-4 sm:grid-cols-2">
-				<div className="rounded-full border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+				<div className="border-border bg-muted text-muted-foreground rounded-full border px-4 py-3 text-sm">
 					Country Code
 				</div>
-				<div className="rounded-full border border-border bg-muted px-4 py-3 text-sm text-foreground">
+				<div className="border-border bg-muted text-foreground rounded-full border px-4 py-3 text-sm">
 					{data.user.phoneNumber}
 				</div>
 			</div>
@@ -344,7 +346,7 @@ function SignOutOfSessions() {
 					</StatusButton>
 				</fetcher.Form>
 			) : (
-				<p className="text-sm text-muted-foreground">
+				<p className="text-muted-foreground text-sm">
 					This is your only session.
 				</p>
 			)}
@@ -375,7 +377,7 @@ function DeleteData() {
 				})}
 				variant={dc.doubleCheck ? 'destructive' : 'ghost'}
 				status={fetcher.state !== 'idle' ? 'pending' : 'idle'}
-				className="text-sm font-semibold text-foreground"
+				className="text-foreground text-sm font-semibold"
 			>
 				<Icon name="trash">
 					{dc.doubleCheck ? `Are you sure?` : `Delete Account`}

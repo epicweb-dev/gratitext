@@ -1,10 +1,9 @@
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
-import { type SerializeFrom } from '@remix-run/node'
-import { Link, type MetaFunction, useOutletContext } from '@remix-run/react'
+import { Link, type MetaFunction, useOutletContext } from 'react-router'
 import { ButtonLink } from '#app/components/ui/button.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { type loader as rootLoader } from '#app/root.tsx'
-import { type loader as recipientsLoader } from './_layout.tsx'
+import { type RecipientsOutletContext } from './_layout.tsx'
 
 export const handle: SEOHandle = {
 	getSitemapEntries: () => null,
@@ -12,7 +11,7 @@ export const handle: SEOHandle = {
 
 export default function RecipientsIndexRoute() {
 	const { recipients, subscriptionStatus } =
-		useOutletContext<SerializeFrom<typeof recipientsLoader>>()
+		useOutletContext<RecipientsOutletContext>()
 	const hasRecipients = recipients.length > 0
 	const showTrialBanner = subscriptionStatus === 'none'
 	const showUpgradeBanner = subscriptionStatus === 'basic'
@@ -36,10 +35,10 @@ export default function RecipientsIndexRoute() {
 			) : null}
 			<div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 				<div>
-					<p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+					<p className="text-muted-foreground text-xs font-semibold tracking-[0.3em] uppercase">
 						Recipients
 					</p>
-					<h1 className="text-4xl font-bold text-foreground">Recipients</h1>
+					<h1 className="text-foreground text-4xl font-bold">Recipients</h1>
 				</div>
 				<ButtonLink
 					to="new"
@@ -49,8 +48,8 @@ export default function RecipientsIndexRoute() {
 				</ButtonLink>
 			</div>
 
-			<div className="rounded-[32px] border border-border bg-card shadow-sm">
-				<div className="hidden grid-cols-[minmax(160px,1.2fr)_minmax(180px,1.2fr)_minmax(220px,1.4fr)_minmax(140px,0.8fr)_120px] gap-4 border-b border-border px-8 py-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground md:grid">
+			<div className="border-border bg-card rounded-[32px] border shadow-sm">
+				<div className="border-border text-muted-foreground hidden grid-cols-[minmax(160px,1.2fr)_minmax(180px,1.2fr)_minmax(220px,1.4fr)_minmax(140px,0.8fr)_120px] gap-4 border-b px-8 py-4 text-xs font-semibold tracking-[0.2em] uppercase md:grid">
 					<span>Recipient Name</span>
 					<span>Phone Number</span>
 					<span>Schedule</span>
@@ -58,7 +57,7 @@ export default function RecipientsIndexRoute() {
 					<span />
 				</div>
 				{hasRecipients ? (
-					<div className="divide-y divide-border">
+					<div className="divide-border divide-y">
 						{recipients.map((recipient) => {
 							const messageCount = recipient._count.messages
 							const messageLabel = messageCount === 1 ? 'message' : 'messages'
@@ -73,26 +72,26 @@ export default function RecipientsIndexRoute() {
 									className="grid gap-3 px-6 py-6 md:grid-cols-[minmax(160px,1.2fr)_minmax(180px,1.2fr)_minmax(220px,1.4fr)_minmax(140px,0.8fr)_120px] md:items-center md:gap-4 md:px-8"
 								>
 									<div className="flex flex-col gap-1">
-										<span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground md:hidden">
+										<span className="text-muted-foreground text-xs font-semibold tracking-[0.2em] uppercase md:hidden">
 											Recipient Name
 										</span>
 										<Link
 											to={recipient.id}
-											className="text-lg font-semibold text-foreground hover:underline"
+											className="text-foreground text-lg font-semibold hover:underline"
 										>
 											{recipient.name}
 										</Link>
 									</div>
 									<div className="flex flex-col gap-1">
-										<span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground md:hidden">
+										<span className="text-muted-foreground text-xs font-semibold tracking-[0.2em] uppercase md:hidden">
 											Phone Number
 										</span>
-										<span className="text-sm text-muted-foreground">
+										<span className="text-muted-foreground text-sm">
 											{recipient.phoneNumber}
 										</span>
 									</div>
 									<div className="flex flex-col gap-1">
-										<span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground md:hidden">
+										<span className="text-muted-foreground text-xs font-semibold tracking-[0.2em] uppercase md:hidden">
 											Schedule
 										</span>
 										<span className={`text-sm ${scheduleTone}`}>
@@ -100,7 +99,7 @@ export default function RecipientsIndexRoute() {
 										</span>
 									</div>
 									<div className="flex flex-col gap-1">
-										<span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground md:hidden">
+										<span className="text-muted-foreground text-xs font-semibold tracking-[0.2em] uppercase md:hidden">
 											Prepared Messages
 										</span>
 										<span
@@ -123,12 +122,14 @@ export default function RecipientsIndexRoute() {
 						})}
 					</div>
 				) : (
-					<div className="flex flex-col items-center gap-4 px-8 py-16 text-center text-body-sm text-muted-foreground">
+					<div className="text-body-sm text-muted-foreground flex flex-col items-center gap-4 px-8 py-16 text-center">
 						<div>
-							<p className="text-base font-semibold text-foreground">
+							<p className="text-foreground text-base font-semibold">
 								Start by adding your first recipient
 							</p>
-							<p className="mt-1">Add someone you want to keep in touch with.</p>
+							<p className="mt-1">
+								Add someone you want to keep in touch with.
+							</p>
 						</div>
 						<ButtonLink
 							to="new"

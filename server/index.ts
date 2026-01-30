@@ -1,6 +1,5 @@
 import crypto from 'crypto'
-import { createRequestHandler } from '@remix-run/express'
-import { installGlobals } from '@remix-run/node'
+import { createRequestHandler } from '@react-router/express'
 import { ip as ipAddress } from 'address'
 import chalk from 'chalk'
 import closeWithGrace from 'close-with-grace'
@@ -10,8 +9,6 @@ import rateLimit from 'express-rate-limit'
 import getPort, { portNumbers } from 'get-port'
 import helmet from 'helmet'
 import morgan from 'morgan'
-
-installGlobals()
 
 const MODE = process.env.NODE_ENV ?? 'development'
 const IS_PROD = MODE === 'production'
@@ -208,7 +205,7 @@ if (IS_DEV) {
 	})
 } else {
 	console.log('Starting production server')
-	// Remix fingerprints its assets so we can cache forever.
+	// React Router fingerprints its assets so we can cache forever.
 	app.use(
 		'/assets',
 		express.static('build/client/assets', {

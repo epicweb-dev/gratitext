@@ -1,7 +1,12 @@
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { type ActionFunctionArgs } from '@remix-run/node'
-import { Form, Link, useActionData, useSearchParams } from '@remix-run/react'
+import {
+	type ActionFunctionArgs,
+	Form,
+	Link,
+	useActionData,
+	useSearchParams,
+} from 'react-router'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
@@ -51,7 +56,7 @@ export default function VerifyRoute() {
 	const checkPhoneNumber = (
 		<>
 			<h1 className="text-h1">Check your texts</h1>
-			<p className="mt-3 text-body-md text-muted-foreground">
+			<p className="text-body-md text-muted-foreground mt-3">
 				We've texted you a code to verify your phone number.
 			</p>
 		</>
@@ -64,7 +69,7 @@ export default function VerifyRoute() {
 		'validate-recipient': (
 			<>
 				<h1 className="text-h1">Check your texts</h1>
-				<p className="mt-3 text-body-md text-muted-foreground">
+				<p className="text-body-md text-muted-foreground mt-3">
 					We've texted you a code to verify the phone number you gave us. Please
 					inform your recipient of what you're up to and ask your recipient to
 					provide you with that code.
@@ -74,7 +79,7 @@ export default function VerifyRoute() {
 		'2fa': (
 			<>
 				<h1 className="text-h1">Check your 2FA app</h1>
-				<p className="mt-3 text-body-md text-muted-foreground">
+				<p className="text-body-md text-muted-foreground mt-3">
 					Please enter your 2FA code to verify your identity.
 				</p>
 			</>
@@ -105,9 +110,9 @@ export default function VerifyRoute() {
 	})
 
 	return (
-		<main className="container flex flex-col items-center justify-center pb-32 pt-20">
+		<main className="container flex flex-col items-center justify-center pt-20 pb-32">
 			<div className="text-center">
-				<p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+				<p className="text-muted-foreground text-xs font-semibold tracking-[0.3em] uppercase">
 					GratiText
 				</p>
 				{type ? headings[type] : 'Invalid Verification Type'}
@@ -115,7 +120,7 @@ export default function VerifyRoute() {
 
 			<Spacer size="xs" />
 
-			<div className="mt-8 w-full max-w-md rounded-[32px] border border-border bg-card px-6 py-8 shadow-sm">
+			<div className="border-border bg-card mt-8 w-full max-w-md rounded-[32px] border px-6 py-8 shadow-sm">
 				<ErrorList errors={form.errors} id={form.errorId} />
 				<Form method="POST" {...getFormProps(form)} className="space-y-6">
 					<HoneypotInputs />
@@ -134,13 +139,18 @@ export default function VerifyRoute() {
 							errors={fields[codeQueryParam].errors}
 						/>
 					</div>
-					<div className="text-center text-body-xs text-muted-foreground">
+					<div className="text-body-xs text-muted-foreground text-center">
 						<span>Didn't get it? </span>
-						<Link to={type ? resendRoutes[type] : '.'} className="font-semibold text-foreground underline">
+						<Link
+							to={type ? resendRoutes[type] : '.'}
+							className="text-foreground font-semibold underline"
+						>
 							Resend the Code
 						</Link>
 					</div>
-					<input {...getInputProps(fields[typeQueryParam], { type: 'hidden' })} />
+					<input
+						{...getInputProps(fields[typeQueryParam], { type: 'hidden' })}
+					/>
 					<input
 						{...getInputProps(fields[targetQueryParam], { type: 'hidden' })}
 					/>

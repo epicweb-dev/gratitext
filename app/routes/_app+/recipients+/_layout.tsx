@@ -1,5 +1,9 @@
-import { json, type LoaderFunctionArgs, type SerializeFrom } from '@remix-run/node'
-import { Outlet, useLoaderData } from '@remix-run/react'
+import {
+	data as json,
+	type LoaderFunctionArgs,
+	Outlet,
+	useLoaderData,
+} from 'react-router'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { requireUserId } from '#app/utils/auth.server.js'
 import { CronParseError, getNextScheduledTime } from '#app/utils/cron.server.ts'
@@ -97,16 +101,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	return json({ recipients: recipientsWithDisplay, subscriptionStatus })
 }
 
+type LoaderData = Awaited<ReturnType<typeof loader>>['data']
+
 export type RecipientsOutletContext = {
-	recipients: SerializeFrom<typeof loader>['recipients']
-	subscriptionStatus: SerializeFrom<typeof loader>['subscriptionStatus']
+	recipients: LoaderData['recipients']
+	subscriptionStatus: LoaderData['subscriptionStatus']
 }
 
 export default function RecipientsLayout() {
 	const { recipients, subscriptionStatus } = useLoaderData<typeof loader>()
 
 	return (
-		<div className="container mx-auto flex min-h-0 flex-grow flex-col px-4 pb-16 pt-10 md:px-8">
+		<div className="container mx-auto flex min-h-0 flex-grow flex-col px-4 pt-10 pb-16 md:px-8">
 			<Outlet context={{ recipients, subscriptionStatus }} />
 		</div>
 	)

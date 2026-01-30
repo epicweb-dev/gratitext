@@ -2,17 +2,12 @@ import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import {
-	json,
+	data as json,
 	redirect,
 	type LoaderFunctionArgs,
 	type ActionFunctionArgs,
-} from '@remix-run/node'
-import {
-	Form,
-	useActionData,
-	useLoaderData,
-	useNavigation,
-} from '@remix-run/react'
+} from 'react-router'
+import { Form, useActionData, useLoaderData, useNavigation } from 'react-router'
 import * as QRCode from 'qrcode'
 import { z } from 'zod'
 import { ErrorList, OTPField } from '#app/components/forms.tsx'
@@ -160,7 +155,7 @@ export default function TwoFactorRoute() {
 				</p>
 				<div className="p-3">
 					<pre
-						className="whitespace-pre-wrap break-all text-sm"
+						className="text-sm break-all whitespace-pre-wrap"
 						aria-label="One-time Password URI"
 					>
 						{data.otpUri}
@@ -191,7 +186,7 @@ export default function TwoFactorRoute() {
 							/>
 						</div>
 
-						<div className="min-h-[32px] px-4 pb-3 pt-1">
+						<div className="min-h-[32px] px-4 pt-1 pb-3">
 							<ErrorList id={form.errorId} errors={form.errors} />
 						</div>
 

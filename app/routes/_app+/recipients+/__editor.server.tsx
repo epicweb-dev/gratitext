@@ -1,6 +1,6 @@
 import { parseWithZod } from '@conform-to/zod'
 import { invariant, invariantResponse } from '@epic-web/invariant'
-import { json, redirect, type ActionFunctionArgs } from '@remix-run/node'
+import { data as json, redirect, type ActionFunctionArgs } from 'react-router'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { sendText } from '#app/utils/text.server.js'
@@ -69,7 +69,13 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	const recipient = recipientId
 		? await prisma.recipient.findUnique({
 				where: { id: recipientId, userId },
-				select: { id: true, name: true, phoneNumber: true, verified: true, disabled: true },
+				select: {
+					id: true,
+					name: true,
+					phoneNumber: true,
+					verified: true,
+					disabled: true,
+				},
 			})
 		: null
 

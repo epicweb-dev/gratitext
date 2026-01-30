@@ -2,12 +2,13 @@ import { getFormProps, getTextareaProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { invariantResponse } from '@epic-web/invariant'
 import {
-	json,
+	data as json,
 	type ActionFunctionArgs,
 	type LoaderFunctionArgs,
-	type SerializeFrom,
-} from '@remix-run/node'
-import { Link, useFetcher, useLoaderData } from '@remix-run/react'
+	Link,
+	useFetcher,
+	useLoaderData,
+} from 'react-router'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { ErrorList } from '#app/components/forms.js'
@@ -26,7 +27,8 @@ import { useDoubleCheck } from '#app/utils/misc.js'
 import { sendTextToRecipient } from '#app/utils/text.server.js'
 import { createToastHeaders } from '#app/utils/toast.server.js'
 
-type FutureMessage = SerializeFrom<typeof loader>['futureMessages'][number]
+type LoaderData = Awaited<ReturnType<typeof loader>>['data']
+type FutureMessage = LoaderData['futureMessages'][number]
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
 	const userId = await requireUserId(request)
@@ -100,9 +102,10 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 				} catch (error) {
 					return {
 						...base,
-						sendAtDisplay: error instanceof CronParseError
-							? `Invalid cron: ${error.cronString}`
-							: 'Invalid schedule',
+						sendAtDisplay:
+							error instanceof CronParseError
+								? `Invalid cron: ${error.cronString}`
+								: 'Invalid schedule',
 					}
 				}
 			}),
@@ -296,7 +299,7 @@ export default function RecipientRoute() {
 	return (
 		<div className="flex flex-col gap-8">
 			{data.cronError ? (
-				<div className="rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-foreground-destructive">
+				<div className="border-destructive/40 bg-destructive/10 text-foreground-destructive rounded-2xl border p-4 text-sm">
 					<strong className="font-semibold">Invalid Schedule:</strong>{' '}
 					{data.cronError}{' '}
 					<Link to="edit" className="underline">
@@ -312,7 +315,10 @@ export default function RecipientRoute() {
 						</li>
 					))
 				) : (
-					<Link to="new" className="text-sm font-semibold text-foreground underline">
+					<Link
+						to="new"
+						className="text-foreground text-sm font-semibold underline"
+					>
 						Create a new message
 					</Link>
 				)}
@@ -321,7 +327,7 @@ export default function RecipientRoute() {
 				<newMessageFetcher.Form
 					method="POST"
 					action="new"
-					className="rounded-full border border-border bg-card p-2 shadow-sm"
+					className="border-border bg-card rounded-full border p-2 shadow-sm"
 				>
 					<label htmlFor="new-message" className="sr-only">
 						Add a new message
@@ -331,7 +337,7 @@ export default function RecipientRoute() {
 							id="new-message"
 							name="content"
 							placeholder="I am endlessly grateful for your love, your smile, and the joy you bring..."
-							className="flex-1 resize-none rounded-full bg-transparent px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none"
+							className="text-foreground placeholder:text-muted-foreground flex-1 resize-none rounded-full bg-transparent px-4 py-3 text-sm focus-visible:outline-none"
 							rows={2}
 							required
 						/>
@@ -343,16 +349,16 @@ export default function RecipientRoute() {
 							<Icon name="check">Add to Queue</Icon>
 						</StatusButton>
 					</div>
-			</newMessageFetcher.Form>
-			{newMessageFetcher.data?.result?.error ? (
-				<ErrorList
-					errors={
-						newMessageFetcher.data.result.error.content ??
-						newMessageFetcher.data.result.error[''] ??
-						[]
-					}
-				/>
-			) : null}
+				</newMessageFetcher.Form>
+				{newMessageFetcher.data?.result?.error ? (
+					<ErrorList
+						errors={
+							newMessageFetcher.data.result.error.content ??
+							newMessageFetcher.data.result.error[''] ??
+							[]
+						}
+					/>
+				) : null}
 			</div>
 		</div>
 	)
@@ -391,8 +397,10 @@ function MessageForms({
 				<UpdateOrderForm message={message} direction="later" />
 			</div>
 			<div className="flex-1 space-y-3">
-				<div className={`rounded-[28px] px-6 py-5 text-[hsl(var(--palette-cream))] shadow-sm ${cardTone}`}>
-					<div className="flex items-center justify-between gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[hsl(var(--palette-cream))]">
+				<div
+					className={`rounded-[28px] px-6 py-5 text-[hsl(var(--palette-cream))] shadow-sm ${cardTone}`}
+				>
+					<div className="flex items-center justify-between gap-2 text-xs font-semibold tracking-[0.2em] text-[hsl(var(--palette-cream))] uppercase">
 						<div className="flex items-center gap-2">
 							<Icon name={isPrimary ? 'check' : 'clock'} size="sm" />
 							<span>{headerText}</span>
@@ -400,7 +408,9 @@ function MessageForms({
 						<div className="flex items-center gap-2">
 							<StatusButton
 								form={updateContentForm.id}
-								status={updateContentFetcher.state !== 'idle' ? 'pending' : 'idle'}
+								status={
+									updateContentFetcher.state !== 'idle' ? 'pending' : 'idle'
+								}
 								className="gap-0 text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-cream))/0.15]"
 								size="icon"
 								variant="ghost"
@@ -420,10 +430,7 @@ function MessageForms({
 						{...getFormProps(updateContentForm)}
 					>
 						<input type="hidden" name="id" value={message.id} />
-						<label
-							htmlFor={updateContentFields.content.id}
-							className="sr-only"
-						>
+						<label htmlFor={updateContentFields.content.id} className="sr-only">
 							Message content
 						</label>
 						<textarea
@@ -484,7 +491,7 @@ function UpdateOrderForm({
 					variant="secondary"
 					size="icon"
 					status={fetcher.state !== 'idle' ? 'pending' : 'idle'}
-					className="gap-0 text-muted-foreground hover:text-foreground"
+					className="text-muted-foreground hover:text-foreground gap-0"
 					type="submit"
 					name="intent"
 					value={updateMessageOrderActionIntent}

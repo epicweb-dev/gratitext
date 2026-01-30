@@ -1,7 +1,12 @@
 import { invariantResponse } from '@epic-web/invariant'
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
-import { Link, Outlet, useMatches } from '@remix-run/react'
+import {
+	data as json,
+	type LoaderFunctionArgs,
+	Link,
+	Outlet,
+	useMatches,
+} from 'react-router'
 import { z } from 'zod'
 import { Spacer } from '#app/components/spacer.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
@@ -48,7 +53,7 @@ export default function EditUserProfile() {
 		.filter(Boolean)
 
 	return (
-		<div className="m-auto mb-24 mt-16 max-w-3xl">
+		<div className="m-auto mt-16 mb-24 max-w-3xl">
 			<div className="container">
 				<ul className="flex gap-3">
 					<li>
@@ -72,7 +77,7 @@ export default function EditUserProfile() {
 				</ul>
 			</div>
 			<Spacer size="xs" />
-			<main className="mx-auto bg-muted px-6 py-8 md:container md:rounded-3xl">
+			<main className="bg-muted mx-auto px-6 py-8 md:container md:rounded-3xl">
 				<Outlet />
 			</main>
 		</div>

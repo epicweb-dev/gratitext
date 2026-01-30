@@ -1,19 +1,17 @@
 import { invariantResponse } from '@epic-web/invariant'
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import {
-	json,
+	data as json,
 	redirect,
 	type LoaderFunctionArgs,
 	type ActionFunctionArgs,
-} from '@remix-run/node'
-import {
 	Form,
 	Link,
 	useFetcher,
 	useLoaderData,
 	useSearchParams,
 	useSubmit,
-} from '@remix-run/react'
+} from 'react-router'
 import { GeneralErrorBoundary } from '#app/components/error-boundary'
 import { Field } from '#app/components/forms.tsx'
 import { Spacer } from '#app/components/spacer.tsx'
@@ -99,7 +97,7 @@ export default function CacheAdminRoute() {
 	const instance = searchParams.get('instance') ?? data.instance
 
 	const handleFormChange = useDebounce((form: HTMLFormElement) => {
-		submit(form)
+		void submit(form)
 	}, 400)
 
 	return (
@@ -128,7 +126,7 @@ export default function CacheAdminRoute() {
 								defaultValue: query,
 							}}
 						/>
-						<div className="flex h-16 w-14 items-center text-lg font-medium text-muted-foreground">
+						<div className="text-muted-foreground flex h-16 w-14 items-center text-lg font-medium">
 							<span title="Total results shown">
 								{data.cacheKeys.sqlite.length + data.cacheKeys.lru.length}
 							</span>
