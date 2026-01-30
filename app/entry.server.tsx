@@ -137,9 +137,29 @@ export function handleError(
 	if (request.signal.aborted) {
 		return
 	}
+	const requestInfo = {
+		url: request.url,
+		method: request.method,
+		headers: Object.fromEntries(request.headers.entries()),
+	}
+	const captureException = (
+		exception: unknown,
+		context?: Parameters<typeof Sentry.captureException>[1],
+	) => {
+		Sentry.withScope((scope) => {
+			scope.addEventProcessor((event) => ({
+				...event,
+				request: {
+					...event.request,
+					...requestInfo,
+				},
+			}))
+			Sentry.captureException(exception, context)
+		})
+	}
 	if (error instanceof Error) {
 		console.error(chalk.red(error.stack))
-		Sentry.captureException(error, {
+		captureException(error, {
 			mechanism: {
 				type: 'react-router',
 				handled: false,
@@ -147,6 +167,6 @@ export function handleError(
 		})
 	} else {
 		console.error(chalk.red(error))
-		Sentry.captureException(error)
+		captureException(error)
 	}
 }

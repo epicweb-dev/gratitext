@@ -4,7 +4,7 @@ import {
 	useLocation,
 	useNavigationType,
 } from '@remix-run/react'
-import { reactRouterV7BrowserTracingIntegration } from '@sentry/react'
+import { reactRouterV6BrowserTracingIntegration } from '@sentry/react'
 import {
 	browserProfilingIntegration,
 	init as sentryInit,
@@ -30,7 +30,7 @@ export function init() {
 			return event
 		},
 		integrations: [
-			reactRouterV7BrowserTracingIntegration({
+			reactRouterV6BrowserTracingIntegration({
 				useEffect,
 				useLocation,
 				useNavigationType,
