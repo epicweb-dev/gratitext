@@ -140,7 +140,7 @@ function Document({
 	children: React.ReactNode
 	nonce: string
 	theme?: Theme
-	env?: Record<string, string>
+	env?: Record<string, string | undefined>
 	allowIndexing?: boolean
 }) {
 	return (
