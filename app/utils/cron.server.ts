@@ -4,7 +4,7 @@
  * it gets us.
  */
 import { remember } from '@epic-web/remember'
-import cronParser from 'cron-parser'
+import { CronExpressionParser } from 'cron-parser'
 import {
 	clearIntervalAsync,
 	setIntervalAsync,
@@ -24,7 +24,7 @@ export class CronParseError extends Error {
 
 function parseCronExpression(cronString: string, options?: { tz?: string }) {
 	try {
-		return cronParser.parse(cronString, options)
+		return CronExpressionParser.parse(cronString, options)
 	} catch (error) {
 		const errorMessage =
 			error instanceof Error ? error.message : 'Invalid cron string'
