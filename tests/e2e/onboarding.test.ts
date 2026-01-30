@@ -6,9 +6,13 @@ import { test as base, createUser, expect } from '#tests/playwright-utils.ts'
 
 const URL_REGEX = /(?<url>https?:\/\/[^\s$.?#].[^\s]*)/
 const CODE_REGEX = /code: (?<code>[\d\w]+)/
+const defaultCountryCode = '+1'
 function extractUrl(text: string) {
 	const match = text.match(URL_REGEX)
 	return match?.groups?.url
+}
+function formatPhoneNumber(phoneNumber: string, countryCode = defaultCountryCode) {
+	return `${countryCode}${phoneNumber}`.replace(/\s+/g, '')
 }
 
 const test = base.extend<{
@@ -23,6 +27,7 @@ const test = base.extend<{
 		const userData = createUser()
 		// Clean up any stale text fixtures for this phone number before test
 		await deleteText(userData.phoneNumber)
+		await deleteText(formatPhoneNumber(userData.phoneNumber))
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		await use(() => {
 			const onboardingData = {
@@ -34,6 +39,7 @@ const test = base.extend<{
 		await prisma.user.deleteMany({ where: { username: userData.username } })
 		// Clean up text fixtures after test
 		await deleteText(userData.phoneNumber)
+		await deleteText(formatPhoneNumber(userData.phoneNumber))
 	},
 })
 
@@ -71,10 +77,11 @@ test('onboarding with link', async ({ page, getOnboardingData }) => {
 	const sourceNumber = await prisma.sourceNumber.findFirstOrThrow({
 		select: { phoneNumber: true },
 	})
-	const textMessage = await waitForText(onboardingData.phoneNumber, {
+	const targetPhoneNumber = formatPhoneNumber(onboardingData.phoneNumber)
+	const textMessage = await waitForText(targetPhoneNumber, {
 		errorMessage: 'Onboarding text message not found',
 	})
-	expect(textMessage.To).toBe(onboardingData.phoneNumber.toLowerCase())
+	expect(textMessage.To).toBe(targetPhoneNumber.toLowerCase())
 	expect(textMessage.From).toBe(sourceNumber.phoneNumber)
 	expect(textMessage.Body).toMatch(/welcome/i)
 	const onboardingUrl = extractUrl(textMessage.Body)
@@ -145,10 +152,11 @@ test('onboarding with a short code', async ({ page, getOnboardingData }) => {
 	const sourceNumber = await prisma.sourceNumber.findFirstOrThrow({
 		select: { phoneNumber: true },
 	})
-	const textMessage = await waitForText(onboardingData.phoneNumber, {
+	const targetPhoneNumber = formatPhoneNumber(onboardingData.phoneNumber)
+	const textMessage = await waitForText(targetPhoneNumber, {
 		errorMessage: 'Onboarding code text not found',
 	})
-	expect(textMessage.To).toBe(onboardingData.phoneNumber)
+	expect(textMessage.To).toBe(targetPhoneNumber)
 	expect(textMessage.From).toBe(sourceNumber.phoneNumber)
 	expect(textMessage.Body).toMatch(/welcome/i)
 	const codeMatch = textMessage.Body.match(CODE_REGEX)

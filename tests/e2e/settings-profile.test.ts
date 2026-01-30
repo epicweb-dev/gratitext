@@ -15,7 +15,7 @@ test('Users can update their basic info', async ({ page, login }) => {
 
 	const newUserData = createUser()
 
-	const nameInput = page.getByRole('textbox', { name: /^name/i })
+	const nameInput = page.getByRole('textbox', { name: /your name/i })
 	await nameInput.waitFor({ state: 'visible' })
 	await nameInput.fill(newUserData.name)
 
@@ -74,7 +74,7 @@ test('Users can change their phone number', async ({ page, login }) => {
 	await page.goto('/settings/profile')
 	await page.waitForLoadState('domcontentloaded')
 
-	const changeNumberLink = page.getByRole('link', { name: /change number/i })
+	const changeNumberLink = page.getByRole('link', { name: /edit your phone number/i })
 	await changeNumberLink.waitFor({ state: 'visible' })
 	await changeNumberLink.click()
 
