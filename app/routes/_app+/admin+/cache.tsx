@@ -97,7 +97,7 @@ export default function CacheAdminRoute() {
 	const instance = searchParams.get('instance') ?? data.instance
 
 	const handleFormChange = useDebounce((form: HTMLFormElement) => {
-		submit(form)
+		void submit(form)
 	}, 400)
 
 	return (

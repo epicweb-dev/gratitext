@@ -183,7 +183,9 @@ function UserDropdown() {
 						// this prevents the menu from closing before the form submission is completed
 						onSelect={(event) => {
 							event.preventDefault()
-							submit(formRef.current)
+							if (formRef.current) {
+								void submit(formRef.current)
+							}
 						}}
 					>
 						<Form action="/logout" method="POST" ref={formRef}>

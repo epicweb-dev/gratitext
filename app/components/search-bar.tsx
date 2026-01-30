@@ -26,7 +26,7 @@ export function SearchBar({
 	})
 
 	const handleFormChange = useDebounce((form: HTMLFormElement) => {
-		submit(form)
+		void submit(form)
 	}, 400)
 
 	return (
