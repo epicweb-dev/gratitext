@@ -24,7 +24,7 @@ export class CronParseError extends Error {
 
 function parseCronExpression(cronString: string, options?: { tz?: string }) {
 	try {
-		return cronParser.parseExpression(cronString, options)
+		return cronParser.parse(cronString, options)
 	} catch (error) {
 		const errorMessage =
 			error instanceof Error ? error.message : 'Invalid cron string'
