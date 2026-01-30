@@ -1,6 +1,7 @@
 import { type MetaFunction } from '@remix-run/node'
 import { Link } from '@remix-run/react'
 import { Button } from '#app/components/ui/button.js'
+import { Input } from '#app/components/ui/input.tsx'
 import { useOptionalUser } from '#app/utils/user.js'
 
 export const meta: MetaFunction = () => [{ title: 'GratiText' }]
@@ -8,13 +9,13 @@ export const meta: MetaFunction = () => [{ title: 'GratiText' }]
 export default function Index() {
 	const user = useOptionalUser()
 	return (
-		<main className="bg-background pb-16 pt-10">
-			<section className="container flex flex-col gap-12 lg:flex-row lg:items-center">
-				<div className="flex-1 space-y-6">
+		<main className="bg-background pb-20 pt-12">
+			<section className="container grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+				<div className="space-y-6">
 					<p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
 						GratiText
 					</p>
-					<h1 className="text-4xl font-bold text-foreground md:text-5xl">
+					<h1 className="text-4xl font-bold text-foreground md:text-6xl">
 						Thoughtful Connections Made Simple
 					</h1>
 					<p className="max-w-xl text-body-md text-muted-foreground">
@@ -34,13 +35,18 @@ export default function Index() {
 							<Link to="/about">Learn more</Link>
 						</Button>
 					</div>
+					<div className="inline-flex max-w-xs items-center gap-2 rounded-full bg-[hsl(var(--palette-dust-pink))] px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[hsl(var(--palette-chestnut))]">
+						You are all kinds of awesome
+					</div>
 				</div>
-				<div className="flex flex-1 justify-center">
+				<div className="relative flex justify-center">
+					<div className="absolute -left-6 top-8 hidden h-20 w-20 rounded-[28px] bg-[hsl(var(--palette-baby-blue))] lg:block" />
+					<div className="absolute -right-4 bottom-10 hidden h-16 w-16 rounded-full bg-[hsl(var(--palette-rose-pink))] lg:block" />
 					<div className="max-w-md">
 						<img
 							src="/images/smiling-phone-flowers.jpg"
 							alt="Smiling person holding flowers and a phone"
-							className="aspect-square w-full rounded-[32px] border border-border object-cover shadow-lg"
+							className="aspect-square w-full rounded-[40px] border border-border object-cover shadow-lg"
 						/>
 						<p className="mt-2 text-xs text-muted-secondary-foreground">
 							Photo by{' '}
@@ -62,18 +68,22 @@ export default function Index() {
 				</div>
 			</section>
 
-			<section className="mt-16 bg-[hsl(var(--palette-green-700))] py-14 text-[hsl(var(--palette-cream))] dark:bg-[hsl(var(--palette-green-900))]">
-				<div className="container text-center">
-					<p className="text-xs font-semibold uppercase tracking-[0.3em] text-[hsl(var(--palette-green-100))]">
-						Messages written by you
-					</p>
-					<h2 className="mt-3 text-3xl font-bold md:text-4xl">
-						Messages written by you... Not by AI.
-					</h2>
-					<p className="mx-auto mt-4 max-w-2xl text-base text-[hsl(var(--palette-green-100))]">
-						Our platform schedules and delivers personal, heartfelt messages on
-						your schedule, so you can stay connected without losing your voice.
-					</p>
+			<section className="container mt-16">
+				<div className="relative overflow-hidden rounded-[48px] bg-[hsl(var(--palette-green-700))] px-6 py-12 text-[hsl(var(--palette-cream))] shadow-sm dark:bg-[hsl(var(--palette-green-900))]">
+					<div className="absolute -left-6 -top-6 hidden h-20 w-20 rounded-full bg-[hsl(var(--palette-sunny))] opacity-80 md:block" />
+					<div className="absolute -bottom-6 right-10 hidden h-24 w-24 rounded-[32px] bg-[hsl(var(--palette-orange))] opacity-70 md:block" />
+					<div className="mx-auto max-w-3xl text-center">
+						<p className="text-xs font-semibold uppercase tracking-[0.3em] text-[hsl(var(--palette-green-100))]">
+							Messages written by you
+						</p>
+						<h2 className="mt-3 text-3xl font-bold md:text-4xl">
+							Messages written by you... Not by AI.
+						</h2>
+						<p className="mx-auto mt-4 max-w-2xl text-base text-[hsl(var(--palette-green-100))]">
+							Our platform schedules and delivers personal, heartfelt messages on
+							your schedule, so you can stay connected without losing your voice.
+						</p>
+					</div>
 				</div>
 			</section>
 
@@ -192,25 +202,28 @@ export default function Index() {
 			</section>
 
 			<section className="container py-16">
-				<div className="flex flex-col gap-8 rounded-[32px] bg-[hsl(var(--palette-dust-pink))] px-8 py-12 text-[hsl(var(--palette-chocolate))] md:flex-row md:items-center md:justify-between">
-					<div className="space-y-3">
-						<p className="text-xs font-semibold uppercase tracking-[0.3em] text-[hsl(var(--palette-chestnut))]">
-							Ready to start
-						</p>
-						<h2 className="text-3xl font-bold md:text-4xl">
-							Create your account today and get 2 weeks for free.
-						</h2>
-						<p className="text-body-sm text-[hsl(var(--palette-chestnut))]">
-							No credit card required to get started.
-						</p>
-					</div>
-					<div className="flex flex-col gap-3 sm:flex-row">
-						<Button className="bg-[hsl(var(--palette-chestnut))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-hot-fire-red))]">
-							Get started
-						</Button>
-						<Button variant="secondary" className="border-[hsl(var(--palette-chestnut))] text-[hsl(var(--palette-chestnut))] hover:bg-[hsl(var(--palette-cream))]">
-							View pricing
-						</Button>
+				<div className="rounded-[32px] bg-[hsl(var(--palette-dust-pink))] px-8 py-12 text-[hsl(var(--palette-chocolate))]">
+					<div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+						<div className="space-y-3">
+							<p className="text-xs font-semibold uppercase tracking-[0.3em] text-[hsl(var(--palette-chestnut))]">
+								Ready to start
+							</p>
+							<h2 className="text-3xl font-bold md:text-4xl">
+								Create your account today and get 2 weeks for free.
+							</h2>
+							<p className="text-body-sm text-[hsl(var(--palette-chestnut))]">
+								No credit card required to get started.
+							</p>
+						</div>
+						<div className="flex flex-col gap-3 sm:flex-row">
+							<Input
+								placeholder="Your phone number"
+								className="bg-[hsl(var(--palette-cream))] text-[hsl(var(--palette-chocolate))] placeholder:text-[hsl(var(--palette-chestnut))]/70"
+							/>
+							<Button className="bg-[hsl(var(--palette-chestnut))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-hot-fire-red))]">
+								Get started
+							</Button>
+						</div>
 					</div>
 				</div>
 			</section>
