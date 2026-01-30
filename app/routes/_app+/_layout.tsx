@@ -90,33 +90,33 @@ export default function Layout() {
 			<div className="flex-1">
 				<Outlet />
 			</div>
-			<footer className="container my-4 flex items-center justify-between pb-5">
+			<footer className="container my-4 flex items-center justify-between pb-5 border-t border-border pt-8">
 				<div className="flex items-center gap-4">
 					<Logo />
 					<nav>
 						<ul className="flex list-none flex-col gap-2 md:flex-row md:gap-4">
 							<li>
-								<Link to="/about" className="text-gray-600 hover:text-gray-900">
+								<Link to="/about" className="text-muted-foreground hover:text-foreground">
 									About
 								</Link>
 							</li>
 							<li>
 								<Link
 									to="/privacy"
-									className="text-gray-600 hover:text-gray-900"
+									className="text-muted-foreground hover:text-foreground"
 								>
 									Privacy
 								</Link>
 							</li>
 							<li>
-								<Link to="/tos" className="text-gray-600 hover:text-gray-900">
+								<Link to="/tos" className="text-muted-foreground hover:text-foreground">
 									Terms of Service
 								</Link>
 							</li>
 							<li>
 								<Link
 									to="/support"
-									className="text-gray-600 hover:text-gray-900"
+									className="text-muted-foreground hover:text-foreground"
 								>
 									Support
 								</Link>
@@ -124,7 +124,7 @@ export default function Layout() {
 							<li>
 								<Link
 									to="/contact"
-									className="text-gray-600 hover:text-gray-900"
+									className="text-muted-foreground hover:text-foreground"
 								>
 									Contact
 								</Link>
