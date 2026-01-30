@@ -1,9 +1,13 @@
 import { redirect } from '@remix-run/node'
 import bcrypt from 'bcryptjs'
 import { safeRedirect } from 'remix-utils/safe-redirect'
-import { type Password, type User } from '#app/utils/prisma-generated.server/client.ts'
+import {
+	type Password,
+	type User,
+} from '#app/utils/prisma-generated.server/client.ts'
 import { prisma } from './db.server.ts'
 import { combineHeaders } from './misc.tsx'
+import { getPhoneCandidateList } from './phone-number.ts'
 import { authSessionStorage } from './session.server.ts'
 
 // Session expiration constants
@@ -165,23 +169,10 @@ export async function login({
 	password: string
 }) {
 	const normalizedIdentifier = identifier.trim()
-	const phoneCandidates = new Set<string>()
-	if (normalizedIdentifier) {
-		phoneCandidates.add(normalizedIdentifier)
-		phoneCandidates.add(normalizedIdentifier.replace(/\s+/g, ''))
-	}
-
-	const digitsOnly = normalizedIdentifier.replace(/\D/g, '')
-	if (digitsOnly) {
-		phoneCandidates.add(digitsOnly)
-		if (countryCode) {
-			phoneCandidates.add(`${countryCode}${digitsOnly}`.replace(/\s+/g, ''))
-		}
-		if (normalizedIdentifier.startsWith('+')) {
-			phoneCandidates.add(`+${digitsOnly}`)
-		}
-	}
-	const phoneCandidateList = [...phoneCandidates].filter(Boolean)
+	const phoneCandidateList = getPhoneCandidateList({
+		identifier: normalizedIdentifier,
+		countryCode,
+	})
 	const user = await prisma.user.findFirst({
 		where: {
 			OR: [

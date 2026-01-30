@@ -32,7 +32,7 @@ export async function verifyTOTP(options: VerifyTOTPOptions) {
 	return verifyTOTPBase(normalizeOptions(options))
 }
 
-export function getTOTPAuthUri(options: TOTPAuthUriOptions) {
+export async function getTOTPAuthUri(options: TOTPAuthUriOptions) {
 	return getTOTPAuthUriBase({
 		...options,
 		algorithm: normalizeAlgorithm(options.algorithm) as HashAlgorithm,

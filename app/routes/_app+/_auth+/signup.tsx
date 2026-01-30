@@ -21,6 +21,7 @@ import { countryCodes } from '#app/utils/country-codes.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { checkHoneypot } from '#app/utils/honeypot.server.ts'
 import { useIsPending } from '#app/utils/misc.tsx'
+import { formatPhoneNumberWithCountryCode } from '#app/utils/phone-number.ts'
 import { sendText } from '#app/utils/text.server.js'
 import { PhoneNumberSchema } from '#app/utils/user-validation.ts'
 import { prepareVerification } from './verify.server.ts'
@@ -30,11 +31,6 @@ const SignupSchema = z.object({
 	phoneNumber: PhoneNumberSchema,
 })
 
-const formatPhoneNumber = (countryCode: string, phoneNumber: string) => {
-	const digitsOnly = phoneNumber.replace(/\D/g, '')
-	return `${countryCode}${digitsOnly}`.replace(/\s+/g, '')
-}
-
 export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData()
 
@@ -42,10 +38,10 @@ export async function action({ request }: ActionFunctionArgs) {
 
 	const submission = await parseWithZod(formData, {
 		schema: SignupSchema.superRefine(async (data, ctx) => {
-			const fullPhoneNumber = formatPhoneNumber(
-				data.countryCode,
-				data.phoneNumber,
-			)
+			const fullPhoneNumber = formatPhoneNumberWithCountryCode({
+				countryCode: data.countryCode,
+				phoneNumber: data.phoneNumber,
+			})
 			const existingUser = await prisma.user.findUnique({
 				where: { phoneNumber: fullPhoneNumber },
 				select: { id: true },
@@ -79,7 +75,10 @@ export async function action({ request }: ActionFunctionArgs) {
 	}
 
 	const { phoneNumber, countryCode } = submission.value
-	const fullPhoneNumber = formatPhoneNumber(countryCode, phoneNumber)
+	const fullPhoneNumber = formatPhoneNumberWithCountryCode({
+		countryCode,
+		phoneNumber,
+	})
 	const { verifyUrl, redirectTo, otp } = await prepareVerification({
 		period: 10 * 60,
 		request,

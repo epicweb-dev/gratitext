@@ -20,6 +20,7 @@ import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { countryCodes } from '#app/utils/country-codes.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { checkHoneypot } from '#app/utils/honeypot.server.ts'
+import { formatPhoneNumberIdentifier } from '#app/utils/phone-number.ts'
 import { sendText } from '#app/utils/text.server.js'
 import { PhoneNumberSchema } from '#app/utils/user-validation.ts'
 import { prepareVerification } from './verify.server.ts'
@@ -40,12 +41,7 @@ function getIdentifier({
 	if (/[a-z]/i.test(raw)) {
 		return raw
 	}
-	// Extract digits only and prepend country code
-	const digitsOnly = raw.replace(/\D/g, '')
-	if (raw.startsWith('+')) {
-		return `+${digitsOnly}`
-	}
-	return `${countryCode}${digitsOnly}`.replace(/\s+/g, '')
+	return formatPhoneNumberIdentifier({ countryCode, phoneNumber: raw })
 }
 
 export async function action({ request }: ActionFunctionArgs) {
