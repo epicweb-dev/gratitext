@@ -62,13 +62,13 @@ Button.displayName = 'Button'
 
 export function ButtonLink({
 	variant,
-
+	size,
 	icon,
 	className,
 	...props
 }: LinkProps & VariantProps<typeof buttonVariants>) {
 	return (
-		<Link className={buttonVariants({ variant, icon, className })} {...props} />
+		<Link className={buttonVariants({ variant, size, icon, className })} {...props} />
 	)
 }
 

@@ -343,16 +343,16 @@ export default function RecipientRoute() {
 							<Icon name="check">Add to Queue</Icon>
 						</StatusButton>
 					</div>
-				</newMessageFetcher.Form>
-				{newMessageFetcher.data?.result.error ? (
-					<ErrorList
-						errors={
-							newMessageFetcher.data.result.error.content ??
-							newMessageFetcher.data.result.error[''] ??
-							[]
-						}
-					/>
-				) : null}
+			</newMessageFetcher.Form>
+			{newMessageFetcher.data?.result?.error ? (
+				<ErrorList
+					errors={
+						newMessageFetcher.data.result.error.content ??
+						newMessageFetcher.data.result.error[''] ??
+						[]
+					}
+				/>
+			) : null}
 			</div>
 		</div>
 	)
