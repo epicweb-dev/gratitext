@@ -67,7 +67,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		select: { phoneNumber: true },
 	})
 	const issuer = new URL(getDomainUrl(request)).host
-	const otpUri = getTOTPAuthUri({
+	const otpUri = await getTOTPAuthUri({
 		...verification,
 		accountName: user.phoneNumber,
 		issuer,
