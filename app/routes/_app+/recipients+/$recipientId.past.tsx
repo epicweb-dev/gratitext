@@ -116,6 +116,13 @@ export default function RecipientRoute() {
 	const searchInputId = useId()
 	const hasSearch = data.searchTerm.length > 0
 	const hasMessages = data.filteredMessageCount > 0
+	const messageResultLabel = hasSearch
+		? data.filteredMessageCount === 1
+			? 'matching message'
+			: 'matching messages'
+		: data.filteredMessageCount === 1
+			? 'message'
+			: 'messages'
 
 	const buildPageLink = (page: number) => {
 		const params = new URLSearchParams(searchParams)
@@ -176,8 +183,7 @@ export default function RecipientRoute() {
 						<p>
 							Showing {data.pageInfo.rangeStart}-
 							{data.pageInfo.rangeEnd} of{' '}
-							{data.filteredMessageCountDisplay}{' '}
-							{hasSearch ? 'matching messages' : 'messages'}
+							{data.filteredMessageCountDisplay} {messageResultLabel}
 						</p>
 					) : (
 						<p>
