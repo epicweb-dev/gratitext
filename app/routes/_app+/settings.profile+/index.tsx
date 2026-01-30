@@ -10,6 +10,7 @@ import {
 import { Link, useFetcher, useLoaderData } from '@remix-run/react'
 import { z } from 'zod'
 import { ErrorList, Field } from '#app/components/forms.tsx'
+import { ButtonLink } from '#app/components/ui/button.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { requireUserId, sessionKey } from '#app/utils/auth.server.ts'
@@ -94,46 +95,84 @@ export default function EditUserProfile() {
 	const data = useLoaderData<typeof loader>()
 
 	return (
-		<div className="flex flex-col gap-12">
-			<UpdateProfile />
-
-			<div className="col-span-6 my-6 h-1 border-b-[1.5px] border-foreground" />
-			<div className="col-span-full flex flex-col gap-6">
-				<div>
-					<Link to="subscription">
-						<Icon name="banknotes-outline">Manage Subscription</Icon>
-					</Link>
-				</div>
-				<div>
-					<Link to="change-number">
-						<Icon name="device-phone-mobile-outline">
-							Change number from {data.user.phoneNumber}
-						</Icon>
-					</Link>
-				</div>
-				<div>
-					<Link to="two-factor">
-						{data.isTwoFactorEnabled ? (
-							<Icon name="lock-closed">2FA is enabled</Icon>
-						) : (
-							<Icon name="lock-open-1">Enable 2FA</Icon>
-						)}
-					</Link>
-				</div>
-				<div>
-					<Link to="password">
-						<Icon name="dots-horizontal">Change Password</Icon>
-					</Link>
-				</div>
-				<div>
-					<Link
-						reloadDocument
-						download="my-gratitext-data.json"
-						to="/resources/download-user-data"
-					>
-						<Icon name="download">Download your data</Icon>
-					</Link>
-				</div>
+		<div className="mx-auto flex max-w-3xl flex-col gap-10 pb-16">
+			<div className="text-center">
+				<p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+					GratiText
+				</p>
+				<h1 className="mt-3 text-4xl font-bold text-foreground">
+					Hi {data.user.name ?? data.user.username}!
+				</h1>
+			</div>
+			<div className="rounded-[32px] border border-border bg-card p-8 shadow-sm">
+				<UpdateProfile />
+			</div>
+			<div className="rounded-[32px] border border-border bg-card p-6 shadow-sm">
+				<ul className="divide-y divide-border">
+					<li>
+						<Link
+							to="subscription"
+							className="flex items-center justify-between gap-4 py-4"
+						>
+							<span className="flex items-center gap-3 text-sm font-semibold text-foreground">
+								<span className="rounded-xl bg-muted p-2 text-muted-foreground">
+									<Icon name="banknotes-outline" size="sm" />
+								</span>
+								Manage Your Subscriptions
+							</span>
+							<Icon name="chevron-right" size="sm" />
+						</Link>
+					</li>
+					<li>
+						<Link
+							to="password"
+							className="flex items-center justify-between gap-4 py-4"
+						>
+							<span className="flex items-center gap-3 text-sm font-semibold text-foreground">
+								<span className="rounded-xl bg-muted p-2 text-muted-foreground">
+									<Icon name="password" size="sm" />
+								</span>
+								Change Password
+							</span>
+							<Icon name="chevron-right" size="sm" />
+						</Link>
+					</li>
+					<li>
+						<Link
+							reloadDocument
+							download="my-gratitext-data.json"
+							to="/resources/download-user-data"
+							className="flex items-center justify-between gap-4 py-4"
+						>
+							<span className="flex items-center gap-3 text-sm font-semibold text-foreground">
+								<span className="rounded-xl bg-muted p-2 text-muted-foreground">
+									<Icon name="download" size="sm" />
+								</span>
+								Download Your Data
+							</span>
+							<Icon name="chevron-right" size="sm" />
+						</Link>
+					</li>
+					<li>
+						<Link
+							to="two-factor"
+							className="flex items-center justify-between gap-4 py-4"
+						>
+							<span className="flex items-center gap-3 text-sm font-semibold text-foreground">
+								<span className="rounded-xl bg-muted p-2 text-muted-foreground">
+									<Icon
+										name={data.isTwoFactorEnabled ? 'lock-closed' : 'lock-open-1'}
+										size="sm"
+									/>
+								</span>
+								{data.isTwoFactorEnabled ? '2FA is Enabled' : 'Enable 2FA'}
+							</span>
+							<Icon name="chevron-right" size="sm" />
+						</Link>
+					</li>
+				</ul>
+			</div>
+			<div className="flex flex-col items-center gap-4 text-center">
 				<SignOutOfSessions />
 				<DeleteData />
 			</div>
@@ -200,40 +239,51 @@ function UpdateProfile() {
 	})
 
 	return (
-		<fetcher.Form method="POST" {...getFormProps(form)}>
-			<div className="grid grid-cols-6 gap-x-10">
-				<Field
-					className="col-span-3"
-					labelProps={{
-						htmlFor: fields.username.id,
-						children: 'Username',
-					}}
-					inputProps={getInputProps(fields.username, { type: 'text' })}
-					errors={fields.username.errors}
-				/>
-				<Field
-					className="col-span-3"
-					labelProps={{ htmlFor: fields.name.id, children: 'Name' }}
-					inputProps={getInputProps(fields.name, { type: 'text' })}
-					errors={fields.name.errors}
-				/>
-			</div>
-
-			<ErrorList errors={form.errors} id={form.errorId} />
-
-			<div className="mt-8 flex justify-center">
+		<fetcher.Form
+			method="POST"
+			{...getFormProps(form)}
+			className="flex flex-col gap-6"
+		>
+			<div className="flex flex-wrap items-center justify-between gap-3">
+				<p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+					Your Name
+				</p>
 				<StatusButton
 					type="submit"
-					size="wide"
+					size="sm"
 					name="intent"
 					value={profileUpdateActionIntent}
 					status={
 						fetcher.state !== 'idle' ? 'pending' : (form.status ?? 'idle')
 					}
+					className="bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))]"
 				>
-					Save changes
+					Save Changes
 				</StatusButton>
 			</div>
+			<input {...getInputProps(fields.username, { type: 'hidden' })} />
+			<Field
+				labelProps={{ htmlFor: fields.name.id, children: 'Your Name' }}
+				inputProps={getInputProps(fields.name, { type: 'text' })}
+				errors={fields.name.errors}
+			/>
+			<div className="flex flex-wrap items-center justify-between gap-3">
+				<p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+					Your Phone Number
+				</p>
+				<ButtonLink variant="secondary" size="sm" to="change-number">
+					Edit Your Phone Number
+				</ButtonLink>
+			</div>
+			<div className="grid gap-4 sm:grid-cols-2">
+				<div className="rounded-full border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+					Country Code
+				</div>
+				<div className="rounded-full border border-border bg-muted px-4 py-3 text-sm text-foreground">
+					{data.user.phoneNumber}
+				</div>
+			</div>
+			<ErrorList errors={form.errors} id={form.errorId} />
 		</fetcher.Form>
 	)
 }
@@ -272,7 +322,7 @@ function SignOutOfSessions() {
 							name: 'intent',
 							value: signOutOfSessionsActionIntent,
 						})}
-						variant={dc.doubleCheck ? 'destructive' : 'default'}
+						variant={dc.doubleCheck ? 'destructive' : 'secondary'}
 						status={
 							fetcher.state !== 'idle'
 								? 'pending'
@@ -287,7 +337,9 @@ function SignOutOfSessions() {
 					</StatusButton>
 				</fetcher.Form>
 			) : (
-				<Icon name="avatar">This is your only session</Icon>
+				<p className="text-sm text-muted-foreground">
+					This is your only session.
+				</p>
 			)}
 		</div>
 	)
@@ -307,22 +359,21 @@ function DeleteData() {
 
 	const fetcher = useFetcher<typeof deleteDataAction>()
 	return (
-		<div>
-			<fetcher.Form method="POST">
-				<StatusButton
-					{...dc.getButtonProps({
-						type: 'submit',
-						name: 'intent',
-						value: deleteDataActionIntent,
-					})}
-					variant={dc.doubleCheck ? 'destructive' : 'default'}
-					status={fetcher.state !== 'idle' ? 'pending' : 'idle'}
-				>
-					<Icon name="trash">
-						{dc.doubleCheck ? `Are you sure?` : `Delete all your data`}
-					</Icon>
-				</StatusButton>
-			</fetcher.Form>
-		</div>
+		<fetcher.Form method="POST">
+			<StatusButton
+				{...dc.getButtonProps({
+					type: 'submit',
+					name: 'intent',
+					value: deleteDataActionIntent,
+				})}
+				variant={dc.doubleCheck ? 'destructive' : 'ghost'}
+				status={fetcher.state !== 'idle' ? 'pending' : 'idle'}
+				className="text-sm font-semibold text-foreground"
+			>
+				<Icon name="trash">
+					{dc.doubleCheck ? `Are you sure?` : `Delete Account`}
+				</Icon>
+			</StatusButton>
+		</fetcher.Form>
 	)
 }
