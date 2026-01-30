@@ -7,6 +7,7 @@ import {
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { type SerializeFrom } from '@remix-run/node'
 import { Form, useActionData, useFetcher } from '@remix-run/react'
+import { useState } from 'react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { ErrorList, Field, SelectField } from '#app/components/forms.tsx'
@@ -70,7 +71,8 @@ export function RecipientEditor({
 	const isPending = useIsPending()
 	const needsVerification = recipient?.verified === false
 	const pageTitle = recipient ? 'Edit Recipient' : 'Add New Recipient'
-	const pauseLabel = recipient?.disabled ? 'Resume this schedule' : 'Pause this schedule'
+	const [isDisabled, setIsDisabled] = useState(recipient?.disabled ?? false)
+	const pauseLabel = isDisabled ? 'Resume this schedule' : 'Pause this schedule'
 	const submitLabel = recipient ? 'Save Changes' : 'Add New Recipient'
 
 	const [form, fields] = useForm({
@@ -163,6 +165,7 @@ export function RecipientEditor({
 							<input
 								{...getInputProps(fields.disabled, { type: 'checkbox' })}
 								className="peer sr-only"
+								onChange={(e) => setIsDisabled(e.target.checked)}
 							/>
 							<span className="peer-checked:text-foreground">{pauseLabel}</span>
 						</label>

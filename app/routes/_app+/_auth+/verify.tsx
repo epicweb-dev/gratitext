@@ -81,6 +81,14 @@ export default function VerifyRoute() {
 		),
 	}
 
+	const resendRoutes: Record<VerificationTypes, string> = {
+		onboarding: '/signup',
+		'reset-password': '/forgot-password',
+		'change-phone-number': '/settings/profile',
+		'2fa': '/login',
+		'validate-recipient': '/recipients',
+	}
+
 	const [form, fields] = useForm({
 		id: 'verify-form',
 		constraint: getZodConstraint(VerifySchema),
@@ -128,7 +136,7 @@ export default function VerifyRoute() {
 					</div>
 					<div className="text-center text-body-xs text-muted-foreground">
 						<span>Didn't get it? </span>
-						<Link to="." className="font-semibold text-foreground underline">
+						<Link to={type ? resendRoutes[type] : '.'} className="font-semibold text-foreground underline">
 							Resend the Code
 						</Link>
 					</div>

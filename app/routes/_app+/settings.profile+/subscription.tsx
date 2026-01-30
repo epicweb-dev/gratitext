@@ -70,11 +70,17 @@ export default function Subscribe() {
 							$4
 						</p>
 					</div>
-					<div className="mt-6">
-						<Button asChild variant="secondary" disabled={isBasic}>
+				<div className="mt-6">
+					{isBasic ? (
+						<Button variant="secondary" disabled>
+							Select
+						</Button>
+					) : (
+						<Button asChild variant="secondary">
 							<a href={data.basicPaymentUrl}>Select</a>
 						</Button>
-					</div>
+					)}
+				</div>
 				</div>
 				<div className="rounded-[28px] border border-border bg-card p-6 shadow-sm">
 					<div className="flex items-center justify-between">
@@ -88,11 +94,17 @@ export default function Subscribe() {
 							$14
 						</p>
 					</div>
-					<div className="mt-6">
-						<Button asChild disabled={isPremium}>
+				<div className="mt-6">
+					{isPremium ? (
+						<Button disabled>
+							Select
+						</Button>
+					) : (
+						<Button asChild>
 							<a href={data.premiumPaymentUrl}>Select</a>
 						</Button>
-					</div>
+					)}
+				</div>
 				</div>
 			</div>
 			{cancelAtDisplay ? (

@@ -55,18 +55,19 @@ export async function action({ request }: ActionFunctionArgs) {
 	checkHoneypot(formData)
 	const submission = await parseWithZod(formData, {
 		schema: ForgotPasswordSchema.superRefine(async (data, ctx) => {
+			const identifier = getIdentifier({ countryCode: data.countryCode, phoneNumber: data.phoneNumber })
 			const user = await prisma.user.findFirst({
 				where: {
 					OR: [
-						{ phoneNumber: data.usernameOrPhoneNumber },
-						{ username: data.usernameOrPhoneNumber },
+						{ phoneNumber: identifier },
+						{ username: identifier },
 					],
 				},
 				select: { id: true },
 			})
 			if (!user) {
 				ctx.addIssue({
-					path: ['usernameOrPhoneNumber'],
+					path: ['phoneNumber'],
 					code: z.ZodIssueCode.custom,
 					message: 'No user exists with this username or phone number',
 				})
