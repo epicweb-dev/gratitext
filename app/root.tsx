@@ -100,7 +100,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		await logout({ request, redirectTo: '/' })
 	}
 	const { toast, headers: toastHeaders } = await getToast(request)
-	const honeyProps = honeypot.getInputProps()
+	const honeyProps = await honeypot.getInputProps()
 
 	return json(
 		{

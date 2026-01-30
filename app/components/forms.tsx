@@ -193,7 +193,7 @@ export function CheckboxField({
 	errors,
 	className,
 }: {
-	labelProps: JSX.IntrinsicElements['label']
+	labelProps: React.LabelHTMLAttributes<HTMLLabelElement>
 	buttonProps: CheckboxProps & {
 		name: string
 		form: string

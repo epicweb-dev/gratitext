@@ -1,11 +1,11 @@
-import cronParser from 'cron-parser'
+import { CronExpressionParser } from 'cron-parser'
 
 export function validateCronString(cronString: string): {
 	valid: boolean
 	error?: string
 } {
 	try {
-		cronParser.parseExpression(cronString)
+		CronExpressionParser.parse(cronString)
 		return { valid: true }
 	} catch (error) {
 		const errorMessage =
