@@ -1,4 +1,4 @@
-import { type ReactElement } from 'react'
+import { type ReactElement, useEffect } from 'react'
 import * as Sentry from '@sentry/react-router'
 import {
 	type ErrorResponse,
@@ -27,9 +27,11 @@ export function GeneralErrorBoundary({
 	unexpectedErrorHandler?: (error: unknown) => ReactElement | null
 }) {
 	const error = useRouteError()
-	if (!isRouteErrorResponse(error)) {
-		Sentry.captureException(error)
-	}
+	useEffect(() => {
+		if (!isRouteErrorResponse(error)) {
+			Sentry.captureException(error)
+		}
+	}, [error])
 	const params = useParams()
 
 	if (typeof document !== 'undefined') {
