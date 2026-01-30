@@ -4,16 +4,14 @@ import {
 	json,
 	type LoaderFunctionArgs,
 } from '@remix-run/node'
-import { Form, Link, useLoaderData, useSearchParams, useSubmit } from '@remix-run/react'
-import { useId } from 'react'
+import { Link, useLoaderData, useSearchParams } from '@remix-run/react'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
+import { SearchBar } from '#app/components/search-bar.tsx'
 import { Button } from '#app/components/ui/button.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
-import { Input } from '#app/components/ui/input.tsx'
-import { Label } from '#app/components/ui/label.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
-import { cn, useDebounce, useDelayedIsPending } from '#app/utils/misc.tsx'
+import { cn, useDelayedIsPending } from '#app/utils/misc.tsx'
 
 const MESSAGES_PER_PAGE = 100
 
@@ -88,48 +86,6 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 			title: `Past Messages | ${data?.recipient.name ?? data?.recipient.phoneNumber} | GratiText`,
 		},
 	]
-}
-
-function MessageSearchBar() {
-	const id = useId()
-	const [searchParams] = useSearchParams()
-	const submit = useSubmit()
-	const isPending = useDelayedIsPending({
-		formMethod: 'GET',
-	})
-
-	const handleFormChange = useDebounce((form: HTMLFormElement) => {
-		submit(form)
-	}, 400)
-
-	return (
-		<Form
-			method="GET"
-			className="flex flex-wrap items-center gap-2"
-			onChange={(e) => handleFormChange(e.currentTarget)}
-		>
-			<div className="flex-1">
-				<Label htmlFor={id} className="sr-only">
-					Search messages
-				</Label>
-				<Input
-					type="search"
-					name="search"
-					id={id}
-					defaultValue={searchParams.get('search') ?? ''}
-					placeholder="Search messages..."
-					className="w-full"
-				/>
-			</div>
-			<Button type="submit" variant="outline" size="icon" className="shrink-0">
-				<Icon name="magnifying-glass" size="md" />
-				<span className="sr-only">Search</span>
-			</Button>
-			{isPending ? (
-				<span className="text-sm text-muted-foreground">Searching...</span>
-			) : null}
-		</Form>
-	)
 }
 
 function Pagination({
@@ -228,7 +184,7 @@ export default function RecipientRoute() {
 	return (
 		<div className="flex flex-col gap-6">
 			<div className="flex flex-col gap-4">
-				<MessageSearchBar />
+				<SearchBar status="idle" autoSubmit />
 				<Pagination
 					currentPage={data.pagination.currentPage}
 					totalPages={data.pagination.totalPages}
