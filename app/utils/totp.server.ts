@@ -38,5 +38,3 @@ export function getTOTPAuthUri(options: TOTPAuthUriOptions) {
 		algorithm: normalizeAlgorithm(options.algorithm) as HashAlgorithm,
 	})
 }
-
-export type { HashAlgorithm }
