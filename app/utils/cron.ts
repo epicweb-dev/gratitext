@@ -5,7 +5,7 @@ export function validateCronString(cronString: string): {
 	error?: string
 } {
 	try {
-		cronParser.parseExpression(cronString)
+		cronParser.parse(cronString)
 		return { valid: true }
 	} catch (error) {
 		const errorMessage =
