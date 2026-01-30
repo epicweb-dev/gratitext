@@ -126,7 +126,7 @@ export default function CacheAdminRoute() {
 								defaultValue: query,
 							}}
 						/>
-						<div className="flex h-16 w-14 items-center text-lg font-medium text-muted-foreground">
+						<div className="text-muted-foreground flex h-16 w-14 items-center text-lg font-medium">
 							<span title="Total results shown">
 								{data.cacheKeys.sqlite.length + data.cacheKeys.lru.length}
 							</span>

@@ -69,7 +69,13 @@ export async function action({ request, params }: ActionFunctionArgs) {
 	const recipient = recipientId
 		? await prisma.recipient.findUnique({
 				where: { id: recipientId, userId },
-				select: { id: true, name: true, phoneNumber: true, verified: true, disabled: true },
+				select: {
+					id: true,
+					name: true,
+					phoneNumber: true,
+					verified: true,
+					disabled: true,
+				},
 			})
 		: null
 

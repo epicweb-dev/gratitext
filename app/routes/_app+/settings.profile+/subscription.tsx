@@ -44,76 +44,77 @@ export default function Subscribe() {
 	const isPremium = products.includes('premium')
 	const isSubscribed = products.length > 0
 	return (
-		<div className="container flex flex-col items-center justify-center pb-20 pt-16">
+		<div className="container flex flex-col items-center justify-center pt-16 pb-20">
 			<div className="text-center">
-				<p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+				<p className="text-muted-foreground text-xs font-semibold tracking-[0.3em] uppercase">
 					GratiText
 				</p>
-				<h1 className="mt-3 text-3xl font-bold text-foreground md:text-4xl">
+				<h1 className="text-foreground mt-3 text-3xl font-bold md:text-4xl">
 					Select Your Plan
 				</h1>
-				<p className="mt-3 text-body-sm text-muted-foreground">
+				<p className="text-body-sm text-muted-foreground mt-3">
 					Choose a plan that matches how often you want to send messages.
 				</p>
 			</div>
 			<div className="mt-10 grid w-full max-w-4xl gap-6 md:grid-cols-2">
-				<div className="rounded-[28px] border border-border bg-card p-6 shadow-sm">
+				<div className="border-border bg-card rounded-[28px] border p-6 shadow-sm">
 					<div className="flex items-center justify-between">
 						<div>
-							<h3 className="text-xl font-bold text-foreground">Basic</h3>
+							<h3 className="text-foreground text-xl font-bold">Basic</h3>
 							<p className="text-body-xs text-muted-foreground">
 								1 message per day
 							</p>
 						</div>
-					<p className="text-2xl font-bold text-[hsl(var(--palette-cloud))]">
-						$4.99
-					</p>
+						<p className="text-2xl font-bold text-[hsl(var(--palette-cloud))]">
+							$4.99
+						</p>
 					</div>
-				<div className="mt-6">
-					{isBasic || isPremium ? (
-						<Button variant="secondary" disabled>
-							Select
-						</Button>
-					) : (
-						<Button asChild variant="secondary">
-							<a href={data.basicPaymentUrl}>Select</a>
-						</Button>
-					)}
+					<div className="mt-6">
+						{isBasic || isPremium ? (
+							<Button variant="secondary" disabled>
+								Select
+							</Button>
+						) : (
+							<Button asChild variant="secondary">
+								<a href={data.basicPaymentUrl}>Select</a>
+							</Button>
+						)}
+					</div>
 				</div>
-				</div>
-				<div className="rounded-[28px] border border-border bg-card p-6 shadow-sm">
+				<div className="border-border bg-card rounded-[28px] border p-6 shadow-sm">
 					<div className="flex items-center justify-between">
 						<div>
-							<h3 className="text-xl font-bold text-foreground">Premium</h3>
+							<h3 className="text-foreground text-xl font-bold">Premium</h3>
 							<p className="text-body-xs text-muted-foreground">
 								10 messages per day
 							</p>
 						</div>
-					<p className="text-2xl font-bold text-[hsl(var(--palette-chestnut))]">
-						$14.99
-					</p>
+						<p className="text-2xl font-bold text-[hsl(var(--palette-chestnut))]">
+							$14.99
+						</p>
 					</div>
-				<div className="mt-6">
-					{isPremium ? (
-						<Button disabled>
-							Select
-						</Button>
-					) : (
-						<Button asChild>
-							<a href={data.premiumPaymentUrl}>Select</a>
-						</Button>
-					)}
-				</div>
+					<div className="mt-6">
+						{isPremium ? (
+							<Button disabled>Select</Button>
+						) : (
+							<Button asChild>
+								<a href={data.premiumPaymentUrl}>Select</a>
+							</Button>
+						)}
+					</div>
 				</div>
 			</div>
 			{cancelAtDisplay ? (
-				<p className="mt-6 text-sm text-foreground-destructive">
+				<p className="text-foreground-destructive mt-6 text-sm">
 					Your subscription will be cancelled at{' '}
 					<strong>{cancelAtDisplay}</strong>.
 				</p>
 			) : null}
 			{isSubscribed ? (
-				<Link className="mt-4 text-sm font-semibold underline" to="/manage-subscription">
+				<Link
+					className="mt-4 text-sm font-semibold underline"
+					to="/manage-subscription"
+				>
 					Manage your subscription
 				</Link>
 			) : (

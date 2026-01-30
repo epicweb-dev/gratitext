@@ -61,7 +61,13 @@ export function RecipientEditor({
 	supportedTimeZones: Array<string>
 	recipient?: Pick<
 		Recipient,
-		'id' | 'name' | 'phoneNumber' | 'scheduleCron' | 'timeZone' | 'verified' | 'disabled'
+		| 'id'
+		| 'name'
+		| 'phoneNumber'
+		| 'scheduleCron'
+		| 'timeZone'
+		| 'verified'
+		| 'disabled'
 	>
 }) {
 	const actionData = useActionData<typeof usertRecipientAction>()
@@ -79,30 +85,33 @@ export function RecipientEditor({
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: RecipientEditorSchema })
 		},
-		defaultValue: recipient ? { ...recipient, disabled: recipient.disabled ?? false } : undefined,
+		defaultValue: recipient
+			? { ...recipient, disabled: recipient.disabled ?? false }
+			: undefined,
 		shouldRevalidate: 'onBlur',
 	})
 
 	return (
 		<div className="flex flex-col items-center gap-8">
 			<div className="text-center">
-				<p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+				<p className="text-muted-foreground text-xs font-semibold tracking-[0.3em] uppercase">
 					GratiText
 				</p>
-				<h1 className="mt-2 text-3xl font-bold text-foreground md:text-4xl">
+				<h1 className="text-foreground mt-2 text-3xl font-bold md:text-4xl">
 					{pageTitle}
 				</h1>
 			</div>
-			<div className="w-full max-w-3xl rounded-[32px] border border-border bg-card p-8 shadow-sm">
+			<div className="border-border bg-card w-full max-w-3xl rounded-[32px] border p-8 shadow-sm">
 				<div className="flex justify-end gap-2">
 					{needsVerification ? <VerifyForm /> : null}
 				</div>
 				{needsVerification ? (
-					<div className="mt-4 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-foreground-destructive">
+					<div className="border-destructive/30 bg-destructive/10 text-foreground-destructive mt-4 rounded-2xl border p-4 text-sm">
 						<strong className="font-semibold">Verification required</strong>
-						<p className="mt-2 text-muted-foreground">
+						<p className="text-muted-foreground mt-2">
 							Click "Verify" to send a verification code to{' '}
-							{recipient?.phoneNumber}. You will enter the code in the next step.
+							{recipient?.phoneNumber}. You will enter the code in the next
+							step.
 						</p>
 					</div>
 				) : null}
@@ -155,24 +164,26 @@ export function RecipientEditor({
 						/>
 					</div>
 					<div className="flex flex-wrap items-center justify-between gap-3">
-						<p className="text-sm font-semibold text-foreground">
+						<p className="text-foreground text-sm font-semibold">
 							Create a Schedule
 						</p>
-			<label className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground transition hover:text-foreground">
-				<input
-					{...getInputProps(fields.disabled, { type: 'checkbox' })}
-					className="peer sr-only"
-					onChange={(e) => {
-						setIsDisabled(e.target.checked)
-						// Type assertion needed as conform's types don't expose onChange
-						const props = getInputProps(fields.disabled, { type: 'checkbox' }) as any
-						if (props.onChange) {
-							props.onChange(e)
-						}
-					}}
-				/>
-				<span className="peer-checked:text-foreground">{pauseLabel}</span>
-			</label>
+						<label className="border-border bg-muted text-muted-foreground hover:text-foreground inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold tracking-[0.2em] uppercase transition">
+							<input
+								{...getInputProps(fields.disabled, { type: 'checkbox' })}
+								className="peer sr-only"
+								onChange={(e) => {
+									setIsDisabled(e.target.checked)
+									// Type assertion needed as conform's types don't expose onChange
+									const props = getInputProps(fields.disabled, {
+										type: 'checkbox',
+									}) as any
+									if (props.onChange) {
+										props.onChange(e)
+									}
+								}}
+							/>
+							<span className="peer-checked:text-foreground">{pauseLabel}</span>
+						</label>
 					</div>
 					<Field
 						labelProps={{ children: 'Schedule' }}
@@ -182,7 +193,7 @@ export function RecipientEditor({
 						}}
 						errors={fields.scheduleCron.errors}
 					/>
-					<div className="flex items-center gap-3 rounded-2xl border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+					<div className="border-border bg-muted text-muted-foreground flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm">
 						<Icon name="info" size="sm" />
 						<span>
 							Your messages will arrive every week at this day and time.
@@ -205,7 +216,10 @@ export function RecipientEditor({
 				<div className="mt-8 flex flex-wrap items-center justify-between gap-3">
 					{recipient?.id ? <DeleteRecipient id={recipient.id} /> : null}
 					<div className="flex flex-wrap gap-3">
-						<ButtonLink variant="secondary" to={recipient ? '..' : '/recipients'}>
+						<ButtonLink
+							variant="secondary"
+							to={recipient ? '..' : '/recipients'}
+						>
 							Cancel
 						</ButtonLink>
 						<StatusButton

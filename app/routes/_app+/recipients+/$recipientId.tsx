@@ -1,6 +1,12 @@
 import { invariantResponse } from '@epic-web/invariant'
 import { type LoaderFunctionArgs, type MetaFunction } from 'react-router'
-import { Link, Outlet, data as json, useLoaderData, useMatches } from 'react-router'
+import {
+	Link,
+	Outlet,
+	data as json,
+	useLoaderData,
+	useMatches,
+} from 'react-router'
 import { useEffect, useRef } from 'react'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.js'
 import { ButtonLink } from '#app/components/ui/button.tsx'
@@ -91,20 +97,20 @@ export default function RecipientRoute() {
 			<aside className="space-y-6">
 				<Link
 					to="/recipients"
-					className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground transition hover:text-foreground"
+					className="text-muted-foreground hover:text-foreground inline-flex items-center gap-2 text-xs font-semibold tracking-[0.2em] uppercase transition"
 				>
 					<Icon name="arrow-left" size="sm" />
 					All Recipients
 				</Link>
 				<div className="flex flex-wrap items-start justify-between gap-4">
 					<div>
-						<h2 className="text-3xl font-bold text-foreground">
+						<h2 className="text-foreground text-3xl font-bold">
 							{data.recipient.name}
 						</h2>
-						<div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+						<div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-2 text-xs font-semibold tracking-[0.2em] uppercase">
 							<span>{data.recipient.phoneNumber}</span>
 							{data.optedOut ? (
-								<span className="rounded-full bg-destructive/10 px-3 py-1 text-foreground-destructive">
+								<span className="bg-destructive/10 text-foreground-destructive rounded-full px-3 py-1">
 									Opted out
 								</span>
 							) : null}
@@ -112,7 +118,7 @@ export default function RecipientRoute() {
 								<Link
 									preventScrollReset
 									to="edit"
-									className="rounded-full border border-destructive/40 px-3 py-1 text-foreground-destructive"
+									className="border-destructive/40 text-foreground-destructive rounded-full border px-3 py-1"
 								>
 									Unverified
 								</Link>
@@ -124,26 +130,28 @@ export default function RecipientRoute() {
 					</ButtonLink>
 				</div>
 				<div className="space-y-3">
-					<div className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-sm">
-						<span className="rounded-xl bg-muted p-2 text-muted-foreground">
+					<div className="border-border bg-card flex items-center gap-3 rounded-2xl border px-4 py-3 shadow-sm">
+						<span className="bg-muted text-muted-foreground rounded-xl p-2">
 							<Icon name="phone" size="sm" />
 						</span>
-						<span className="text-sm font-medium text-foreground">
+						<span className="text-foreground text-sm font-medium">
 							{data.recipient.phoneNumber}
 						</span>
 					</div>
 					<SimpleTooltip
 						content={
-							data.cronError ? `Cron error: ${data.cronError}` : 'Next send time'
+							data.cronError
+								? `Cron error: ${data.cronError}`
+								: 'Next send time'
 						}
 					>
 						<div
 							className={cn(
-								'flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 text-sm font-medium text-foreground shadow-sm',
+								'border-border bg-card text-foreground flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-medium shadow-sm',
 								data.cronError && 'text-foreground-destructive',
 							)}
 						>
-							<span className="rounded-xl bg-muted p-2 text-muted-foreground">
+							<span className="bg-muted text-muted-foreground rounded-xl p-2">
 								<Icon name="clock" size="sm" />
 							</span>
 							<span>{data.formattedNextSendTime}</span>
@@ -151,13 +159,13 @@ export default function RecipientRoute() {
 					</SimpleTooltip>
 				</div>
 			</aside>
-			<section className="rounded-[32px] border border-border bg-muted px-6 py-8 shadow-sm">
+			<section className="border-border bg-muted rounded-[32px] border px-6 py-8 shadow-sm">
 				<nav className="mb-6 flex flex-wrap gap-2">
 					<Link
 						to="."
 						preventScrollReset
 						className={cn(
-							'flex items-center gap-2 rounded-full border border-border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground transition hover:bg-card hover:text-foreground',
+							'border-border text-muted-foreground hover:bg-card hover:text-foreground flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold tracking-[0.2em] uppercase transition',
 							currentPath === '.' && 'bg-card text-foreground shadow-sm',
 						)}
 						ref={firstLinkRef}
@@ -170,7 +178,7 @@ export default function RecipientRoute() {
 						to="new"
 						preventScrollReset
 						className={cn(
-							'flex items-center gap-2 rounded-full border border-border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground transition hover:bg-card hover:text-foreground',
+							'border-border text-muted-foreground hover:bg-card hover:text-foreground flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold tracking-[0.2em] uppercase transition',
 							currentPath === 'new' && 'bg-card text-foreground shadow-sm',
 						)}
 					>
@@ -182,7 +190,7 @@ export default function RecipientRoute() {
 						to="past"
 						preventScrollReset
 						className={cn(
-							'flex items-center gap-2 rounded-full border border-border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground transition hover:bg-card hover:text-foreground',
+							'border-border text-muted-foreground hover:bg-card hover:text-foreground flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold tracking-[0.2em] uppercase transition',
 							currentPath === 'past' && 'bg-card text-foreground shadow-sm',
 						)}
 					>
@@ -194,7 +202,7 @@ export default function RecipientRoute() {
 						to="edit"
 						preventScrollReset
 						className={cn(
-							'flex items-center gap-2 rounded-full border border-border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground transition hover:bg-card hover:text-foreground',
+							'border-border text-muted-foreground hover:bg-card hover:text-foreground flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold tracking-[0.2em] uppercase transition',
 							currentPath === 'edit' && 'bg-card text-foreground shadow-sm',
 						)}
 					>

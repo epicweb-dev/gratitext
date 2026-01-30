@@ -155,7 +155,7 @@ export default function TwoFactorRoute() {
 				</p>
 				<div className="p-3">
 					<pre
-						className="whitespace-pre-wrap break-all text-sm"
+						className="text-sm break-all whitespace-pre-wrap"
 						aria-label="One-time Password URI"
 					>
 						{data.otpUri}
@@ -186,7 +186,7 @@ export default function TwoFactorRoute() {
 							/>
 						</div>
 
-						<div className="min-h-[32px] px-4 pb-3 pt-1">
+						<div className="min-h-[32px] px-4 pt-1 pb-3">
 							<ErrorList id={form.errorId} errors={form.errors} />
 						</div>
 

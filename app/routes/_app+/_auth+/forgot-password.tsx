@@ -61,13 +61,13 @@ export async function action({ request }: ActionFunctionArgs) {
 	await checkHoneypot(formData)
 	const submission = await parseWithZod(formData, {
 		schema: ForgotPasswordSchema.superRefine(async (data, ctx) => {
-			const identifier = getIdentifier({ countryCode: data.countryCode, phoneNumber: data.phoneNumber })
+			const identifier = getIdentifier({
+				countryCode: data.countryCode,
+				phoneNumber: data.phoneNumber,
+			})
 			const user = await prisma.user.findFirst({
 				where: {
-					OR: [
-						{ phoneNumber: identifier },
-						{ username: identifier },
-					],
+					OR: [{ phoneNumber: identifier }, { username: identifier }],
 				},
 				select: { id: true },
 			})
@@ -138,65 +138,75 @@ export default function ForgotPasswordRoute() {
 	})
 
 	return (
-	<div className="container flex flex-col items-center justify-center pb-32 pt-20">
-		<div className="text-center">
-			<p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-				GratiText
-			</p>
-			<h1 className="mt-3 text-h1">Forgot Password</h1>
-			<p className="mt-3 text-body-md text-muted-foreground">
-				No worries, we'll send you reset instructions.
-			</p>
-		</div>
-		<div className="mt-8 w-full max-w-lg rounded-[32px] border border-border bg-card px-6 py-8 shadow-sm">
-			<forgotPassword.Form method="POST" {...getFormProps(form)} className="space-y-6">
-				<HoneypotInputs />
-				<div className="grid gap-4 md:grid-cols-[200px_1fr]">
-					<SelectField
-						labelProps={{ children: 'Country Code' }}
-						selectProps={{
-							...getSelectProps(fields.countryCode),
-							children: countryCodes.map((code) => (
-								<option key={`${code.value}-${code.label}`} value={code.value}>
-									{code.label}
-								</option>
-							)),
-						}}
-						errors={fields.countryCode.errors}
-					/>
-					<Field
-						labelProps={{
-							htmlFor: fields.phoneNumber.id,
-							children: 'Phone Number',
-						}}
-						inputProps={{
-							autoFocus: true,
-							...getInputProps(fields.phoneNumber, {
-								type: 'text',
-							}),
-						}}
-						errors={fields.phoneNumber.errors}
-					/>
-				</div>
-				<ErrorList errors={form.errors} id={form.errorId} />
-				<StatusButton
-					className="w-full bg-[hsl(var(--palette-hot-fire-red))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-fire-red))]"
-					status={
-						forgotPassword.state === 'submitting'
-							? 'pending'
-							: (form.status ?? 'idle')
-					}
-					type="submit"
-					disabled={forgotPassword.state !== 'idle'}
+		<div className="container flex flex-col items-center justify-center pt-20 pb-32">
+			<div className="text-center">
+				<p className="text-muted-foreground text-xs font-semibold tracking-[0.3em] uppercase">
+					GratiText
+				</p>
+				<h1 className="text-h1 mt-3">Forgot Password</h1>
+				<p className="text-body-md text-muted-foreground mt-3">
+					No worries, we'll send you reset instructions.
+				</p>
+			</div>
+			<div className="border-border bg-card mt-8 w-full max-w-lg rounded-[32px] border px-6 py-8 shadow-sm">
+				<forgotPassword.Form
+					method="POST"
+					{...getFormProps(form)}
+					className="space-y-6"
 				>
-					Recover password
-				</StatusButton>
-			</forgotPassword.Form>
-			<Link to="/login" className="mt-6 block text-center text-body-sm font-bold">
-				Back to Login
-			</Link>
+					<HoneypotInputs />
+					<div className="grid gap-4 md:grid-cols-[200px_1fr]">
+						<SelectField
+							labelProps={{ children: 'Country Code' }}
+							selectProps={{
+								...getSelectProps(fields.countryCode),
+								children: countryCodes.map((code) => (
+									<option
+										key={`${code.value}-${code.label}`}
+										value={code.value}
+									>
+										{code.label}
+									</option>
+								)),
+							}}
+							errors={fields.countryCode.errors}
+						/>
+						<Field
+							labelProps={{
+								htmlFor: fields.phoneNumber.id,
+								children: 'Phone Number',
+							}}
+							inputProps={{
+								autoFocus: true,
+								...getInputProps(fields.phoneNumber, {
+									type: 'text',
+								}),
+							}}
+							errors={fields.phoneNumber.errors}
+						/>
+					</div>
+					<ErrorList errors={form.errors} id={form.errorId} />
+					<StatusButton
+						className="w-full bg-[hsl(var(--palette-hot-fire-red))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-fire-red))]"
+						status={
+							forgotPassword.state === 'submitting'
+								? 'pending'
+								: (form.status ?? 'idle')
+						}
+						type="submit"
+						disabled={forgotPassword.state !== 'idle'}
+					>
+						Recover password
+					</StatusButton>
+				</forgotPassword.Form>
+				<Link
+					to="/login"
+					className="text-body-sm mt-6 block text-center font-bold"
+				>
+					Back to Login
+				</Link>
+			</div>
 		</div>
-	</div>
 	)
 }
 

@@ -84,17 +84,17 @@ export default function ResetPasswordPage() {
 	})
 
 	return (
-		<div className="container flex flex-col items-center justify-center pb-32 pt-20">
+		<div className="container flex flex-col items-center justify-center pt-20 pb-32">
 			<div className="text-center">
-				<p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+				<p className="text-muted-foreground text-xs font-semibold tracking-[0.3em] uppercase">
 					GratiText
 				</p>
-				<h1 className="mt-3 text-h1">Reset Your Password</h1>
-				<p className="mt-3 text-body-md text-muted-foreground">
+				<h1 className="text-h1 mt-3">Reset Your Password</h1>
+				<p className="text-body-md text-muted-foreground mt-3">
 					Hi, {data.resetPasswordUsername}. Let's set a new password.
 				</p>
 			</div>
-			<div className="mt-8 w-full max-w-lg rounded-[32px] border border-border bg-card px-6 py-8 shadow-sm">
+			<div className="border-border bg-card mt-8 w-full max-w-lg rounded-[32px] border px-6 py-8 shadow-sm">
 				<Form method="POST" {...getFormProps(form)} className="space-y-6">
 					<Field
 						labelProps={{

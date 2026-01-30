@@ -33,13 +33,17 @@ test('Users can update their password', async ({ page, login }) => {
 	await page.goto('/settings/profile')
 	await page.waitForLoadState('domcontentloaded')
 
-	const changePasswordLink = page.getByRole('link', { name: /change password/i })
+	const changePasswordLink = page.getByRole('link', {
+		name: /change password/i,
+	})
 	await changePasswordLink.waitFor({ state: 'visible' })
 	await changePasswordLink.click()
 
 	await page.waitForLoadState('domcontentloaded')
 
-	const currentPasswordInput = page.getByRole('textbox', { name: /^current password/i })
+	const currentPasswordInput = page.getByRole('textbox', {
+		name: /^current password/i,
+	})
 	await currentPasswordInput.waitFor({ state: 'visible' })
 	await currentPasswordInput.fill(oldPassword)
 	await page.getByRole('textbox', { name: /^new password/i }).fill(newPassword)
@@ -74,7 +78,9 @@ test('Users can change their phone number', async ({ page, login }) => {
 	await page.goto('/settings/profile')
 	await page.waitForLoadState('domcontentloaded')
 
-	const changeNumberLink = page.getByRole('link', { name: /edit your phone number/i })
+	const changeNumberLink = page.getByRole('link', {
+		name: /edit your phone number/i,
+	})
 	await changeNumberLink.waitFor({ state: 'visible' })
 	await changeNumberLink.click()
 
@@ -85,7 +91,9 @@ test('Users can change their phone number', async ({ page, login }) => {
 	await newPhoneInput.fill(newPhoneNumber)
 	await page.getByRole('button', { name: /send confirmation/i }).click()
 
-	await expect(page.getByText(/check your texts/i)).toBeVisible({ timeout: 15000 })
+	await expect(page.getByText(/check your texts/i)).toBeVisible({
+		timeout: 15000,
+	})
 
 	const text = await waitForText(newPhoneNumber, {
 		errorMessage: 'Confirmation text message was not sent',
@@ -100,7 +108,9 @@ test('Users can change their phone number', async ({ page, login }) => {
 	await codeInput.fill(code)
 	await page.getByRole('button', { name: /continue/i }).click()
 
-	await expect(page.getByText(/phone number changed/i)).toBeVisible({ timeout: 15000 })
+	await expect(page.getByText(/phone number changed/i)).toBeVisible({
+		timeout: 15000,
+	})
 
 	const updatedUser = await prisma.user.findUnique({
 		where: { id: preUpdateUser.id },

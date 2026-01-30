@@ -43,17 +43,17 @@ export async function action({ request }: ActionFunctionArgs) {
 
 	await checkHoneypot(formData)
 
-		const submission = await parseWithZod(formData, {
-			schema: SignupSchema.superRefine(async (data, ctx) => {
-				const digitsOnly = data.phoneNumber.replace(/\D/g, '')
-				const fullPhoneNumber = `${data.countryCode}${digitsOnly}`.replace(
-					/\s+/g,
-					'',
-				)
-				const existingUser = await prisma.user.findUnique({
-					where: { phoneNumber: fullPhoneNumber },
-					select: { id: true },
-				})
+	const submission = await parseWithZod(formData, {
+		schema: SignupSchema.superRefine(async (data, ctx) => {
+			const digitsOnly = data.phoneNumber.replace(/\D/g, '')
+			const fullPhoneNumber = `${data.countryCode}${digitsOnly}`.replace(
+				/\s+/g,
+				'',
+			)
+			const existingUser = await prisma.user.findUnique({
+				where: { phoneNumber: fullPhoneNumber },
+				select: { id: true },
+			})
 			if (existingUser) {
 				ctx.addIssue({
 					path: ['phoneNumber'],
@@ -89,11 +89,11 @@ export async function action({ request }: ActionFunctionArgs) {
 		period: 10 * 60,
 		request,
 		type: 'onboarding',
-			target: fullPhoneNumber,
+		target: fullPhoneNumber,
 	})
 
-		const response = await sendText({
-			to: fullPhoneNumber,
+	const response = await sendText({
+		to: fullPhoneNumber,
 		message: `Welcome to GratiText!\nHere's your verification code: ${otp}\n\nOr click the link to get started: ${verifyUrl}`,
 	})
 
@@ -127,61 +127,64 @@ export default function SignupRoute() {
 		shouldRevalidate: 'onBlur',
 	})
 
-		return (
-			<div className="container flex flex-col items-center justify-center pb-32 pt-20">
-				<div className="text-center">
-					<p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-						GratiText
-					</p>
-					<h1 className="mt-3 text-h1">
-						Create and Nurture Lasting Bonds With Your Loved Ones
-					</h1>
-					<p className="mt-3 text-body-md text-muted-foreground">
-						Please enter your phone number along with your country code.
-					</p>
-				</div>
-				<div className="mt-8 w-full max-w-lg rounded-[32px] border border-border bg-card px-6 py-8 shadow-sm">
-					<Form method="POST" {...getFormProps(form)} className="space-y-6">
-						<HoneypotInputs />
-						<div className="grid gap-4 md:grid-cols-[200px_1fr]">
-							<SelectField
-								labelProps={{ children: 'Country Code' }}
-								selectProps={{
-									...getSelectProps(fields.countryCode),
-									children: countryCodes.map((code) => (
-										<option key={`${code.value}-${code.label}`} value={code.value}>
-											{code.label}
-										</option>
-									)),
-								}}
-								errors={fields.countryCode.errors}
-							/>
-							<Field
-								labelProps={{
-									htmlFor: fields.phoneNumber.id,
-									children: 'Phone Number',
-								}}
-								inputProps={{
-									...getInputProps(fields.phoneNumber, { type: 'tel' }),
-									autoFocus: true,
-									autoComplete: 'tel',
-								}}
-								errors={fields.phoneNumber.errors}
-							/>
-						</div>
-						<ErrorList errors={form.errors} id={form.errorId} />
-						<StatusButton
-							className="w-full bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))]"
-							status={isPending ? 'pending' : (form.status ?? 'idle')}
-							type="submit"
-							disabled={isPending}
-						>
-							Continue
-						</StatusButton>
-					</Form>
-				</div>
+	return (
+		<div className="container flex flex-col items-center justify-center pt-20 pb-32">
+			<div className="text-center">
+				<p className="text-muted-foreground text-xs font-semibold tracking-[0.3em] uppercase">
+					GratiText
+				</p>
+				<h1 className="text-h1 mt-3">
+					Create and Nurture Lasting Bonds With Your Loved Ones
+				</h1>
+				<p className="text-body-md text-muted-foreground mt-3">
+					Please enter your phone number along with your country code.
+				</p>
 			</div>
-		)
+			<div className="border-border bg-card mt-8 w-full max-w-lg rounded-[32px] border px-6 py-8 shadow-sm">
+				<Form method="POST" {...getFormProps(form)} className="space-y-6">
+					<HoneypotInputs />
+					<div className="grid gap-4 md:grid-cols-[200px_1fr]">
+						<SelectField
+							labelProps={{ children: 'Country Code' }}
+							selectProps={{
+								...getSelectProps(fields.countryCode),
+								children: countryCodes.map((code) => (
+									<option
+										key={`${code.value}-${code.label}`}
+										value={code.value}
+									>
+										{code.label}
+									</option>
+								)),
+							}}
+							errors={fields.countryCode.errors}
+						/>
+						<Field
+							labelProps={{
+								htmlFor: fields.phoneNumber.id,
+								children: 'Phone Number',
+							}}
+							inputProps={{
+								...getInputProps(fields.phoneNumber, { type: 'tel' }),
+								autoFocus: true,
+								autoComplete: 'tel',
+							}}
+							errors={fields.phoneNumber.errors}
+						/>
+					</div>
+					<ErrorList errors={form.errors} id={form.errorId} />
+					<StatusButton
+						className="w-full bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))]"
+						status={isPending ? 'pending' : (form.status ?? 'idle')}
+						type="submit"
+						disabled={isPending}
+					>
+						Continue
+					</StatusButton>
+				</Form>
+			</div>
+		</div>
+	)
 }
 
 export function ErrorBoundary() {

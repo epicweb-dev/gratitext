@@ -11,7 +11,10 @@ function extractUrl(text: string) {
 	const match = text.match(URL_REGEX)
 	return match?.groups?.url
 }
-function formatPhoneNumber(phoneNumber: string, countryCode = defaultCountryCode) {
+function formatPhoneNumber(
+	phoneNumber: string,
+	countryCode = defaultCountryCode,
+) {
 	const digitsOnly = phoneNumber.replace(/\D/g, '')
 	return `${countryCode}${digitsOnly}`.replace(/\s+/g, '')
 }
@@ -92,7 +95,9 @@ test('onboarding with link', async ({ page, getOnboardingData }) => {
 
 	await expect(page).toHaveURL(/\/verify/, { timeout: 15_000 })
 
-	const submitButton = page.getByRole('main').getByRole('button', { name: /continue/i })
+	const submitButton = page
+		.getByRole('main')
+		.getByRole('button', { name: /continue/i })
 	await submitButton.waitFor({ state: 'visible' })
 	await submitButton.click()
 
@@ -200,7 +205,9 @@ test('reset password with a link', async ({ page, insertNewUser }) => {
 	await page.goto('/login')
 	await page.waitForLoadState('domcontentloaded')
 
-	const forgotPasswordLink = page.getByRole('link', { name: /forgot password/i })
+	const forgotPasswordLink = page.getByRole('link', {
+		name: /forgot password/i,
+	})
 	await forgotPasswordLink.waitFor({ state: 'visible' })
 	await forgotPasswordLink.click()
 	await expect(page).toHaveURL('/forgot-password')
@@ -234,7 +241,9 @@ test('reset password with a link', async ({ page, insertNewUser }) => {
 
 	await expect(page).toHaveURL(/\/verify/, { timeout: 15_000 })
 
-	const submitButton = page.getByRole('main').getByRole('button', { name: /continue/i })
+	const submitButton = page
+		.getByRole('main')
+		.getByRole('button', { name: /continue/i })
 	await submitButton.waitFor({ state: 'visible' })
 	await submitButton.click()
 
@@ -258,7 +267,9 @@ test('reset password with a link', async ({ page, insertNewUser }) => {
 	await page.getByLabel(/^password$/i).fill(originalPassword)
 	await page.getByRole('button', { name: /log in/i }).click()
 
-	await expect(page.getByText(/invalid phone number or password/i)).toBeVisible()
+	await expect(
+		page.getByText(/invalid phone number or password/i),
+	).toBeVisible()
 
 	await loginPhoneInput.fill(user.phoneNumber)
 	await page.getByLabel(/^password$/i).fill(newPassword)
@@ -275,7 +286,9 @@ test('reset password with a short code', async ({ page, insertNewUser }) => {
 	await page.goto('/login')
 	await page.waitForLoadState('domcontentloaded')
 
-	const forgotPasswordLink = page.getByRole('link', { name: /forgot password/i })
+	const forgotPasswordLink = page.getByRole('link', {
+		name: /forgot password/i,
+	})
 	await forgotPasswordLink.waitFor({ state: 'visible' })
 	await forgotPasswordLink.click()
 	await expect(page).toHaveURL('/forgot-password', { timeout: 15_000 })

@@ -112,7 +112,7 @@ export default function RecipientsLayout() {
 	const { recipients, subscriptionStatus } = useLoaderData<typeof loader>()
 
 	return (
-		<div className="container mx-auto flex min-h-0 flex-grow flex-col px-4 pb-16 pt-10 md:px-8">
+		<div className="container mx-auto flex min-h-0 flex-grow flex-col px-4 pt-10 pb-16 md:px-8">
 			<Outlet context={{ recipients, subscriptionStatus }} />
 		</div>
 	)

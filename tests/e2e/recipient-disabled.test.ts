@@ -1,10 +1,6 @@
 import { faker } from '@faker-js/faker'
 import { prisma } from '#app/utils/db.server.ts'
-import {
-	createRecipient,
-	expect,
-	test,
-} from '#tests/playwright-utils.ts'
+import { createRecipient, expect, test } from '#tests/playwright-utils.ts'
 
 test('Users can disable sending to a recipient', async ({ page, login }) => {
 	const user = await login({ stripeId: faker.string.uuid() })
@@ -41,7 +37,9 @@ test('Users can disable sending to a recipient', async ({ page, login }) => {
 	await page.getByRole('button', { name: /save changes/i }).click()
 
 	// Wait for redirect to recipient page
-	await expect(page).toHaveURL(`/recipients/${recipient.id}`, { timeout: 15000 })
+	await expect(page).toHaveURL(`/recipients/${recipient.id}`, {
+		timeout: 15000,
+	})
 	await page.waitForLoadState('domcontentloaded')
 
 	// Verify the recipient is now disabled in the database
@@ -63,7 +61,9 @@ test('Users can disable sending to a recipient', async ({ page, login }) => {
 	await page.getByRole('button', { name: /save changes/i }).click()
 
 	// Verify the recipient is now enabled again
-	await expect(page).toHaveURL(`/recipients/${recipient.id}`, { timeout: 15000 })
+	await expect(page).toHaveURL(`/recipients/${recipient.id}`, {
+		timeout: 15000,
+	})
 
 	const reEnabledRecipient = await prisma.recipient.findUnique({
 		where: { id: recipient.id },
@@ -76,7 +76,7 @@ test('Disabled recipients are excluded from scheduled message sending', async ({
 	login,
 }) => {
 	const user = await login({ stripeId: faker.string.uuid() })
-	
+
 	// Create a disabled recipient
 	const disabledRecipient = await prisma.recipient.create({
 		select: { id: true, phoneNumber: true },
@@ -145,4 +145,3 @@ test('Disabled recipients are excluded from scheduled message sending', async ({
 	)
 	expect(enabledRecipientInList).toBeDefined()
 })
-
