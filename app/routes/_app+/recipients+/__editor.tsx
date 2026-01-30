@@ -5,7 +5,6 @@ import {
 	useForm,
 } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
-import { type Recipient } from '@prisma/client'
 import { type SerializeFrom } from '@remix-run/node'
 import { Form, useActionData, useFetcher } from '@remix-run/react'
 import { z } from 'zod'
@@ -15,6 +14,7 @@ import { Icon } from '#app/components/ui/icon.js'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { validateCronString } from '#app/utils/cron.ts'
 import { useDoubleCheck, useIsPending } from '#app/utils/misc.tsx'
+import { type Recipient } from '#app/utils/prisma-generated.server/client.ts'
 import {
 	type deleteRecipientAction,
 	type sendVerificationAction,

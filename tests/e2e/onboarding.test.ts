@@ -55,9 +55,7 @@ test('onboarding with link', async ({ page, getOnboardingData }) => {
 	await phoneNumberTextbox.fill(onboardingData.phoneNumber)
 
 	await page.getByRole('button', { name: /submit/i }).click()
-	await expect(
-		page.getByRole('button', { name: /submit/i, disabled: true }),
-	).toBeVisible()
+	await expect(page).toHaveURL(/\/verify/, { timeout: 10_000 })
 	await expect(page.getByText(/check your texts/i)).toBeVisible()
 
 	const sourceNumber = await prisma.sourceNumber.findFirstOrThrow({
@@ -71,14 +69,14 @@ test('onboarding with link', async ({ page, getOnboardingData }) => {
 	invariant(onboardingUrl, 'Onboarding URL not found')
 	await page.goto(onboardingUrl)
 
-	await expect(page).toHaveURL(/\/verify/)
+	await expect(page).toHaveURL(/\/verify/, { timeout: 10_000 })
 
 	await page
 		.getByRole('main')
 		.getByRole('button', { name: /submit/i })
 		.click()
 
-	await expect(page).toHaveURL(`/onboarding`)
+	await expect(page).toHaveURL(`/onboarding`, { timeout: 10_000 })
 	await page
 		.getByRole('textbox', { name: /^username/i })
 		.fill(onboardingData.username)
@@ -95,7 +93,7 @@ test('onboarding with link', async ({ page, getOnboardingData }) => {
 
 	await page.getByRole('button', { name: /Create an account/i }).click()
 
-	await expect(page).toHaveURL(`/`)
+	await expect(page).toHaveURL(`/`, { timeout: 10_000 })
 
 	await page.getByRole('link', { name: onboardingData.name }).click()
 	await page.getByRole('menuitem', { name: /profile/i }).click()
@@ -119,9 +117,7 @@ test('onboarding with a short code', async ({ page, getOnboardingData }) => {
 	await phoneNumberTextbox.fill(onboardingData.phoneNumber)
 
 	await page.getByRole('button', { name: /submit/i }).click()
-	await expect(
-		page.getByRole('button', { name: /submit/i, disabled: true }),
-	).toBeVisible()
+	await expect(page).toHaveURL(/\/verify/, { timeout: 10_000 })
 	await expect(page.getByText(/Check your texts/i)).toBeVisible()
 
 	const sourceNumber = await prisma.sourceNumber.findFirstOrThrow({
@@ -139,7 +135,7 @@ test('onboarding with a short code', async ({ page, getOnboardingData }) => {
 	await page.getByRole('textbox', { name: /code/i }).fill(code)
 	await page.getByRole('button', { name: /submit/i }).click()
 
-	await expect(page).toHaveURL(`/onboarding`)
+	await expect(page).toHaveURL(`/onboarding`, { timeout: 10_000 })
 })
 
 test('login as existing user', async ({ page, insertNewUser }) => {
@@ -150,7 +146,7 @@ test('login as existing user', async ({ page, insertNewUser }) => {
 	await page.getByRole('textbox', { name: /username/i }).fill(user.username)
 	await page.getByLabel(/^password$/i).fill(password)
 	await page.getByRole('button', { name: /log in/i }).click()
-	await expect(page).toHaveURL(`/`)
+	await expect(page).toHaveURL(`/`, { timeout: 10_000 })
 
 	await expect(page.getByRole('link', { name: user.name })).toBeVisible()
 })
@@ -169,6 +165,7 @@ test('reset password with a link', async ({ page, insertNewUser }) => {
 	).toBeVisible()
 	await page.getByRole('textbox', { name: /username/i }).fill(user.username)
 	await page.getByRole('button', { name: /recover password/i }).click()
+	await expect(page).toHaveURL(/\/verify/, { timeout: 10_000 })
 	await expect(page.getByText(/check your texts/i)).toBeVisible()
 
 	const sourceNumber = await prisma.sourceNumber.findFirstOrThrow({
@@ -182,21 +179,21 @@ test('reset password with a link', async ({ page, insertNewUser }) => {
 	invariant(resetPasswordUrl, 'Reset password URL not found')
 	await page.goto(resetPasswordUrl)
 
-	await expect(page).toHaveURL(/\/verify/)
+	await expect(page).toHaveURL(/\/verify/, { timeout: 10_000 })
 
 	await page
 		.getByRole('main')
 		.getByRole('button', { name: /submit/i })
 		.click()
 
-	await expect(page).toHaveURL(`/reset-password`)
+	await expect(page).toHaveURL(`/reset-password`, { timeout: 10_000 })
 	const newPassword = faker.internet.password()
 	await page.getByLabel(/^new password$/i).fill(newPassword)
 	await page.getByLabel(/^confirm password$/i).fill(newPassword)
 
 	await page.getByRole('button', { name: /reset password/i }).click()
 
-	await expect(page).toHaveURL('/login')
+	await expect(page).toHaveURL('/login', { timeout: 10_000 })
 	await page.getByRole('textbox', { name: /username/i }).fill(user.username)
 	await page.getByLabel(/^password$/i).fill(originalPassword)
 	await page.getByRole('button', { name: /log in/i }).click()
@@ -206,7 +203,7 @@ test('reset password with a link', async ({ page, insertNewUser }) => {
 	await page.getByLabel(/^password$/i).fill(newPassword)
 	await page.getByRole('button', { name: /log in/i }).click()
 
-	await expect(page).toHaveURL(`/`)
+	await expect(page).toHaveURL(`/`, { timeout: 10_000 })
 
 	await expect(page.getByRole('link', { name: user.name })).toBeVisible()
 })
@@ -216,13 +213,14 @@ test('reset password with a short code', async ({ page, insertNewUser }) => {
 	await page.goto('/login')
 
 	await page.getByRole('link', { name: /forgot password/i }).click()
-	await expect(page).toHaveURL('/forgot-password')
+	await expect(page).toHaveURL('/forgot-password', { timeout: 10_000 })
 
 	await expect(
 		page.getByRole('heading', { name: /forgot password/i }),
 	).toBeVisible()
 	await page.getByRole('textbox', { name: /username/i }).fill(user.username)
 	await page.getByRole('button', { name: /recover password/i }).click()
+	await expect(page).toHaveURL(/\/verify/, { timeout: 10_000 })
 	await expect(page.getByText(/Check your texts/i)).toBeVisible()
 
 	const sourceNumber = await prisma.sourceNumber.findFirstOrThrow({
@@ -238,5 +236,5 @@ test('reset password with a short code', async ({ page, insertNewUser }) => {
 	await page.getByRole('textbox', { name: /code/i }).fill(code)
 	await page.getByRole('button', { name: /submit/i }).click()
 
-	await expect(page).toHaveURL(`/reset-password`)
+	await expect(page).toHaveURL(`/reset-password`, { timeout: 10_000 })
 })

@@ -15,6 +15,8 @@ FROM base as deps
 WORKDIR /myapp
 
 ADD package.json package-lock.json .npmrc ./
+ADD prisma /myapp/prisma
+ADD prisma.config.ts /myapp/prisma.config.ts
 RUN npm install --include=dev
 
 # Setup production node_modules
@@ -36,8 +38,9 @@ WORKDIR /myapp
 
 COPY --from=deps /myapp/node_modules /myapp/node_modules
 
-ADD prisma .
-RUN npx prisma generate
+ADD prisma /myapp/prisma
+ADD prisma.config.ts /myapp/prisma.config.ts
+RUN npx prisma@7 generate
 
 ADD . .
 
@@ -75,7 +78,7 @@ RUN INTERNAL_COMMAND_TOKEN=$(openssl rand -hex 32) && \
   echo "INTERNAL_COMMAND_TOKEN=$INTERNAL_COMMAND_TOKEN" > .env
 
 COPY --from=production-deps /myapp/node_modules /myapp/node_modules
-COPY --from=build /myapp/node_modules/.prisma /myapp/node_modules/.prisma
+COPY --from=build /myapp/app/utils/prisma-generated.server /myapp/app/utils/prisma-generated.server
 
 COPY --from=build /myapp/build /myapp/build
 COPY --from=build /myapp/package.json /myapp/package.json
