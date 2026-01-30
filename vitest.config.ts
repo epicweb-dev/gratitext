@@ -5,7 +5,6 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
 	plugins: [react()],
-	css: { postcss: { plugins: [] } },
 	test: {
 		include: ['./app/**/*.test.{ts,tsx}'],
 		setupFiles: ['./tests/setup/setup-test-env.ts'],

@@ -1,4 +1,5 @@
 import { vitePlugin as remix } from '@remix-run/dev'
+import tailwindcss from '@tailwindcss/vite'
 import { sentryVitePlugin } from '@sentry/vite-plugin'
 import { glob } from 'glob'
 import { flatRoutes } from 'remix-flat-routes'
@@ -29,6 +30,7 @@ export default defineConfig(async (config) => ({
 		},
 	},
 	plugins: [
+		tailwindcss(),
 		remix({
 			ignoredRouteFiles: ['**/*'],
 			serverModuleFormat: 'esm',

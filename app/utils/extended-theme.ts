@@ -1,5 +1,3 @@
-import { type Config } from 'tailwindcss'
-
 export const extendedTheme = {
 	colors: {
 		border: 'hsl(var(--border))',
@@ -103,4 +101,4 @@ export const extendedTheme = {
 	animation: {
 		'caret-blink': 'caret-blink 1.25s ease-out infinite',
 	},
-} satisfies Config['theme']
+}
