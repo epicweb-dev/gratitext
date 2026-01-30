@@ -66,8 +66,6 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 			currentPage,
 			totalPages,
 			totalMessages,
-			hasNextPage: currentPage < totalPages,
-			hasPrevPage: currentPage > 1,
 		},
 		pastMessages: messages.map((m) => ({
 			id: m.id,
