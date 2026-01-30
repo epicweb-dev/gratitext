@@ -66,9 +66,9 @@ export default function Subscribe() {
 								1 message per day
 							</p>
 						</div>
-						<p className="text-2xl font-bold text-[hsl(var(--palette-cloud))]">
-							$4
-						</p>
+					<p className="text-2xl font-bold text-[hsl(var(--palette-cloud))]">
+						$4.99
+					</p>
 					</div>
 				<div className="mt-6">
 					{isBasic ? (
@@ -90,9 +90,9 @@ export default function Subscribe() {
 								10 messages per day
 							</p>
 						</div>
-						<p className="text-2xl font-bold text-[hsl(var(--palette-chestnut))]">
-							$14
-						</p>
+					<p className="text-2xl font-bold text-[hsl(var(--palette-chestnut))]">
+						$14.99
+					</p>
 					</div>
 				<div className="mt-6">
 					{isPremium ? (

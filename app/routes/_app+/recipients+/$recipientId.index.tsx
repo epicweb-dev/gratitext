@@ -290,7 +290,7 @@ async function updateMessageOrderAction({ formData }: MessageActionArgs) {
 
 export default function RecipientRoute() {
 	const data = useLoaderData<typeof loader>()
-	const newMessageFetcher = useFetcher()
+	const newMessageFetcher = useFetcher<typeof action>()
 	const isCreating = newMessageFetcher.state !== 'idle'
 
 	return (
@@ -317,32 +317,43 @@ export default function RecipientRoute() {
 					</Link>
 				)}
 			</ul>
-			<newMessageFetcher.Form
-				method="POST"
-				action="new"
-				className="rounded-full border border-border bg-card p-2 shadow-sm"
-			>
-				<label htmlFor="new-message" className="sr-only">
-					Add a new message
-				</label>
-				<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-					<textarea
-						id="new-message"
-						name="content"
-						placeholder="I am endlessly grateful for your love, your smile, and the joy you bring..."
-						className="flex-1 resize-none rounded-full bg-transparent px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none"
-						rows={2}
-						required
+			<div className="flex flex-col gap-2">
+				<newMessageFetcher.Form
+					method="POST"
+					action="new"
+					className="rounded-full border border-border bg-card p-2 shadow-sm"
+				>
+					<label htmlFor="new-message" className="sr-only">
+						Add a new message
+					</label>
+					<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+						<textarea
+							id="new-message"
+							name="content"
+							placeholder="I am endlessly grateful for your love, your smile, and the joy you bring..."
+							className="flex-1 resize-none rounded-full bg-transparent px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none"
+							rows={2}
+							required
+						/>
+						<StatusButton
+							status={isCreating ? 'pending' : 'idle'}
+							type="submit"
+							className="self-end bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))] sm:self-auto"
+						>
+							<Icon name="check">Add to Queue</Icon>
+						</StatusButton>
+					</div>
+				</newMessageFetcher.Form>
+				{newMessageFetcher.data?.result.error ? (
+					<ErrorList
+						errors={
+							newMessageFetcher.data.result.error.content ??
+							newMessageFetcher.data.result.error[''] ??
+							[]
+						}
 					/>
-					<StatusButton
-						status={isCreating ? 'pending' : 'idle'}
-						type="submit"
-						className="self-end bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))] sm:self-auto"
-					>
-						<Icon name="check">Add to Queue</Icon>
-					</StatusButton>
-				</div>
-			</newMessageFetcher.Form>
+				) : null}
+			</div>
 		</div>
 	)
 }

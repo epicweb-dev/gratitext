@@ -260,13 +260,20 @@ function UpdateProfile() {
 				>
 					Save Changes
 				</StatusButton>
-			</div>
-			<input {...getInputProps(fields.username, { type: 'hidden' })} />
-			<Field
-				labelProps={{ htmlFor: fields.name.id, children: 'Your Name' }}
-				inputProps={getInputProps(fields.name, { type: 'text' })}
-				errors={fields.name.errors}
-			/>
+		</div>
+		<Field
+			labelProps={{ htmlFor: fields.username.id, children: 'Username' }}
+			inputProps={{
+				...getInputProps(fields.username, { type: 'text' }),
+				className: 'lowercase',
+			}}
+			errors={fields.username.errors}
+		/>
+		<Field
+			labelProps={{ htmlFor: fields.name.id, children: 'Your Name' }}
+			inputProps={getInputProps(fields.name, { type: 'text' })}
+			errors={fields.name.errors}
+		/>
 			<div className="flex flex-wrap items-center justify-between gap-3">
 				<p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
 					Your Phone Number

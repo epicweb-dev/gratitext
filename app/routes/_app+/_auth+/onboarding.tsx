@@ -193,19 +193,27 @@ export default function SignupRoute() {
 						}}
 						errors={fields.confirmPassword.errors}
 					/>
-					<CheckboxField
-						labelProps={{
-							htmlFor: fields.agreeToTermsOfServiceAndPrivacyPolicy.id,
-							children:
-								'Do you agree to our Terms of Service and Privacy Policy?',
-						}}
-						buttonProps={getInputProps(
-							fields.agreeToTermsOfServiceAndPrivacyPolicy,
-							{ type: 'checkbox' },
-						)}
-						errors={fields.agreeToTermsOfServiceAndPrivacyPolicy.errors}
-					/>
-					<input {...getInputProps(fields.redirectTo, { type: 'hidden' })} />
+				<CheckboxField
+					labelProps={{
+						htmlFor: fields.agreeToTermsOfServiceAndPrivacyPolicy.id,
+						children:
+							'Do you agree to our Terms of Service and Privacy Policy?',
+					}}
+					buttonProps={getInputProps(
+						fields.agreeToTermsOfServiceAndPrivacyPolicy,
+						{ type: 'checkbox' },
+					)}
+					errors={fields.agreeToTermsOfServiceAndPrivacyPolicy.errors}
+				/>
+				<CheckboxField
+					labelProps={{
+						htmlFor: fields.remember.id,
+						children: 'Remember me',
+					}}
+					buttonProps={getInputProps(fields.remember, { type: 'checkbox' })}
+					errors={fields.remember.errors}
+				/>
+				<input {...getInputProps(fields.redirectTo, { type: 'hidden' })} />
 					<ErrorList errors={form.errors} id={form.errorId} />
 					<StatusButton
 						className="w-full bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))]"

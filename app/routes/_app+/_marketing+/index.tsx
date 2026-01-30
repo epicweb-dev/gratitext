@@ -215,15 +215,11 @@ export default function Index() {
 								No credit card required to get started.
 							</p>
 						</div>
-						<div className="flex flex-col gap-3 sm:flex-row">
-							<Input
-								placeholder="Your phone number"
-								className="bg-[hsl(var(--palette-cream))] text-[hsl(var(--palette-chocolate))] placeholder:text-[hsl(var(--palette-chestnut))]/70"
-							/>
-							<Button className="bg-[hsl(var(--palette-chestnut))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-hot-fire-red))]">
-								Get started
-							</Button>
-						</div>
+					<div className="flex flex-col gap-3 sm:flex-row">
+						<Button asChild className="bg-[hsl(var(--palette-chestnut))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-hot-fire-red))]">
+							<Link to="/login">Get started</Link>
+						</Button>
+					</div>
 					</div>
 				</div>
 			</section>
