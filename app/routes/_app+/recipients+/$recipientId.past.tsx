@@ -3,8 +3,8 @@ import {
 	type MetaFunction,
 	json,
 	type LoaderFunctionArgs,
-} from '@remix-run/node'
-import { Link, useLoaderData, useSearchParams } from '@remix-run/react'
+} from 'react-router'
+import { Link, useLoaderData, useSearchParams } from 'react-router'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { SearchBar } from '#app/components/search-bar.tsx'
 import { Button } from '#app/components/ui/button.tsx'

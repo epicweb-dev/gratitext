@@ -5,7 +5,7 @@
 // 	export function foo(): void;
 // }
 
-declare module 'virtual:remix/server-build' {
-	const build: import('@remix-run/node').ServerBuild
+declare module 'virtual:react-router/server-build' {
+	const build: import('react-router').ServerBuild
 	export = build
 }

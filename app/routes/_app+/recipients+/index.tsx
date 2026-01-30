@@ -1,6 +1,5 @@
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
-import { type SerializeFrom } from '@remix-run/node'
-import { Link, type MetaFunction, useOutletContext } from '@remix-run/react'
+import { Link, type MetaFunction, type SerializeFrom, useOutletContext } from 'react-router'
 import { ButtonLink } from '#app/components/ui/button.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { type loader as rootLoader } from '#app/root.tsx'

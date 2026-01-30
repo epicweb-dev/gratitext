@@ -10,8 +10,9 @@ import {
 	redirect,
 	type ActionFunctionArgs,
 	type MetaFunction,
-} from '@remix-run/node'
-import { Link, useFetcher } from '@remix-run/react'
+	Link,
+	useFetcher,
+} from 'react-router'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'

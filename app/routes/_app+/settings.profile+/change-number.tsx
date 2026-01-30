@@ -6,8 +6,8 @@ import {
 	redirect,
 	type ActionFunctionArgs,
 	type LoaderFunctionArgs,
-} from '@remix-run/node'
-import { Form, Link, useActionData, useLoaderData } from '@remix-run/react'
+} from 'react-router'
+import { Form, Link, useActionData, useLoaderData } from 'react-router'
 import { z } from 'zod'
 import { ErrorList, Field } from '#app/components/forms.tsx'
 import { Button } from '#app/components/ui/button.tsx'

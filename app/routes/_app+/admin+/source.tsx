@@ -5,8 +5,8 @@ import {
 	type LoaderFunctionArgs,
 	json,
 	type ActionFunctionArgs,
-} from '@remix-run/node'
-import { useFetcher, useLoaderData } from '@remix-run/react'
+} from 'react-router'
+import { useFetcher, useLoaderData } from 'react-router'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.js'
 import { Field } from '#app/components/forms.js'

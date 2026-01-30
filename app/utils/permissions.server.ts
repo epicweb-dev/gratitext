@@ -1,4 +1,4 @@
-import { json } from '@remix-run/node'
+import { json } from 'react-router'
 import { requireUserId } from './auth.server.ts'
 import { prisma } from './db.server.ts'
 import { type PermissionString, parsePermissionString } from './user.ts'

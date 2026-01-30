@@ -1,6 +1,5 @@
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
-import { json, redirect, type LoaderFunctionArgs } from '@remix-run/node'
-import { Link, useLoaderData } from '@remix-run/react'
+import { json, redirect, type LoaderFunctionArgs, Link, useLoaderData } from 'react-router'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { ErrorList } from '#app/components/forms.tsx'

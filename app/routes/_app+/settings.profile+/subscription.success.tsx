@@ -1,5 +1,5 @@
 import { invariantResponse } from '@epic-web/invariant'
-import { redirect, type LoaderFunctionArgs } from '@remix-run/node'
+import { redirect, type LoaderFunctionArgs } from 'react-router'
 import { requireUserId } from '#app/utils/auth.server.js'
 import { prisma } from '#app/utils/db.server.js'
 import { getCustomerIdFromSession } from '#app/utils/stripe.server.ts'

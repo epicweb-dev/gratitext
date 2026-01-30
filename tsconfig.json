@@ -1,7 +1,9 @@
 {
-	"include": ["**/*.ts", "**/*.tsx"],
+	"include": ["**/*.ts", "**/*.tsx", ".react-router/types/**/*"],
 	"extends": ["@epic-web/config/typescript"],
 	"compilerOptions": {
+		"rootDirs": [".", "./.react-router/types"],
+		"types": ["@react-router/node", "vite/client"],
 		"paths": {
 			"#app/*": ["./app/*"],
 			"#tests/*": ["./tests/*"],

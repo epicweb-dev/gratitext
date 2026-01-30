@@ -6,8 +6,10 @@ import {
 	type ActionFunctionArgs,
 	type LoaderFunctionArgs,
 	type SerializeFrom,
-} from '@remix-run/node'
-import { Link, useFetcher, useLoaderData } from '@remix-run/react'
+	Link,
+	useFetcher,
+	useLoaderData,
+} from 'react-router'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { ErrorList } from '#app/components/forms.js'

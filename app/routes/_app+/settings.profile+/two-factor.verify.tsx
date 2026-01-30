@@ -6,13 +6,8 @@ import {
 	redirect,
 	type LoaderFunctionArgs,
 	type ActionFunctionArgs,
-} from '@remix-run/node'
-import {
-	Form,
-	useActionData,
-	useLoaderData,
-	useNavigation,
-} from '@remix-run/react'
+} from 'react-router'
+import { Form, useActionData, useLoaderData, useNavigation } from 'react-router'
 import * as QRCode from 'qrcode'
 import { z } from 'zod'
 import { ErrorList, OTPField } from '#app/components/forms.tsx'

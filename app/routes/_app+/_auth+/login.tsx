@@ -10,8 +10,11 @@ import {
 	type ActionFunctionArgs,
 	type LoaderFunctionArgs,
 	type MetaFunction,
-} from '@remix-run/node'
-import { Form, Link, useActionData, useSearchParams } from '@remix-run/react'
+	Form,
+	Link,
+	useActionData,
+	useSearchParams,
+} from 'react-router'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'

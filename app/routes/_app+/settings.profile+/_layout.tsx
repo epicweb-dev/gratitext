@@ -1,7 +1,6 @@
 import { invariantResponse } from '@epic-web/invariant'
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
-import { Link, Outlet, useMatches } from '@remix-run/react'
+import { json, type LoaderFunctionArgs, Link, Outlet, useMatches } from 'react-router'
 import { z } from 'zod'
 import { Spacer } from '#app/components/spacer.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'

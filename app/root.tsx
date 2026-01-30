@@ -1,19 +1,16 @@
 import {
 	json,
 	type HeadersFunction,
+	Links,
 	type LinksFunction,
 	type LoaderFunctionArgs,
-	type MetaFunction,
-} from '@remix-run/node'
-import {
-	Links,
 	Meta,
+	type MetaFunction,
 	Outlet,
 	Scripts,
 	ScrollRestoration,
 	useLoaderData,
-} from '@remix-run/react'
-import { withSentry } from '@sentry/remix'
+} from 'react-router'
 import { HoneypotProvider } from 'remix-utils/honeypot/react'
 import { GeneralErrorBoundary } from './components/error-boundary.tsx'
 import { EpicProgress } from './components/progress-bar.tsx'
@@ -205,7 +202,7 @@ function AppWithProviders() {
 	)
 }
 
-export default withSentry(AppWithProviders)
+export default AppWithProviders
 
 export function ErrorBoundary() {
 	// the nonce doesn't rely on the loader so we can access that
@@ -214,7 +211,7 @@ export function ErrorBoundary() {
 	// NOTE: you cannot use useLoaderData in an ErrorBoundary because the loader
 	// likely failed to run so we have to do the best we can.
 	// We could probably do better than this (it's possible the loader did run).
-	// This would require a change in Remix.
+	// This would require a change in React Router.
 
 	// Just make sure your root route never errors out and you'll always be able
 	// to give the user a better UX.

@@ -1,5 +1,10 @@
-import { json, type LoaderFunctionArgs, type SerializeFrom } from '@remix-run/node'
-import { Outlet, useLoaderData } from '@remix-run/react'
+import {
+	json,
+	type LoaderFunctionArgs,
+	type SerializeFrom,
+	Outlet,
+	useLoaderData,
+} from 'react-router'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { requireUserId } from '#app/utils/auth.server.js'
 import { CronParseError, getNextScheduledTime } from '#app/utils/cron.server.ts'

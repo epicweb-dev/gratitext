@@ -6,8 +6,10 @@ import {
 	type ActionFunctionArgs,
 	type LoaderFunctionArgs,
 	type MetaFunction,
-} from '@remix-run/node'
-import { Form, useActionData, useLoaderData } from '@remix-run/react'
+	Form,
+	useActionData,
+	useLoaderData,
+} from 'react-router'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { ErrorList, Field } from '#app/components/forms.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'

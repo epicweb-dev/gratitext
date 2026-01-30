@@ -1,12 +1,12 @@
 import { PassThrough } from 'stream'
+import { createReadableStreamFromReadable } from '@react-router/node'
 import {
-	createReadableStreamFromReadable,
-	type LoaderFunctionArgs,
 	type ActionFunctionArgs,
 	type HandleDocumentRequestFunction,
-} from '@remix-run/node'
-import { RemixServer } from '@remix-run/react'
-import * as Sentry from '@sentry/remix'
+	type LoaderFunctionArgs,
+	ServerRouter,
+} from 'react-router'
+import * as Sentry from '@sentry/react-router'
 import chalk from 'chalk'
 import { isbot } from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
@@ -83,7 +83,7 @@ export default async function handleRequest(...args: DocRequestArgs) {
 
 		const { pipe, abort } = renderToPipeableStream(
 			<NonceProvider value={nonce}>
-				<RemixServer context={remixContext} url={request.url} />
+				<ServerRouter context={remixContext} url={request.url} />
 			</NonceProvider>,
 			{
 				[callbackName]: () => {
@@ -132,19 +132,13 @@ export function handleError(
 	error: unknown,
 	{ request }: LoaderFunctionArgs | ActionFunctionArgs,
 ): void {
-	// Skip capturing if the request is aborted as Remix docs suggest
-	// Ref: https://remix.run/docs/en/main/file-conventions/entry.server#handleerror
+	// Skip capturing if the request is aborted as docs suggest
 	if (request.signal.aborted) {
 		return
 	}
 	if (error instanceof Error) {
 		console.error(chalk.red(error.stack))
-		void Sentry.captureRemixServerException(
-			error,
-			'remix.server',
-			request,
-			true,
-		)
+		Sentry.captureException(error)
 	} else {
 		console.error(chalk.red(error))
 		Sentry.captureException(error)
