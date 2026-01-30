@@ -71,7 +71,7 @@ export default function Subscribe() {
 					</p>
 					</div>
 				<div className="mt-6">
-					{isBasic ? (
+					{isBasic || isPremium ? (
 						<Button variant="secondary" disabled>
 							Select
 						</Button>

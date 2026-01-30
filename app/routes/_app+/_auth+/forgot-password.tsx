@@ -44,10 +44,15 @@ function getIdentifier({
 	phoneNumber: string
 }) {
 	const raw = phoneNumber.trim()
-	if (/[a-z]/i.test(raw) || raw.startsWith('+') || raw.includes('-')) {
+	if (/[a-z]/i.test(raw)) {
 		return raw
 	}
-	return `${countryCode}${raw}`.replace(/\s+/g, '')
+	// Extract digits only and prepend country code
+	const digitsOnly = raw.replace(/\D/g, '')
+	if (raw.startsWith('+')) {
+		return `+${digitsOnly}`
+	}
+	return `${countryCode}${digitsOnly}`.replace(/\s+/g, '')
 }
 
 export async function action({ request }: ActionFunctionArgs) {
