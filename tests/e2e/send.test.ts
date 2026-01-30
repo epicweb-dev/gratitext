@@ -40,11 +40,11 @@ test('Users can write and send a message immediately', async ({
 	await page.waitForLoadState('domcontentloaded')
 
 	const { content: textMessageContent } = createMessage()
-	const messageTextbox = page.getByRole('main').getByRole('textbox', { name: /message/i })
+	const messageTextbox = page.getByRole('textbox', { name: /message/i })
 	await messageTextbox.waitFor({ state: 'visible' })
 	await messageTextbox.fill(textMessageContent)
 
-	await page.getByRole('main').getByRole('button', { name: /save/i }).click()
+	await page.getByRole('button', { name: /save/i }).click()
 
 	await expect(page.getByText(/message created/i)).toBeVisible({ timeout: 15000 })
 
@@ -101,7 +101,7 @@ test('Scheduled messages go out on schedule', async ({ page, login }) => {
 
 	await page.goto(`/recipients/${recipient.id}/past`)
 	await page.waitForLoadState('domcontentloaded')
-	await expect(page.getByText(/no past messages yet/i)).toBeVisible({
+	await expect(page.getByText(/no past messages/i)).toBeVisible({
 		timeout: 15000,
 	})
 
