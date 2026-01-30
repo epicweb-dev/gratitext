@@ -8,121 +8,210 @@ export const meta: MetaFunction = () => [{ title: 'GratiText' }]
 export default function Index() {
 	const user = useOptionalUser()
 	return (
-		<main className="bg-gray-100 py-12">
-			<section className="container mx-auto px-4">
-				<div className="mb-12">
-					<h1 className="text-center text-4xl font-bold text-gray-900">
-						Welcome to GratiText
-					</h1>
-					<p className="mt-4 text-center text-lg text-gray-700">
-						Strengthen your relationships with regular personalized messages of
-						love and gratitude.
+		<main className="bg-background pb-16 pt-10">
+			<section className="container flex flex-col gap-12 lg:flex-row lg:items-center">
+				<div className="flex-1 space-y-6">
+					<p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+						GratiText
 					</p>
-					<div className="mt-12 flex flex-col items-center gap-6 md:flex-row">
-						<div className="flex flex-col items-center md:mr-6 md:w-1/2">
-							<img
-								src="/images/smiling-phone-flowers.jpg"
-								alt="Attention grabbing visual"
-								className="aspect-square w-full max-w-md rounded-lg object-cover shadow-lg"
-							/>
-							<p className="mt-2 text-sm text-gray-500">
-								Photo by{' '}
-								<a
-									className="underline"
-									href="https://unsplash.com/@goodfacesagency?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
-								>
-									Good Faces
-								</a>{' '}
-								on{' '}
-								<a
-									className="underline"
-									href="https://unsplash.com/photos/a-woman-walking-down-the-street-looking-at-her-cell-phone-58xYWBSr0aQ?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
-								>
-									Unsplash
-								</a>
+					<h1 className="text-4xl font-bold text-foreground md:text-5xl">
+						Thoughtful Connections Made Simple
+					</h1>
+					<p className="max-w-xl text-body-md text-muted-foreground">
+						Strengthen your relationships with regular, personal messages of
+						love and gratitude. GratiText keeps you close to the people who
+						matter most, without losing the human touch.
+					</p>
+					<div className="flex flex-wrap gap-4">
+						<Button asChild size="lg">
+							{user ? (
+								<Link to="/recipients">Open dashboard</Link>
+							) : (
+								<Link to="/login">Get started</Link>
+							)}
+						</Button>
+						<Button asChild variant="secondary" size="lg">
+							<Link to="/about">Learn more</Link>
+						</Button>
+					</div>
+				</div>
+				<div className="flex flex-1 justify-center">
+					<div className="max-w-md">
+						<img
+							src="/images/smiling-phone-flowers.jpg"
+							alt="Smiling person holding flowers and a phone"
+							className="aspect-square w-full rounded-[32px] border border-border object-cover shadow-lg"
+						/>
+						<p className="mt-2 text-xs text-muted-secondary-foreground">
+							Photo by{' '}
+							<a
+								className="underline"
+								href="https://unsplash.com/@goodfacesagency?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
+							>
+								Good Faces
+							</a>{' '}
+							on{' '}
+							<a
+								className="underline"
+								href="https://unsplash.com/photos/a-woman-walking-down-the-street-looking-at-her-cell-phone-58xYWBSr0aQ?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
+							>
+								Unsplash
+							</a>
+						</p>
+					</div>
+				</div>
+			</section>
+
+			<section className="mt-16 bg-[hsl(var(--palette-green-700))] py-14 text-[hsl(var(--palette-cream))] dark:bg-[hsl(var(--palette-green-900))]">
+				<div className="container text-center">
+					<p className="text-xs font-semibold uppercase tracking-[0.3em] text-[hsl(var(--palette-green-100))]">
+						Messages written by you
+					</p>
+					<h2 className="mt-3 text-3xl font-bold md:text-4xl">
+						Messages written by you... Not by AI.
+					</h2>
+					<p className="mx-auto mt-4 max-w-2xl text-base text-[hsl(var(--palette-green-100))]">
+						Our platform schedules and delivers personal, heartfelt messages on
+						your schedule, so you can stay connected without losing your voice.
+					</p>
+				</div>
+			</section>
+
+			<section className="container py-16">
+				<div className="mx-auto max-w-2xl text-center">
+					<p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+						How it works
+					</p>
+					<h2 className="mt-3 text-3xl font-bold text-foreground md:text-4xl">
+						How does GratiText work?
+					</h2>
+					<p className="mt-4 text-body-sm text-muted-foreground">
+						Whether it's a simple thank you or a meaningful reminder of your
+						affection, GratiText helps you make a lasting impact on the people
+						you care about.
+					</p>
+				</div>
+				<div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+					{[
+						{
+							title: 'Sign Up',
+							description:
+								'Create an account and start sending thoughtful messages to your loved ones.',
+						},
+						{
+							title: 'Add a Loved One',
+							description:
+								'Add the phone number of your loved one to get started.',
+						},
+						{
+							title: 'Select a Schedule',
+							description: 'Choose how often you want to send messages.',
+						},
+						{
+							title: 'Write a Personal Message',
+							description:
+								'Craft meaningful messages that will be sent to your loved ones.',
+						},
+						{
+							title: 'Messages Sent',
+							description:
+								'Our system sends your messages automatically on the schedule.',
+						},
+						{
+							title: 'Reminders',
+							description:
+								'Get notified if you have not yet queued up a message for delivery.',
+						},
+					].map((step, index) => (
+						<div
+							key={step.title}
+							className="rounded-[28px] border border-border bg-card p-6 shadow-sm"
+						>
+							<p className="text-3xl font-bold text-[hsl(var(--palette-chestnut))]">
+								{String(index + 1).padStart(2, '0')}
+							</p>
+							<h3 className="mt-2 text-xl font-bold text-foreground">
+								{step.title}
+							</h3>
+							<p className="mt-2 text-body-xs text-muted-foreground">
+								{step.description}
 							</p>
 						</div>
-						<div className="flex flex-col justify-between self-stretch text-body-md text-gray-700 md:mt-0 md:w-1/2">
-							<div className="flex flex-col gap-2">
-								<p>
-									GratiText empowers you to express love and appreciation
-									effortlessly.
-								</p>
-								<p>
-									Our platform schedules and delivers personal heartfelt
-									messages from you, making it easy to{' '}
-									<strong>stay connected</strong> and <em>nurture</em> your most
-									important relationships.
-								</p>
-								<p>
-									Whether it's a simple thank you or a meaningful reminder of
-									your affection, GratiText helps you make a{' '}
-									<strong>lasting impact</strong> on the people you care about.
+					))}
+				</div>
+			</section>
+
+			<section className="bg-muted py-16">
+				<div className="container">
+					<div className="mx-auto max-w-2xl text-center">
+						<p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+							Pricing
+						</p>
+						<h2 className="mt-3 text-3xl font-bold text-foreground md:text-4xl">
+							Affordable pricing plans
+						</h2>
+						<p className="mt-4 text-body-sm text-muted-foreground">
+							Choose a plan that matches how often you want to send messages.
+						</p>
+					</div>
+					<div className="mt-10 grid gap-6 md:grid-cols-2">
+						<div className="rounded-[28px] border border-border bg-card p-6 shadow-sm">
+							<div className="flex items-center justify-between">
+								<div>
+									<h3 className="text-xl font-bold text-foreground">Basic</h3>
+									<p className="text-body-xs text-muted-foreground">
+										1 message per day
+									</p>
+								</div>
+								<p className="text-2xl font-bold text-[hsl(var(--palette-cloud))]">
+									$4.99
 								</p>
 							</div>
-							<p className="align-baseline text-body-2xl">
-								<small>
-									Messages written by you... A human. <strong>Not</strong> by
-									AI.
-								</small>
-							</p>
+							<div className="mt-6">
+								<Button variant="secondary">Get started</Button>
+							</div>
+						</div>
+						<div className="rounded-[28px] border border-border bg-card p-6 shadow-sm">
+							<div className="flex items-center justify-between">
+								<div>
+									<h3 className="text-xl font-bold text-foreground">Premium</h3>
+									<p className="text-body-xs text-muted-foreground">
+										10 messages per day
+									</p>
+								</div>
+								<p className="text-2xl font-bold text-[hsl(var(--palette-chestnut))]">
+									$14.99
+								</p>
+							</div>
+							<div className="mt-6">
+								<Button>Get started</Button>
+							</div>
 						</div>
 					</div>
 				</div>
-				<div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-					<div className="rounded-lg bg-white p-6 shadow-lg">
-						<h2 className="text-2xl font-bold text-gray-800">Sign Up</h2>
-						<p className="mt-4 text-gray-600">
-							Create an account and start sending thoughtful messages to your
-							loved ones.
+			</section>
+
+			<section className="container py-16">
+				<div className="flex flex-col gap-8 rounded-[32px] bg-[hsl(var(--palette-dust-pink))] px-8 py-12 text-[hsl(var(--palette-chocolate))] md:flex-row md:items-center md:justify-between">
+					<div className="space-y-3">
+						<p className="text-xs font-semibold uppercase tracking-[0.3em] text-[hsl(var(--palette-chestnut))]">
+							Ready to start
 						</p>
-					</div>
-					<div className="rounded-lg bg-white p-6 shadow-lg">
-						<h2 className="text-2xl font-bold text-gray-800">
-							Add a Loved One
+						<h2 className="text-3xl font-bold md:text-4xl">
+							Create your account today and get 2 weeks for free.
 						</h2>
-						<p className="mt-4 text-gray-600">
-							Add the phone number of your loved one to get started.
+						<p className="text-body-sm text-[hsl(var(--palette-chestnut))]">
+							No credit card required to get started.
 						</p>
 					</div>
-					<div className="rounded-lg bg-white p-6 shadow-lg">
-						<h2 className="text-2xl font-bold text-gray-800">
-							Select a Schedule
-						</h2>
-						<p className="mt-4 text-gray-600">
-							Choose how often you want to send messages.
-						</p>
+					<div className="flex flex-col gap-3 sm:flex-row">
+						<Button className="bg-[hsl(var(--palette-chestnut))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-hot-fire-red))]">
+							Get started
+						</Button>
+						<Button variant="secondary" className="border-[hsl(var(--palette-chestnut))] text-[hsl(var(--palette-chestnut))] hover:bg-[hsl(var(--palette-cream))]">
+							View pricing
+						</Button>
 					</div>
-					<div className="rounded-lg bg-white p-6 shadow-lg">
-						<h2 className="text-2xl font-bold text-gray-800">
-							Write a Personal Message
-						</h2>
-						<p className="mt-4 text-gray-600">
-							Craft meaningful messages that will be sent to your loved ones.
-						</p>
-					</div>
-					<div className="rounded-lg bg-white p-6 shadow-lg">
-						<h2 className="text-2xl font-bold text-gray-800">Messages Sent</h2>
-						<p className="mt-4 text-gray-600">
-							Our system sends your messages to your loved ones automatically on
-							the schedule.
-						</p>
-					</div>
-					<div className="rounded-lg bg-white p-6 shadow-lg">
-						<h2 className="text-2xl font-bold text-gray-800">Reminders</h2>
-						<p className="mt-4 text-gray-600">
-							Get notified if you've not yet queued up a message for delivery.
-						</p>
-					</div>
-				</div>
-				<div className="mt-12 text-center">
-					<Button asChild>
-						{user ? (
-							<Link to="/recipients">Your Recipients</Link>
-						) : (
-							<Link to="/login">Get Started</Link>
-						)}
-					</Button>
 				</div>
 			</section>
 		</main>
