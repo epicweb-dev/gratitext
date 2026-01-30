@@ -10,7 +10,7 @@ import {
 import { Link, useFetcher, useLoaderData } from '@remix-run/react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
-import { ErrorList, TextareaField } from '#app/components/forms.js'
+import { ErrorList } from '#app/components/forms.js'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.js'
 import { SimpleTooltip } from '#app/components/ui/tooltip.js'
@@ -290,40 +290,81 @@ async function updateMessageOrderAction({ formData }: MessageActionArgs) {
 
 export default function RecipientRoute() {
 	const data = useLoaderData<typeof loader>()
+	const newMessageFetcher = useFetcher<typeof action>()
+	const isCreating = newMessageFetcher.state !== 'idle'
 
 	return (
-		<>
+		<div className="flex flex-col gap-8">
 			{data.cronError ? (
-				<div className="mb-4 rounded-md border border-destructive bg-destructive/10 p-4 text-destructive">
-					<strong className="font-bold">Invalid Cron Schedule:</strong>{' '}
-					{data.cronError}
-					<br />
+				<div className="rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-foreground-destructive">
+					<strong className="font-semibold">Invalid Schedule:</strong>{' '}
+					{data.cronError}{' '}
 					<Link to="edit" className="underline">
-						Please update the schedule
+						Update the schedule
 					</Link>
 				</div>
 			) : null}
-			<ul className="flex flex-col gap-6 sm:gap-12">
+			<ul className="flex flex-col gap-6">
 				{data.futureMessages.length ? (
-					data.futureMessages.map((m) => (
-						<li
-							key={m.id}
-							className="flex flex-col gap-4 sm:flex-row sm:justify-start sm:gap-2"
-						>
-							<MessageForms message={m} />
+					data.futureMessages.map((m, index) => (
+						<li key={m.id} className="flex flex-col gap-4">
+							<MessageForms message={m} index={index} />
 						</li>
 					))
 				) : (
-					<Link to="new" className="underline">
+					<Link to="new" className="text-sm font-semibold text-foreground underline">
 						Create a new message
 					</Link>
 				)}
 			</ul>
-		</>
+			<div className="flex flex-col gap-2">
+				<newMessageFetcher.Form
+					method="POST"
+					action="new"
+					className="rounded-full border border-border bg-card p-2 shadow-sm"
+				>
+					<label htmlFor="new-message" className="sr-only">
+						Add a new message
+					</label>
+					<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+						<textarea
+							id="new-message"
+							name="content"
+							placeholder="I am endlessly grateful for your love, your smile, and the joy you bring..."
+							className="flex-1 resize-none rounded-full bg-transparent px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none"
+							rows={2}
+							required
+						/>
+						<StatusButton
+							status={isCreating ? 'pending' : 'idle'}
+							type="submit"
+							className="self-end bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))] sm:self-auto"
+						>
+							<Icon name="check">Add to Queue</Icon>
+						</StatusButton>
+					</div>
+				</newMessageFetcher.Form>
+				{newMessageFetcher.data?.result.error ? (
+					<ErrorList
+						errors={
+							newMessageFetcher.data.result.error.content ??
+							newMessageFetcher.data.result.error[''] ??
+							[]
+						}
+					/>
+				) : null}
+			</div>
+		</div>
 	)
 }
 
-function MessageForms({ message }: { message: FutureMessage }) {
+function MessageForms({
+	message,
+	index,
+}: {
+	message: FutureMessage
+	index: number
+}) {
 	const updateContentFetcher = useFetcher<typeof updateMessageContentAction>()
 	const [updateContentForm, updateContentFields] = useForm({
 		id: `message-form-${message.id}`,
@@ -335,52 +376,73 @@ function MessageForms({ message }: { message: FutureMessage }) {
 		},
 		shouldRevalidate: 'onBlur',
 	})
+	const isPrimary = index % 2 === 0
+	const cardTone = isPrimary
+		? 'bg-[hsl(var(--palette-green-500))]'
+		: 'bg-[hsl(var(--palette-blues))]'
+	const headerText = message.sendAtDisplay
+		? `Scheduled for ${message.sendAtDisplay}`
+		: 'Message'
 
 	return (
-		<>
-			<div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center">
-				<div className="flex justify-center gap-2 sm:flex-col">
-					<UpdateOrderForm message={message} direction="earlier" />
-					<UpdateOrderForm message={message} direction="later" />
-				</div>
-				<updateContentFetcher.Form
-					method="POST"
-					{...getFormProps(updateContentForm)}
-					className="flex-1"
-				>
-					<input type="hidden" name="id" value={message.id} />
-					<TextareaField
-						labelProps={{
-							children: message.sendAtDisplay
-								? `Message (${message.sendAtDisplay})`
-								: 'Message',
-						}}
-						textareaProps={{
-							...getTextareaProps(updateContentFields.content),
-						}}
-						errors={updateContentFields.content.errors}
-					/>
-				</updateContentFetcher.Form>
-				<div className="flex flex-row gap-2 sm:flex-col">
-					<StatusButton
-						form={updateContentForm.id}
-						status={updateContentFetcher.state !== 'idle' ? 'pending' : 'idle'}
-						className="flex-1 sm:w-full"
-						type="submit"
-						name="intent"
-						value={updateMessageContentActionIntent}
-					>
-						Save
-					</StatusButton>
-					<ErrorList
-						id={updateContentForm.errorId}
-						errors={updateContentForm.errors}
-					/>
-					<SendNowForm message={message} />
-					<DeleteForm message={message} />
-				</div>
+		<div className="flex flex-col gap-4 lg:flex-row">
+			<div className="flex gap-2 lg:flex-col">
+				<UpdateOrderForm message={message} direction="earlier" />
+				<UpdateOrderForm message={message} direction="later" />
 			</div>
-		</>
+			<div className="flex-1 space-y-3">
+				<div className={`rounded-[28px] px-6 py-5 text-[hsl(var(--palette-cream))] shadow-sm ${cardTone}`}>
+					<div className="flex items-center justify-between gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[hsl(var(--palette-cream))]">
+						<div className="flex items-center gap-2">
+							<Icon name={isPrimary ? 'check' : 'clock'} size="sm" />
+							<span>{headerText}</span>
+						</div>
+						<div className="flex items-center gap-2">
+							<StatusButton
+								form={updateContentForm.id}
+								status={updateContentFetcher.state !== 'idle' ? 'pending' : 'idle'}
+								className="gap-0 text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-cream))/0.15]"
+								size="icon"
+								variant="ghost"
+								type="submit"
+								name="intent"
+								value={updateMessageContentActionIntent}
+							>
+								<Icon name="check" size="sm" />
+								<span className="sr-only">Save</span>
+							</StatusButton>
+							<SendNowForm message={message} />
+							<DeleteForm message={message} />
+						</div>
+					</div>
+					<updateContentFetcher.Form
+						method="POST"
+						{...getFormProps(updateContentForm)}
+					>
+						<input type="hidden" name="id" value={message.id} />
+						<label
+							htmlFor={updateContentFields.content.id}
+							className="sr-only"
+						>
+							Message content
+						</label>
+						<textarea
+							{...getTextareaProps(updateContentFields.content)}
+							className="mt-4 w-full resize-none bg-transparent text-sm leading-relaxed text-[hsl(var(--palette-cream))] placeholder:text-[hsl(var(--palette-cream))]/80 focus-visible:outline-none"
+							rows={4}
+						/>
+					</updateContentFetcher.Form>
+				</div>
+				<ErrorList
+					id={updateContentForm.errorId}
+					errors={updateContentForm.errors}
+				/>
+				<ErrorList
+					id={updateContentFields.content.errorId}
+					errors={updateContentFields.content.errors}
+				/>
+			</div>
+		</div>
 	)
 }
 
@@ -419,17 +481,22 @@ function UpdateOrderForm({
 				content={direction === 'later' ? 'Move earlier' : 'Move later'}
 			>
 				<StatusButton
-					variant="ghost"
+					variant="secondary"
+					size="icon"
 					status={fetcher.state !== 'idle' ? 'pending' : 'idle'}
+					className="gap-0 text-muted-foreground hover:text-foreground"
 					type="submit"
 					name="intent"
 					value={updateMessageOrderActionIntent}
 				>
 					{direction === 'later' ? (
-						<Icon size="lg" name="chevron-down" />
+						<Icon size="sm" name="chevron-down" />
 					) : (
-						<Icon size="lg" name="chevron-up" />
+						<Icon size="sm" name="chevron-up" />
 					)}
+					<span className="sr-only">
+						{direction === 'later' ? 'Move earlier' : 'Move later'}
+					</span>
 				</StatusButton>
 			</SimpleTooltip>
 			<ErrorList id={fields.order.errorId} errors={fields.order.errors} />
@@ -454,14 +521,16 @@ function SendNowForm({ message }: { message: Pick<FutureMessage, 'id'> }) {
 		<fetcher.Form method="POST" {...getFormProps(form)}>
 			<input type="hidden" name="id" value={message.id} />
 			<StatusButton
-				variant="secondary"
-				className="w-full"
+				variant="ghost"
+				size="icon"
+				className="gap-0 text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-cream))/0.15]"
 				status={fetcher.state !== 'idle' ? 'pending' : 'idle'}
 				type="submit"
 				name="intent"
 				value={sendMessageActionIntent}
 			>
-				Send Now
+				<Icon name="send" size="sm" />
+				<span className="sr-only">Send now</span>
 			</StatusButton>
 			<ErrorList id={form.errorId} errors={form.errors} />
 		</fetcher.Form>
@@ -481,6 +550,9 @@ function DeleteForm({ message }: { message: Pick<FutureMessage, 'id'> }) {
 		shouldRevalidate: 'onBlur',
 	})
 	const dc = useDoubleCheck()
+	const deleteClassName = dc.doubleCheck
+		? 'gap-0 data-[safe-delay=true]:opacity-50'
+		: 'gap-0 text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-cream))/0.15] data-[safe-delay=true]:opacity-50'
 
 	return (
 		<fetcher.Form method="POST" {...getFormProps(form)}>
@@ -488,14 +560,18 @@ function DeleteForm({ message }: { message: Pick<FutureMessage, 'id'> }) {
 			<StatusButton
 				variant={dc.doubleCheck ? 'destructive' : 'ghost'}
 				status={fetcher.state !== 'idle' ? 'pending' : 'idle'}
-				className="w-full data-[safe-delay=true]:opacity-50"
+				size="icon"
+				className={deleteClassName}
 				{...dc.getButtonProps({
 					type: 'submit',
 					name: 'intent',
 					value: deleteMessageActionIntent,
 				})}
 			>
-				{dc.doubleCheck ? 'Confirm' : 'Delete'}
+				<Icon name={dc.doubleCheck ? 'check' : 'trash'} size="sm" />
+				<span className="sr-only">
+					{dc.doubleCheck ? 'Confirm delete' : 'Delete'}
+				</span>
 			</StatusButton>
 			<ErrorList id={form.errorId} errors={form.errors} />
 		</fetcher.Form>

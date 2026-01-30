@@ -6,31 +6,31 @@ import * as React from 'react'
 import { cn } from '#app/utils/misc.tsx'
 
 const buttonVariants = cva(
-	'inline-flex items-center justify-center rounded-md text-sm font-medium outline-none ring-ring ring-offset-2 ring-offset-background transition-colors focus-within:ring-2 focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50',
+	'inline-flex items-center justify-center gap-2 rounded-full text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50',
 	{
 		variants: {
 			variant: {
-				default: 'bg-primary text-primary-foreground hover:bg-primary/80',
+				default: 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90',
 				destructive:
-					'bg-destructive text-destructive-foreground hover:bg-destructive/80',
+					'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90',
 				outline:
-					'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
+					'border border-border bg-card text-foreground hover:bg-muted',
 				secondary:
-					'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-				ghost: 'hover:bg-accent hover:text-accent-foreground',
+					'border border-border bg-transparent text-foreground hover:bg-muted',
+				ghost: 'text-foreground hover:bg-muted',
 				link: 'text-primary underline-offset-4 hover:underline',
 			},
 			size: {
-				default: 'h-10 px-4 py-2',
-				wide: 'px-24 py-5',
-				sm: 'h-9 rounded-md px-3',
-				lg: 'h-11 rounded-md px-8',
-				pill: 'px-12 py-3 leading-3',
-				icon: 'h-10 w-10',
+				default: 'h-12 px-6',
+				wide: 'h-12 px-14',
+				sm: 'h-10 px-4 text-xs',
+				lg: 'h-14 px-8 text-base',
+				pill: 'h-10 px-8 text-sm',
+				icon: 'h-10 w-10 p-0',
 			},
 			icon: {
-				true: 'flex h-10 w-10 items-center justify-center rounded-full p-2',
-				false: 'px-6 py-2',
+				true: 'h-10 w-10 rounded-full p-2',
+				false: '',
 			},
 		},
 		defaultVariants: {

@@ -82,15 +82,18 @@ export default function ResetPasswordPage() {
 	})
 
 	return (
-		<div className="container flex flex-col justify-center pb-32 pt-20">
+		<div className="container flex flex-col items-center justify-center pb-32 pt-20">
 			<div className="text-center">
-				<h1 className="text-h1">Password Reset</h1>
+				<p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+					GratiText
+				</p>
+				<h1 className="mt-3 text-h1">Reset Your Password</h1>
 				<p className="mt-3 text-body-md text-muted-foreground">
-					Hi, {data.resetPasswordUsername}. No worries. It happens all the time.
+					Hi, {data.resetPasswordUsername}. Let's set a new password.
 				</p>
 			</div>
-			<div className="mx-auto mt-16 min-w-full max-w-sm sm:min-w-[368px]">
-				<Form method="POST" {...getFormProps(form)}>
+			<div className="mt-8 w-full max-w-lg rounded-[32px] border border-border bg-card px-6 py-8 shadow-sm">
+				<Form method="POST" {...getFormProps(form)} className="space-y-6">
 					<Field
 						labelProps={{
 							htmlFor: fields.password.id,
@@ -118,7 +121,7 @@ export default function ResetPasswordPage() {
 					<ErrorList errors={form.errors} id={form.errorId} />
 
 					<StatusButton
-						className="w-full"
+						className="w-full bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))]"
 						status={isPending ? 'pending' : (form.status ?? 'idle')}
 						type="submit"
 						disabled={isPending}

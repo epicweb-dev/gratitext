@@ -6,6 +6,7 @@ import {
 } from 'input-otp'
 import React, { useId } from 'react'
 import { Checkbox, type CheckboxProps } from './ui/checkbox.tsx'
+import { Icon } from './ui/icon.tsx'
 import {
 	InputOTP,
 	InputOTPGroup,
@@ -30,7 +31,7 @@ export function ErrorList({
 	return (
 		<ul id={id} className="flex flex-col gap-1">
 			{errorsToRender.map((e) => (
-				<li key={e} className="text-[10px] text-foreground-destructive">
+				<li key={e} className="text-xs font-medium text-foreground-destructive">
 					{e}
 				</li>
 			))}
@@ -61,7 +62,7 @@ export function Field({
 				aria-describedby={errorId}
 				{...inputProps}
 			/>
-			<div className="min-h-[32px] px-4 pb-3 pt-1">
+			<div className="min-h-[24px] px-4 pb-2 pt-2">
 				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
 			</div>
 		</div>
@@ -85,14 +86,22 @@ export function SelectField({
 	return (
 		<div className={className}>
 			<Label htmlFor={id} {...labelProps} />
-			<select
-				id={id}
-				aria-invalid={errorId ? true : undefined}
-				aria-describedby={errorId}
-				className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid]:border-input-invalid"
-				{...selectProps}
-			/>
-			<div className="min-h-[32px] px-4 pb-3 pt-1">
+			<div className="relative">
+				<select
+					id={id}
+					aria-invalid={errorId ? true : undefined}
+					aria-describedby={errorId}
+					className="flex h-12 w-full appearance-none rounded-full border border-input bg-card px-4 pr-10 text-sm font-medium text-foreground shadow-sm transition-colors placeholder:text-muted-secondary-foreground focus-visible:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground aria-[invalid]:border-input-invalid aria-[invalid]:text-foreground-destructive aria-[invalid]:focus-visible:ring-foreground-destructive"
+					{...selectProps}
+				/>
+				<Icon
+					name="chevron-down"
+					size="sm"
+					aria-hidden="true"
+					className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-secondary-foreground"
+				/>
+			</div>
+			<div className="min-h-[24px] px-4 pb-2 pt-2">
 				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
 			</div>
 		</div>
@@ -141,7 +150,7 @@ export function OTPField({
 					<InputOTPSlot index={5} />
 				</InputOTPGroup>
 			</InputOTP>
-			<div className="min-h-[32px] px-4 pb-3 pt-1">
+			<div className="min-h-[24px] px-4 pb-2 pt-2">
 				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
 			</div>
 		</div>
@@ -171,7 +180,7 @@ export function TextareaField({
 				aria-describedby={errorId}
 				{...textareaProps}
 			/>
-			<div className="min-h-[32px] px-4 pb-3 pt-1">
+			<div className="min-h-[24px] px-4 pb-2 pt-2">
 				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
 			</div>
 		</div>
@@ -234,7 +243,7 @@ export function CheckboxField({
 					className="self-center text-body-xs text-muted-foreground"
 				/>
 			</div>
-			<div className="px-4 pb-3 pt-1">
+			<div className="px-4 pb-2 pt-2">
 				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
 			</div>
 		</div>

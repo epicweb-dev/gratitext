@@ -7,9 +7,11 @@ import {
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { type SerializeFrom } from '@remix-run/node'
 import { Form, useActionData, useFetcher } from '@remix-run/react'
+import { useState } from 'react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
-import { CheckboxField, ErrorList, Field, SelectField } from '#app/components/forms.tsx'
+import { ErrorList, Field, SelectField } from '#app/components/forms.tsx'
+import { ButtonLink } from '#app/components/ui/button.tsx'
 import { Icon } from '#app/components/ui/icon.js'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { validateCronString } from '#app/utils/cron.ts'
@@ -68,6 +70,10 @@ export function RecipientEditor({
 	const actionData = useActionData<typeof usertRecipientAction>()
 	const isPending = useIsPending()
 	const needsVerification = recipient?.verified === false
+	const pageTitle = recipient ? 'Edit Recipient' : 'Add New Recipient'
+	const [isDisabled, setIsDisabled] = useState(recipient?.disabled ?? false)
+	const pauseLabel = isDisabled ? 'Resume this schedule' : 'Pause this schedule'
+	const submitLabel = recipient ? 'Save Changes' : 'Add New Recipient'
 
 	const [form, fields] = useForm({
 		id: 'recipient-editor',
@@ -81,42 +87,47 @@ export function RecipientEditor({
 	})
 
 	return (
-		<div>
-			<div className="flex justify-end gap-2 p-6">
-				{needsVerification ? <VerifyForm /> : null}
+		<div className="flex flex-col items-center gap-8">
+			<div className="text-center">
+				<p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+					GratiText
+				</p>
+				<h1 className="mt-2 text-3xl font-bold text-foreground md:text-4xl">
+					{pageTitle}
+				</h1>
 			</div>
-			{needsVerification ? (
-				<div className="px-6">
-					<strong className="font-bold text-destructive">
-						Verification required
-					</strong>
-					<p>
-						When you click "Verify" above, it will send a text message with a
-						verification code to {recipient?.phoneNumber} (their phone number).
-						You will be required to enter their code in the next step.
-					</p>
+			<div className="w-full max-w-3xl rounded-[32px] border border-border bg-card p-8 shadow-sm">
+				<div className="flex justify-end gap-2">
+					{needsVerification ? <VerifyForm /> : null}
 				</div>
-			) : null}
-			<Form
-				method="POST"
-				className="flex flex-col gap-y-4 overflow-y-auto px-4 py-4"
-				{...getFormProps(form)}
-			>
-				{/*
-					This hidden submit button is here to ensure that when the user hits
-					"enter" on an input field, the primary form function is submitted
-					rather than the first button in the form (which is delete/add image).
-				*/}
-				<button
-					type="submit"
-					className="hidden"
-					name="intent"
-					value={upsertRecipientActionIntent}
-				/>
-				{recipient ? (
-					<input type="hidden" name="id" value={recipient.id} />
+				{needsVerification ? (
+					<div className="mt-4 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-foreground-destructive">
+						<strong className="font-semibold">Verification required</strong>
+						<p className="mt-2 text-muted-foreground">
+							Click "Verify" to send a verification code to{' '}
+							{recipient?.phoneNumber}. You will enter the code in the next step.
+						</p>
+					</div>
 				) : null}
-				<div className="flex flex-col gap-1">
+				<Form
+					method="POST"
+					className="mt-6 flex flex-col gap-6"
+					{...getFormProps(form)}
+				>
+					{/*
+						This hidden submit button is here to ensure that when the user hits
+						"enter" on an input field, the primary form function is submitted
+						rather than the first button in the form (which is delete/add image).
+					*/}
+					<button
+						type="submit"
+						className="hidden"
+						name="intent"
+						value={upsertRecipientActionIntent}
+					/>
+					{recipient ? (
+						<input type="hidden" name="id" value={recipient.id} />
+					) : null}
 					<Field
 						labelProps={{ children: 'Name' }}
 						inputProps={{
@@ -125,15 +136,56 @@ export function RecipientEditor({
 						}}
 						errors={fields.name.errors}
 					/>
+					<div className="grid gap-4 md:grid-cols-2">
+						<Field
+							labelProps={{ children: 'Phone Number' }}
+							inputProps={{
+								...getInputProps(fields.phoneNumber, { type: 'tel' }),
+							}}
+							errors={fields.phoneNumber.errors}
+						/>
+						<SelectField
+							labelProps={{ children: 'Time Zone' }}
+							selectProps={{
+								...getSelectProps(fields.timeZone),
+								children: supportedTimeZones.map((tz) => (
+									<option key={tz} value={tz}>
+										{tz}
+									</option>
+								)),
+							}}
+							errors={fields.timeZone.errors}
+						/>
+					</div>
+					<div className="flex flex-wrap items-center justify-between gap-3">
+						<p className="text-sm font-semibold text-foreground">
+							Create a Schedule
+						</p>
+						<label className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground transition hover:text-foreground">
+							<input
+								{...getInputProps(fields.disabled, { type: 'checkbox' })}
+								className="peer sr-only"
+								onChange={(e) => setIsDisabled(e.target.checked)}
+							/>
+							<span className="peer-checked:text-foreground">{pauseLabel}</span>
+						</label>
+					</div>
 					<Field
-						labelProps={{ children: 'Number' }}
+						labelProps={{ children: 'Schedule' }}
 						inputProps={{
-							...getInputProps(fields.phoneNumber, { type: 'tel' }),
+							...getInputProps(fields.scheduleCron, { type: 'text' }),
+							placeholder: 'Every Thursday at 10:00 AM',
 						}}
-						errors={fields.phoneNumber.errors}
+						errors={fields.scheduleCron.errors}
 					/>
-					<small className="text-body-xs">
-						The UX for this will be improved later, but for now you can use{' '}
+					<div className="flex items-center gap-3 rounded-2xl border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+						<Icon name="info" size="sm" />
+						<span>
+							Your messages will arrive every week at this day and time.
+						</span>
+					</div>
+					<small className="text-body-xs text-muted-foreground">
+						Use{' '}
 						<a
 							href="https://crontab.guru/"
 							className="underline"
@@ -142,53 +194,29 @@ export function RecipientEditor({
 						>
 							crontab.guru
 						</a>{' '}
-						to create a cron schedule
+						to build a cron schedule.
 					</small>
-					<Field
-						labelProps={{ children: 'Schedule Cron' }}
-						inputProps={{
-							...getInputProps(fields.scheduleCron, { type: 'text' }),
-						}}
-						errors={fields.scheduleCron.errors}
-					/>
-					<SelectField
-						labelProps={{ children: 'Time Zone' }}
-						selectProps={{
-							...getSelectProps(fields.timeZone),
-							children: supportedTimeZones.map((tz) => (
-								<option key={tz} value={tz}>
-									{tz}
-								</option>
-							)),
-						}}
-						errors={fields.timeZone.errors}
-					/>
-					<CheckboxField
-						labelProps={{
-							htmlFor: fields.disabled.id,
-							children: 'Disable sending to this recipient',
-						}}
-						buttonProps={{
-							...getInputProps(fields.disabled, { type: 'checkbox' }),
-							form: form.id,
-						}}
-						errors={fields.disabled.errors}
-					/>
+					<ErrorList id={form.errorId} errors={form.errors} />
+				</Form>
+				<div className="mt-8 flex flex-wrap items-center justify-between gap-3">
+					{recipient?.id ? <DeleteRecipient id={recipient.id} /> : null}
+					<div className="flex flex-wrap gap-3">
+						<ButtonLink variant="secondary" to={recipient ? '..' : '/recipients'}>
+							Cancel
+						</ButtonLink>
+						<StatusButton
+							form={form.id}
+							type="submit"
+							disabled={isPending}
+							status={isPending ? 'pending' : 'idle'}
+							name="intent"
+							value={upsertRecipientActionIntent}
+							className="bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))]"
+						>
+							<Icon name="check">{submitLabel}</Icon>
+						</StatusButton>
+					</div>
 				</div>
-				<ErrorList id={form.errorId} errors={form.errors} />
-			</Form>
-			<div className="flex justify-between gap-2 p-6">
-				{recipient?.id ? <DeleteRecipient id={recipient.id} /> : null}
-				<StatusButton
-					form={form.id}
-					type="submit"
-					disabled={isPending}
-					status={isPending ? 'pending' : 'idle'}
-					name="intent"
-					value={upsertRecipientActionIntent}
-				>
-					Submit
-				</StatusButton>
 			</div>
 		</div>
 	)
