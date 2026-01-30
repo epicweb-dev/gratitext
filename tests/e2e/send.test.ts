@@ -33,7 +33,7 @@ test('Users can write and send a message immediately', async ({
 	await page.goto(`/recipients/${recipient.id}`)
 	await page.waitForLoadState('domcontentloaded')
 
-	const newMessageLink = page.getByRole('main').getByRole('link', { name: /new message/i })
+	const newMessageLink = page.getByRole('main').getByRole('link', { name: /^new$/i })
 	await newMessageLink.waitFor({ state: 'visible' })
 	await newMessageLink.click()
 

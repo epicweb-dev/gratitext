@@ -40,20 +40,6 @@ const countryCodes = [
 	{ label: 'Australia (+61)', value: '+61' },
 ]
 
-function getIdentifier({
-	countryCode,
-	phoneNumber,
-}: {
-	countryCode: string
-	phoneNumber: string
-}) {
-	const raw = phoneNumber.trim()
-	if (/[a-z]/i.test(raw) || raw.startsWith('+') || raw.includes('-')) {
-		return raw
-	}
-	return `${countryCode}${raw}`.replace(/\s+/g, '')
-}
-
 export async function loader({ request }: LoaderFunctionArgs) {
 	await requireAnonymous(request)
 	return json({})
@@ -68,8 +54,11 @@ export async function action({ request }: ActionFunctionArgs) {
 			LoginFormSchema.transform(async (data, ctx) => {
 				if (intent !== null) return { ...data, session: null }
 
-				const identifier = getIdentifier(data)
-				const session = await login({ identifier, password: data.password })
+				const session = await login({
+					identifier: data.phoneNumber,
+					countryCode: data.countryCode,
+					password: data.password,
+				})
 				if (!session) {
 					ctx.addIssue({
 						code: z.ZodIssueCode.custom,

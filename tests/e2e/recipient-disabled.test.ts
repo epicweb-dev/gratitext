@@ -28,7 +28,7 @@ test('Users can disable sending to a recipient', async ({ page, login }) => {
 
 	// Find and check the disabled checkbox
 	const disabledCheckbox = page.getByRole('checkbox', {
-		name: /disable sending to this recipient/i,
+		name: /pause this schedule|resume this schedule/i,
 	})
 	await disabledCheckbox.waitFor({ state: 'visible' })
 	await expect(disabledCheckbox).toBeVisible()
@@ -38,7 +38,7 @@ test('Users can disable sending to a recipient', async ({ page, login }) => {
 	await disabledCheckbox.check()
 
 	// Submit the form
-	await page.getByRole('button', { name: /submit/i }).click()
+	await page.getByRole('button', { name: /save changes/i }).click()
 
 	// Wait for redirect to recipient page
 	await expect(page).toHaveURL(`/recipients/${recipient.id}`, { timeout: 15000 })
@@ -60,7 +60,7 @@ test('Users can disable sending to a recipient', async ({ page, login }) => {
 
 	// Uncheck the checkbox to re-enable
 	await disabledCheckbox.uncheck()
-	await page.getByRole('button', { name: /submit/i }).click()
+	await page.getByRole('button', { name: /save changes/i }).click()
 
 	// Verify the recipient is now enabled again
 	await expect(page).toHaveURL(`/recipients/${recipient.id}`, { timeout: 15000 })

@@ -157,18 +157,38 @@ export async function requireAnonymous(request: Request) {
 
 export async function login({
 	identifier,
+	countryCode,
 	password,
 }: {
 	identifier: string
+	countryCode?: string
 	password: string
 }) {
 	const normalizedIdentifier = identifier.trim()
-	const normalizedPhone = normalizedIdentifier.replace(/\s+/g, '')
+	const phoneCandidates = new Set<string>()
+	if (normalizedIdentifier) {
+		phoneCandidates.add(normalizedIdentifier)
+		phoneCandidates.add(normalizedIdentifier.replace(/\s+/g, ''))
+	}
+
+	const digitsOnly = normalizedIdentifier.replace(/\D/g, '')
+	if (digitsOnly) {
+		phoneCandidates.add(digitsOnly)
+		if (countryCode) {
+			phoneCandidates.add(`${countryCode}${digitsOnly}`.replace(/\s+/g, ''))
+		}
+		if (normalizedIdentifier.startsWith('+')) {
+			phoneCandidates.add(`+${digitsOnly}`)
+		}
+	}
+	const phoneCandidateList = [...phoneCandidates].filter(Boolean)
 	const user = await prisma.user.findFirst({
 		where: {
 			OR: [
 				{ username: normalizedIdentifier.toLowerCase() },
-				{ phoneNumber: normalizedPhone },
+				...(phoneCandidateList.length
+					? [{ phoneNumber: { in: phoneCandidateList } }]
+					: []),
 			],
 		},
 		select: { id: true, password: { select: { hash: true } } },

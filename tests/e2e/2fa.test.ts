@@ -52,9 +52,9 @@ test('Users can add 2FA to their account and use it when logging in', async ({
 	await page.waitForLoadState('domcontentloaded')
 	await expect(page).toHaveURL(`/login`)
 
-	const usernameInput = page.getByRole('textbox', { name: /username/i })
-	await usernameInput.waitFor({ state: 'visible' })
-	await usernameInput.fill(user.username)
+	const phoneNumberInput = page.getByRole('textbox', { name: /phone number/i })
+	await phoneNumberInput.waitFor({ state: 'visible' })
+	await phoneNumberInput.fill(user.phoneNumber)
 	await page.getByLabel(/^password$/i).fill(password)
 	await page.getByRole('button', { name: /log in/i }).click()
 
@@ -63,7 +63,7 @@ test('Users can add 2FA to their account and use it when logging in', async ({
 	await totpCodeInput.waitFor({ state: 'visible', timeout: 15000 })
 	await totpCodeInput.fill(generateTOTP(options).otp)
 
-	await page.getByRole('button', { name: /submit/i }).click()
+	await page.getByRole('button', { name: /continue/i }).click()
 
 	await expect(
 		page.getByRole('link', { name: user.name ?? user.username }),
