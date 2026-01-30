@@ -59,8 +59,11 @@ export async function writeText(rawText: unknown) {
 	return textMessage
 }
 
-export async function requireText(recipient: string) {
-	const textMessage = await readText(recipient)
+export async function requireText(
+	recipient: string,
+	options: { attempts?: number; delayMs?: number } = {},
+) {
+	const textMessage = await readText(recipient, options)
 	if (!textMessage) throw new Error(`Text message to ${recipient} not found`)
 	return textMessage
 }
@@ -85,7 +88,7 @@ export async function waitForText(
 	recipient: string,
 	options: Parameters<typeof waitFor>[1] = {},
 ) {
-	return waitFor(() => requireText(recipient), options)
+	return waitFor(() => requireText(recipient, { attempts: 1, delayMs: 0 }), options)
 }
 
 /**
