@@ -1,6 +1,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { test as base, type Page } from '@playwright/test'
+import filenamify from 'filenamify'
 import fsExtra from 'fs-extra'
 import * as setCookieParser from 'set-cookie-parser'
 import {
@@ -102,10 +103,10 @@ async function cleanupFixturesForPhone(phoneNumber: string) {
 	try {
 		await fsExtra.ensureDir(textsDir)
 		const files = await fsExtra.readdir(textsDir)
-		// filenamify converts phone numbers, so we need to check all files
-		// that might match this phone number
+		// Use filenamify to match how fixtures are actually created
+		const filenamePrefix = filenamify(phoneNumber)
 		for (const file of files) {
-			if (file.includes(phoneNumber.replace(/[^a-zA-Z0-9]/g, ''))) {
+			if (file.startsWith(filenamePrefix)) {
 				await fsExtra.remove(path.join(textsDir, file))
 			}
 		}
@@ -202,24 +203,4 @@ export async function waitFor<ReturnValue>(
 		await new Promise((r) => setTimeout(r, 150))
 	}
 	throw lastError
-}
-
-/**
- * Wait for the page to be in a stable state (network idle + DOM loaded)
- * Use this after navigation or actions that trigger page changes
- */
-export async function waitForPageStable(page: Page, timeout = 10000) {
-	await page.waitForLoadState('domcontentloaded', { timeout })
-	await page.waitForLoadState('networkidle', { timeout }).catch(() => {
-		// Network idle might not always be achievable, that's okay
-	})
-}
-
-/**
- * Navigate to a URL and wait for the page to be stable
- * More reliable than page.goto() alone
- */
-export async function navigateAndWait(page: Page, url: string, timeout = 30000) {
-	await page.goto(url, { waitUntil: 'domcontentloaded', timeout })
-	await waitForPageStable(page, timeout)
 }
