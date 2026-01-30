@@ -33,7 +33,8 @@ test('Users can add 2FA to their account and use it when logging in', async ({
 
 	const codeInput = main.getByRole('textbox', { name: /code/i })
 	await codeInput.waitFor({ state: 'visible' })
-	await codeInput.fill(generateTOTP(options).otp)
+	const { otp: initialOtp } = await generateTOTP(options)
+	await codeInput.fill(initialOtp)
 	await main.getByRole('button', { name: /submit/i }).click()
 
 	await expect(main).toHaveText(/You have enabled two-factor authentication./i)
@@ -61,7 +62,8 @@ test('Users can add 2FA to their account and use it when logging in', async ({
 	// Wait for 2FA page to load
 	const totpCodeInput = page.getByRole('textbox', { name: /code/i })
 	await totpCodeInput.waitFor({ state: 'visible', timeout: 15000 })
-	await totpCodeInput.fill(generateTOTP(options).otp)
+	const { otp: loginOtp } = await generateTOTP(options)
+	await totpCodeInput.fill(loginOtp)
 
 	await page.getByRole('button', { name: /continue/i }).click()
 
