@@ -216,7 +216,10 @@ export default function Index() {
 							</p>
 						</div>
 					<div className="flex flex-col gap-3 sm:flex-row">
-						<Button asChild className="bg-[hsl(var(--palette-chestnut))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-hot-fire-red))]">
+						<Button
+							asChild
+							className="bg-[hsl(var(--palette-chestnut))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-hot-fire-red))]"
+						>
 							<Link to="/login">Get started</Link>
 						</Button>
 					</div>
