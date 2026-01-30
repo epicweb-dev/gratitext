@@ -4,12 +4,12 @@ import {
 	useLocation,
 	useNavigationType,
 } from '@remix-run/react'
-import { reactRouterV6BrowserTracingIntegration } from '@sentry/react'
 import {
 	browserProfilingIntegration,
 	init as sentryInit,
+	reactRouterV6BrowserTracingIntegration,
 	replayIntegration,
-} from '@sentry/react-router'
+} from '@sentry/react'
 import { useEffect } from 'react'
 
 export function init() {

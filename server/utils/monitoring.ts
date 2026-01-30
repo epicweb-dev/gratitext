@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/react-router'
+import * as Sentry from '@sentry/node'
 
 export function init() {
 	Sentry.init({
