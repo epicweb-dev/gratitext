@@ -110,7 +110,7 @@ jobs:
         id: db-cache
         uses: actions/cache@v4
         with:
-          path: prisma/data.db
+          path: prisma/sqlite.db
           key:
             db-cache-schema_${{ hashFiles('./prisma/schema.prisma')
             }}-migrations_${{ hashFiles('./prisma/migrations/*/migration.sql')
