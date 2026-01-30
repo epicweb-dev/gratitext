@@ -5,7 +5,7 @@ import {
 	useRouteError,
 } from '@remix-run/react'
 import { captureRemixErrorBoundaryError } from '@sentry/remix'
-import type { ReactElement } from 'react'
+import { type ReactElement } from 'react'
 import { getErrorMessage } from '#app/utils/misc.tsx'
 
 type StatusHandler = (info: {

@@ -57,7 +57,7 @@ function getIdentifier({
 
 export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData()
-	checkHoneypot(formData)
+	await checkHoneypot(formData)
 	const submission = await parseWithZod(formData, {
 		schema: ForgotPasswordSchema.superRefine(async (data, ctx) => {
 			const identifier = getIdentifier({ countryCode: data.countryCode, phoneNumber: data.phoneNumber })
