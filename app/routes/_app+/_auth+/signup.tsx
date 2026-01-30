@@ -44,7 +44,8 @@ export async function action({ request }: ActionFunctionArgs) {
 
 		const submission = await parseWithZod(formData, {
 			schema: SignupSchema.superRefine(async (data, ctx) => {
-				const fullPhoneNumber = `${data.countryCode}${data.phoneNumber}`.replace(
+				const digitsOnly = data.phoneNumber.replace(/\D/g, '')
+				const fullPhoneNumber = `${data.countryCode}${digitsOnly}`.replace(
 					/\s+/g,
 					'',
 				)
