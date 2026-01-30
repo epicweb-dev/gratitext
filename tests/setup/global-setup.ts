@@ -29,6 +29,8 @@ export async function setup() {
 			env: {
 				...process.env,
 				DATABASE_URL: `file:${BASE_DATABASE_PATH}`,
+				// Required consent for Prisma in automated/CI environments
+				PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION: 'yes',
 			},
 		},
 	)

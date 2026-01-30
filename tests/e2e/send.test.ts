@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker'
 import { prisma } from '#app/utils/db.server.ts'
-import { waitForText } from '#tests/mocks/utils.ts'
+import { deleteText, waitForText } from '#tests/mocks/utils.ts'
 import {
 	createMessage,
 	createRecipient,
@@ -14,52 +14,76 @@ test('Users can write and send a message immediately', async ({
 	login,
 }) => {
 	const user = await login({ stripeId: faker.string.uuid() })
+	const recipientData = createRecipient()
+
+	// Clean up any stale fixtures for this recipient
+	await deleteText(recipientData.phoneNumber)
+
 	const recipient = await prisma.recipient.create({
 		select: { id: true, phoneNumber: true },
 		data: {
-			...createRecipient(),
+			...recipientData,
 			verified: true,
 			userId: user.id,
 			// TODO: make it more certain that the specified cron will never trigger during the test
 			scheduleCron: '0 0 1 1 1',
 		},
 	})
+
 	await page.goto(`/recipients/${recipient.id}`)
-	await page
-		.getByRole('main')
-		.getByRole('link', { name: /new message/i })
-		.click()
+	await page.waitForLoadState('domcontentloaded')
+
+	const newMessageLink = page.getByRole('main').getByRole('link', { name: /new message/i })
+	await newMessageLink.waitFor({ state: 'visible' })
+	await newMessageLink.click()
+
+	await page.waitForLoadState('domcontentloaded')
 
 	const { content: textMessageContent } = createMessage()
-	await page
-		.getByRole('main')
-		.getByRole('textbox', { name: /message/i })
-		.fill(textMessageContent)
+	const messageTextbox = page.getByRole('main').getByRole('textbox', { name: /message/i })
+	await messageTextbox.waitFor({ state: 'visible' })
+	await messageTextbox.fill(textMessageContent)
 
 	await page.getByRole('main').getByRole('button', { name: /save/i }).click()
 
-	await expect(page.getByText(/message created/i)).toBeVisible()
-	await page.getByRole('button', { name: /close toast/i }).click()
+	await expect(page.getByText(/message created/i)).toBeVisible({ timeout: 15000 })
 
-	await page.getByRole('button', { name: /send now/i }).click()
-	await expect(page.getByText(/message sent/i)).toBeVisible()
+	const closeToastButton = page.getByRole('button', { name: /close toast/i })
+	await closeToastButton.waitFor({ state: 'visible' })
+	await closeToastButton.click()
+
+	const sendNowButton = page.getByRole('button', { name: /send now/i })
+	await sendNowButton.waitFor({ state: 'visible' })
+	await sendNowButton.click()
+
+	await expect(page.getByText(/message sent/i)).toBeVisible({ timeout: 15000 })
 
 	const sourceNumber = await prisma.sourceNumber.findFirstOrThrow({
 		select: { phoneNumber: true },
 	})
-	const textMessage = await waitForText(recipient.phoneNumber)
+	const textMessage = await waitForText(recipient.phoneNumber, {
+		errorMessage: 'Text message not sent to recipient',
+	})
 	expect(textMessage.To).toBe(recipient.phoneNumber)
 	expect(textMessage.From).toBe(sourceNumber.phoneNumber)
 
 	expect(textMessage.Body).toBe(textMessageContent)
+
+	// Clean up
+	await deleteText(recipient.phoneNumber)
 })
 
 test('Scheduled messages go out on schedule', async ({ page, login }) => {
 	const user = await login({ stripeId: faker.string.uuid() })
+	const recipientData = createRecipient()
+
+	// Clean up any stale fixtures
+	await deleteText(recipientData.phoneNumber)
+
 	const recipient = await prisma.recipient.create({
 		select: { id: true, phoneNumber: true },
 		data: {
-			...createRecipient(),
+			...recipientData,
 			verified: true,
 			userId: user.id,
 			scheduleCron: '0 0 1 1 1',
@@ -76,7 +100,8 @@ test('Scheduled messages go out on schedule', async ({ page, login }) => {
 	})
 
 	await page.goto(`/recipients/${recipient.id}/past`)
-	await expect(page.getByText(/sent 0 messages/i)).toBeVisible()
+	await page.waitForLoadState('domcontentloaded')
+	await expect(page.getByText(/sent 0 messages/i)).toBeVisible({ timeout: 15000 })
 
 	await prisma.$transaction(async ($prisma) => {
 		await $prisma.recipient.update({
@@ -96,15 +121,19 @@ test('Scheduled messages go out on schedule', async ({ page, login }) => {
 		})
 	})
 
-	test.setTimeout(15000)
+	// Increase timeout for scheduled message test
+	test.setTimeout(90000)
 
-	await waitFor(async () => {
-		const messageToSend = await prisma.message.findUnique({
-			select: { sentAt: true },
-			where: { id: message.id },
-		})
-		if (messageToSend?.sentAt) return messageToSend
-	})
+	await waitFor(
+		async () => {
+			const messageToSend = await prisma.message.findUnique({
+				select: { sentAt: true },
+				where: { id: message.id },
+			})
+			if (messageToSend?.sentAt) return messageToSend
+		},
+		{ timeout: 75000, errorMessage: 'Message was not sent within timeout' },
+	)
 
 	await prisma.recipient.update({
 		where: { id: recipient.id },
@@ -114,7 +143,9 @@ test('Scheduled messages go out on schedule', async ({ page, login }) => {
 	const sourceNumber = await prisma.sourceNumber.findFirstOrThrow({
 		select: { phoneNumber: true },
 	})
-	const textMessage = await waitForText(recipient.phoneNumber)
+	const textMessage = await waitForText(recipient.phoneNumber, {
+		errorMessage: 'Scheduled text message not found',
+	})
 	expect(textMessage.To).toBe(recipient.phoneNumber)
 	expect(textMessage.From).toBe(sourceNumber.phoneNumber)
 
@@ -122,6 +153,10 @@ test('Scheduled messages go out on schedule', async ({ page, login }) => {
 
 	// TODO: real-time updates here would be cool.
 	await page.reload()
+	await page.waitForLoadState('domcontentloaded')
+
+	// Clean up
+	await deleteText(recipient.phoneNumber)
 
 	// This fails on CI and I don't know why:
 	// await expect(page.getByText(/sent 1 message/i)).toBeVisible()

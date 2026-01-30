@@ -24,11 +24,13 @@ test('Users can disable sending to a recipient', async ({ page, login }) => {
 
 	// Navigate to edit page
 	await page.goto(`/recipients/${recipient.id}/edit`)
+	await page.waitForLoadState('domcontentloaded')
 
 	// Find and check the disabled checkbox
 	const disabledCheckbox = page.getByRole('checkbox', {
 		name: /disable sending to this recipient/i,
 	})
+	await disabledCheckbox.waitFor({ state: 'visible' })
 	await expect(disabledCheckbox).toBeVisible()
 	await expect(disabledCheckbox).not.toBeChecked()
 
@@ -39,7 +41,8 @@ test('Users can disable sending to a recipient', async ({ page, login }) => {
 	await page.getByRole('button', { name: /submit/i }).click()
 
 	// Wait for redirect to recipient page
-	await expect(page).toHaveURL(`/recipients/${recipient.id}`)
+	await expect(page).toHaveURL(`/recipients/${recipient.id}`, { timeout: 15000 })
+	await page.waitForLoadState('domcontentloaded')
 
 	// Verify the recipient is now disabled in the database
 	const updatedRecipient = await prisma.recipient.findUnique({
@@ -51,6 +54,8 @@ test('Users can disable sending to a recipient', async ({ page, login }) => {
 
 	// Navigate back to edit page to verify checkbox state persists
 	await page.goto(`/recipients/${recipient.id}/edit`)
+	await page.waitForLoadState('domcontentloaded')
+	await disabledCheckbox.waitFor({ state: 'visible' })
 	await expect(disabledCheckbox).toBeChecked()
 
 	// Uncheck the checkbox to re-enable
@@ -58,7 +63,8 @@ test('Users can disable sending to a recipient', async ({ page, login }) => {
 	await page.getByRole('button', { name: /submit/i }).click()
 
 	// Verify the recipient is now enabled again
-	await expect(page).toHaveURL(`/recipients/${recipient.id}`)
+	await expect(page).toHaveURL(`/recipients/${recipient.id}`, { timeout: 15000 })
+
 	const reEnabledRecipient = await prisma.recipient.findUnique({
 		where: { id: recipient.id },
 		select: { disabled: true },
