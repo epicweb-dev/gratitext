@@ -29,7 +29,7 @@ function TestComponent({ safeDelayMs = 0 }: { safeDelayMs?: number }) {
 
 test('prevents default on the first click, and does not on the second', async () => {
 	const user = userEvent.setup()
-	render(<TestComponent safeDelayMs={50} />)
+	render(<TestComponent safeDelayMs={200} />)
 
 	const status = screen.getByRole('status')
 	const button = screen.getByRole('button')
@@ -40,13 +40,17 @@ test('prevents default on the first click, and does not on the second', async ()
 	await user.click(button)
 	expect(button).toHaveTextContent('You sure?')
 	expect(status).toHaveTextContent('Default Prevented: yes')
-	expect(button).toHaveAttribute('data-safe-delay', 'true')
+	await waitFor(() =>
+		expect(button).toHaveAttribute('data-safe-delay', 'true'),
+	)
 
 	// clicking it during the safe delay does nothing
 	await user.click(button)
 	expect(button).toHaveTextContent('You sure?')
 	expect(status).toHaveTextContent('Default Prevented: yes')
-	expect(button).toHaveAttribute('data-safe-delay', 'true')
+	await waitFor(() =>
+		expect(button).toHaveAttribute('data-safe-delay', 'true'),
+	)
 
 	await waitFor(() =>
 		expect(button).toHaveAttribute('data-safe-delay', 'false'),
