@@ -1,33 +1,62 @@
 import { invariantResponse } from '@epic-web/invariant'
+import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query'
+import { useEffect, useMemo, useRef } from 'react'
 import {
-	Link,
 	data as json,
 	type LoaderFunctionArgs,
 	type MetaFunction,
 	useLoaderData,
-	useSearchParams,
 } from 'react-router'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { SearchBar } from '#app/components/search-bar.tsx'
-import { Button } from '#app/components/ui/button.tsx'
-import { Icon } from '#app/components/ui/icon.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { cn, useDelayedIsPending } from '#app/utils/misc.tsx'
 
-const MESSAGES_PER_PAGE = 100
+const MESSAGES_PER_PAGE = 30
+
+type MessageCursor = {
+	sentAt: string
+	id: string
+}
+
+type MessageItem = {
+	id: string
+	content: string
+	sentAtDisplay: string
+	sentAtIso: string
+}
+
+type MessagesPage = {
+	messages: Array<MessageItem>
+	nextCursor: MessageCursor | null
+}
+
+function formatMessage(message: { id: string; content: string; sentAt: Date }) {
+	return {
+		id: message.id,
+		content: message.content,
+		sentAtIso: message.sentAt.toISOString(),
+		sentAtDisplay: message.sentAt.toLocaleDateString('en-US', {
+			weekday: 'short',
+			year: 'numeric',
+			month: 'short',
+			day: 'numeric',
+			hour: 'numeric',
+			minute: 'numeric',
+		}),
+	}
+}
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
 	const userId = await requireUserId(request)
 	const url = new URL(request.url)
 	const searchQuery = url.searchParams.get('search') ?? ''
-	const page = Math.max(
-		1,
-		parseInt(url.searchParams.get('page') ?? '1', 10) || 1,
-	)
+	const recipientId = params.recipientId
+	invariantResponse(recipientId, 'Invalid recipient', { status: 400 })
 
 	const recipient = await prisma.recipient.findUnique({
-		where: { id: params.recipientId, userId },
+		where: { id: recipientId, userId },
 		select: {
 			name: true,
 			phoneNumber: true,
@@ -38,48 +67,44 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 
 	// Build the where clause for messages
 	const messageWhere = {
-		recipientId: params.recipientId,
+		recipientId,
 		sentAt: { not: null },
 		...(searchQuery ? { content: { contains: searchQuery } } : {}),
 	}
 
-	// Get total count for pagination
+	// Get total count for summary
 	const totalMessages = await prisma.message.count({
 		where: messageWhere,
 	})
 
-	const totalPages = Math.max(1, Math.ceil(totalMessages / MESSAGES_PER_PAGE))
-	const currentPage = Math.min(page, totalPages)
-
-	// Get paginated messages
 	const messages = await prisma.message.findMany({
 		where: messageWhere,
 		select: { id: true, content: true, sentAt: true },
-		orderBy: { sentAt: 'desc' },
-		skip: (currentPage - 1) * MESSAGES_PER_PAGE,
-		take: MESSAGES_PER_PAGE,
+		orderBy: [{ sentAt: 'desc' }, { id: 'desc' }],
+		take: MESSAGES_PER_PAGE + 1,
 	})
+
+	const hasMore = messages.length > MESSAGES_PER_PAGE
+	const pageMessages = messages.slice(0, MESSAGES_PER_PAGE)
+	const lastMessage = pageMessages.at(-1)
+	const nextCursor =
+		hasMore && lastMessage?.sentAt
+			? { sentAt: lastMessage.sentAt.toISOString(), id: lastMessage.id }
+			: null
 
 	return json({
 		recipient,
+		recipientId,
 		searchQuery,
-		pagination: {
-			currentPage,
-			totalPages,
-			totalMessages,
-		},
-		pastMessages: messages.map((m) => ({
-			id: m.id,
-			sentAtDisplay: m.sentAt!.toLocaleDateString('en-US', {
-				weekday: 'short',
-				year: 'numeric',
-				month: 'short',
-				day: 'numeric',
-				hour: 'numeric',
-				minute: 'numeric',
+		totalMessages,
+		initialMessages: pageMessages.map((message) =>
+			formatMessage({
+				id: message.id,
+				content: message.content,
+				sentAt: message.sentAt!,
 			}),
-			content: m.content,
-		})),
+		),
+		nextCursor,
 	})
 }
 
@@ -91,91 +116,23 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 	]
 }
 
-function Pagination({
-	currentPage,
-	totalPages,
-	totalMessages,
+function buildMessagesUrl({
+	recipientId,
 	searchQuery,
+	cursor,
 }: {
-	currentPage: number
-	totalPages: number
-	totalMessages: number
+	recipientId: string
 	searchQuery: string
+	cursor: MessageCursor | null
 }) {
-	const [searchParams] = useSearchParams()
-
-	const buildPageUrl = (page: number) => {
-		const params = new URLSearchParams(searchParams)
-		if (page === 1) {
-			params.delete('page')
-		} else {
-			params.set('page', page.toString())
-		}
-		const queryString = params.toString()
-		return queryString ? `?${queryString}` : '.'
+	const params = new URLSearchParams()
+	params.set('recipientId', recipientId)
+	if (searchQuery) params.set('search', searchQuery)
+	if (cursor) {
+		params.set('cursorSentAt', cursor.sentAt)
+		params.set('cursorId', cursor.id)
 	}
-
-	const hasPrevPage = currentPage > 1
-	const hasNextPage = currentPage < totalPages
-
-	return (
-		<div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-			<p className="text-muted-foreground text-sm">
-				{totalMessages === 0
-					? 'No messages found'
-					: `Showing ${(currentPage - 1) * MESSAGES_PER_PAGE + 1}-${Math.min(currentPage * MESSAGES_PER_PAGE, totalMessages)} of ${totalMessages.toLocaleString()} message${totalMessages === 1 ? '' : 's'}`}
-				{searchQuery ? (
-					<>
-						{' '}
-						matching "<strong>{searchQuery}</strong>"
-					</>
-				) : null}
-			</p>
-			{totalPages > 1 ? (
-				<div className="flex items-center gap-2">
-					<Button
-						variant="outline"
-						size="sm"
-						asChild={hasPrevPage}
-						disabled={!hasPrevPage}
-					>
-						{hasPrevPage ? (
-							<Link to={buildPageUrl(currentPage - 1)} preventScrollReset>
-								<Icon name="arrow-left" size="sm" />
-								Previous
-							</Link>
-						) : (
-							<span>
-								<Icon name="arrow-left" size="sm" />
-								Previous
-							</span>
-						)}
-					</Button>
-					<span className="px-2 text-sm">
-						Page {currentPage} of {totalPages}
-					</span>
-					<Button
-						variant="outline"
-						size="sm"
-						asChild={hasNextPage}
-						disabled={!hasNextPage}
-					>
-						{hasNextPage ? (
-							<Link to={buildPageUrl(currentPage + 1)} preventScrollReset>
-								Next
-								<Icon name="arrow-right" size="sm" />
-							</Link>
-						) : (
-							<span>
-								Next
-								<Icon name="arrow-right" size="sm" />
-							</span>
-						)}
-					</Button>
-				</div>
-			) : null}
-		</div>
-	)
+	return `/resources/recipient-messages?${params.toString()}`
 }
 
 export default function RecipientRoute() {
@@ -183,51 +140,151 @@ export default function RecipientRoute() {
 	const isPending = useDelayedIsPending({
 		formMethod: 'GET',
 	})
+	const topSentinelRef = useRef<HTMLDivElement | null>(null)
+	const bottomRef = useRef<HTMLDivElement | null>(null)
+	const hasAutoScrolledRef = useRef(false)
+
+	const messagesQuery = useInfiniteQuery<
+		MessagesPage,
+		Error,
+		InfiniteData<MessagesPage, MessageCursor | null>,
+		[string, string, string],
+		MessageCursor | null
+	>({
+		queryKey: ['recipient-messages', data.recipientId, data.searchQuery],
+		initialPageParam: null as MessageCursor | null,
+		queryFn: async ({ pageParam, signal }) => {
+			const cursor = pageParam as MessageCursor | null
+			const response = await fetch(
+				buildMessagesUrl({
+					recipientId: data.recipientId,
+					searchQuery: data.searchQuery,
+					cursor,
+				}),
+				{ signal },
+			)
+			if (!response.ok) {
+				throw new Error('Failed to load messages')
+			}
+			return (await response.json()) as MessagesPage
+		},
+		getNextPageParam: (lastPage) => lastPage.nextCursor,
+		initialData: {
+			pages: [
+				{
+					messages: data.initialMessages,
+					nextCursor: data.nextCursor,
+				},
+			],
+			pageParams: [null],
+		},
+	})
+
+	const messages = useMemo<Array<MessageItem>>(() => {
+		const pages = messagesQuery.data?.pages ?? []
+		return pages
+			.slice()
+			.reverse()
+			.flatMap((page) => page.messages.slice().reverse())
+	}, [messagesQuery.data?.pages])
+
+	useEffect(() => {
+		hasAutoScrolledRef.current = false
+	}, [data.recipientId, data.searchQuery])
+
+	useEffect(() => {
+		if (hasAutoScrolledRef.current || messages.length === 0) return
+		bottomRef.current?.scrollIntoView({ block: 'end' })
+		hasAutoScrolledRef.current = true
+	}, [messages.length])
+
+	useEffect(() => {
+		const node = topSentinelRef.current
+		if (!node || !messagesQuery.hasNextPage) return
+		const observer = new IntersectionObserver(
+			(entries) => {
+				const entry = entries[0]
+				if (
+					entry?.isIntersecting &&
+					messagesQuery.hasNextPage &&
+					!messagesQuery.isFetchingNextPage
+				) {
+					void messagesQuery.fetchNextPage()
+				}
+			},
+			{ rootMargin: '200px 0px' },
+		)
+		observer.observe(node)
+		return () => observer.disconnect()
+	}, [
+		messagesQuery.fetchNextPage,
+		messagesQuery.hasNextPage,
+		messagesQuery.isFetchingNextPage,
+	])
+
+	const emptyStateMessage = data.searchQuery
+		? 'No messages match your search.'
+		: 'No past messages yet.'
+	const totalMessageLabel =
+		data.totalMessages === 0
+			? 'No messages found'
+			: `Showing ${Math.min(messages.length, data.totalMessages).toLocaleString()} of ${data.totalMessages.toLocaleString()} message${data.totalMessages === 1 ? '' : 's'}`
 
 	return (
 		<div className="flex flex-col gap-6">
 			<div className="flex flex-col gap-4">
 				<SearchBar status="idle" autoSubmit />
-				<Pagination
-					currentPage={data.pagination.currentPage}
-					totalPages={data.pagination.totalPages}
-					totalMessages={data.pagination.totalMessages}
-					searchQuery={data.searchQuery}
-				/>
+				<p className="text-muted-foreground text-sm">
+					{totalMessageLabel}
+					{data.searchQuery ? (
+						<>
+							{' '}
+							matching "<strong>{data.searchQuery}</strong>"
+						</>
+					) : null}
+				</p>
 			</div>
 
-			<ul className={cn('flex flex-col gap-3 sm:gap-4', { 'opacity-50': isPending })}>
-				{data.pastMessages.length === 0 ? (
-					<li className="text-muted-foreground py-8 text-center">
-						{data.searchQuery
-							? 'No messages match your search.'
-							: 'No past messages yet.'}
-					</li>
-				) : (
-					data.pastMessages.map((m) => (
-						<li
-							key={m.id}
-							className="border-border bg-card flex flex-col justify-start gap-2 rounded-2xl border px-4 py-3 shadow-sm sm:px-5 sm:py-4 lg:flex-row lg:items-start"
-						>
-							<span className="text-muted-secondary-foreground min-w-36 text-xs font-semibold tracking-[0.15em] uppercase sm:text-sm sm:tracking-[0.2em]">
-								{m.sentAtDisplay}
-							</span>
-							<span className="break-words text-sm sm:text-base">
-								{m.content}
-							</span>
-						</li>
-					))
-				)}
-			</ul>
-
-			{data.pastMessages.length > 0 && data.pagination.totalPages > 1 ? (
-				<Pagination
-					currentPage={data.pagination.currentPage}
-					totalPages={data.pagination.totalPages}
-					totalMessages={data.pagination.totalMessages}
-					searchQuery={data.searchQuery}
-				/>
-			) : null}
+			{messages.length === 0 ? (
+				<div className="text-muted-foreground py-8 text-center">
+					{emptyStateMessage}
+				</div>
+			) : (
+				<div
+					className={cn('flex flex-col gap-4', {
+						'opacity-50': isPending,
+					})}
+				>
+					<div
+						ref={topSentinelRef}
+						className="text-muted-foreground flex items-center justify-center text-xs font-semibold tracking-[0.2em] uppercase"
+					>
+						{messagesQuery.isFetchingNextPage
+							? 'Loading older messages...'
+							: messagesQuery.hasNextPage
+								? 'Scroll up to load older messages'
+								: 'Start of conversation'}
+					</div>
+					<ul className="flex flex-col gap-4 sm:gap-5">
+						{messages.map((message) => (
+							<li key={message.id} className="flex flex-col items-end gap-2">
+								<time
+									dateTime={message.sentAtIso}
+									className="text-muted-secondary-foreground text-[11px] font-semibold tracking-[0.2em] uppercase sm:text-xs"
+								>
+									{message.sentAtDisplay}
+								</time>
+								<div className="border-border bg-card text-foreground w-full max-w-[min(92%,36rem)] rounded-3xl border px-4 py-3 text-sm shadow-sm sm:text-base">
+									<p className="whitespace-pre-wrap break-words">
+										{message.content}
+									</p>
+								</div>
+							</li>
+						))}
+					</ul>
+					<div ref={bottomRef} />
+				</div>
+			)}
 		</div>
 	)
 }

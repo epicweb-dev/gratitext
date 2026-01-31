@@ -1,3 +1,5 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { useState } from 'react'
 import {
 	data as json,
 	type HeadersFunction,
@@ -193,12 +195,25 @@ function App() {
 
 function AppWithProviders() {
 	const data = useLoaderData<typeof loader>()
+	const [queryClient] = useState(
+		() =>
+			new QueryClient({
+				defaultOptions: {
+					queries: {
+						refetchOnWindowFocus: false,
+						staleTime: 30_000,
+					},
+				},
+			}),
+	)
 	return (
-		<TooltipProvider>
-			<HoneypotProvider {...data.honeyProps}>
-				<App />
-			</HoneypotProvider>
-		</TooltipProvider>
+		<QueryClientProvider client={queryClient}>
+			<TooltipProvider>
+				<HoneypotProvider {...data.honeyProps}>
+					<App />
+				</HoneypotProvider>
+			</TooltipProvider>
+		</QueryClientProvider>
 	)
 }
 
