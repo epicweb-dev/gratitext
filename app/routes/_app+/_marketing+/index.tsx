@@ -1,5 +1,6 @@
 import { Link, type MetaFunction } from 'react-router'
 import { Button } from '#app/components/ui/button.js'
+import { Icon } from '#app/components/ui/icon.tsx'
 import { useOptionalUser } from '#app/utils/user.js'
 
 export const meta: MetaFunction = () => [{ title: 'GratiText' }]
@@ -7,48 +8,36 @@ export const meta: MetaFunction = () => [{ title: 'GratiText' }]
 export default function Index() {
 	const user = useOptionalUser()
 	return (
-		<main className="bg-background pt-12 pb-20">
-			<section className="container grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-				<div className="space-y-6">
-					<p className="text-muted-foreground text-xs font-semibold tracking-[0.3em] uppercase">
-						GratiText
-					</p>
-					<h1 className="text-foreground text-4xl font-bold md:text-6xl">
-						Thoughtful Connections Made Simple
-					</h1>
-					<p className="text-body-md text-muted-foreground max-w-xl">
-						Strengthen your relationships with regular, personal messages of
-						love and gratitude. GratiText keeps you close to the people who
-						matter most, without losing the human touch.
-					</p>
-					<div className="flex flex-wrap gap-4">
-						<Button asChild size="lg">
-							{user ? (
-								<Link to="/recipients">Open dashboard</Link>
-							) : (
-								<Link to="/login">Get started</Link>
-							)}
-						</Button>
-						<Button asChild variant="secondary" size="lg">
-							<Link to="/about">Learn more</Link>
-						</Button>
-					</div>
-					<div className="inline-flex max-w-xs items-center gap-2 rounded-full bg-[hsl(var(--palette-dust-pink))] px-4 py-2 text-xs font-semibold tracking-[0.2em] text-[hsl(var(--palette-chestnut))] uppercase">
-						You are all kinds of awesome
-					</div>
-				</div>
-				<div className="relative flex justify-center">
-					<div className="absolute top-8 -left-6 hidden h-20 w-20 rounded-[28px] bg-[hsl(var(--palette-baby-blue))] lg:block" />
-					<div className="absolute -right-4 bottom-10 hidden h-16 w-16 rounded-full bg-[hsl(var(--palette-rose-pink))] lg:block" />
-					<div className="max-w-md">
+		<main className="bg-background pb-20 pt-6 md:pt-10">
+			<section className="container grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
+				<div className="order-1 flex justify-center lg:order-2">
+					<div className="relative w-full max-w-xs sm:max-w-sm">
+						<div className="absolute left-1/2 top-1/2 h-[260px] w-[260px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[hsl(var(--palette-baby-blue))] sm:h-[320px] sm:w-[320px]" />
+						<Icon
+							name="star"
+							size="lg"
+							aria-hidden="true"
+							className="absolute left-2 top-2 text-[hsl(var(--palette-orange))]"
+						/>
+						<Icon
+							name="star"
+							size="md"
+							aria-hidden="true"
+							className="absolute left-12 top-16 text-[hsl(var(--palette-orange))]"
+						/>
+						<div className="absolute left-4 top-24 h-6 w-10 rounded-full bg-[hsl(var(--palette-orange))]" />
+						<div className="absolute left-6 bottom-6 h-12 w-12 rounded-[22px] bg-[hsl(var(--palette-orange))]" />
+						<div className="absolute -right-2 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] shadow-lg">
+							<Icon name="message" size="sm" aria-hidden="true" />
+						</div>
 						<img
 							src="/images/smiling-phone-flowers.jpg"
 							alt="Smiling person holding flowers and a phone"
 							width={2560}
 							height={2560}
-							className="border-border aspect-square w-full rounded-[40px] border object-cover shadow-lg"
+							className="relative z-10 aspect-square w-full rounded-[36px] object-cover shadow-lg"
 						/>
-						<p className="text-muted-secondary-foreground mt-2 text-xs">
+						<p className="text-muted-secondary-foreground mt-3 hidden text-center text-xs md:block">
 							Photo by{' '}
 							<a
 								className="underline"
@@ -64,6 +53,28 @@ export default function Index() {
 								Unsplash
 							</a>
 						</p>
+					</div>
+				</div>
+				<div className="order-2 space-y-5 text-center lg:order-1 lg:text-left">
+					<h1 className="text-foreground font-serif text-4xl font-semibold leading-tight md:text-5xl lg:text-6xl">
+						Thoughtful Connections Made Simple
+					</h1>
+					<p className="text-body-md text-muted-foreground mx-auto max-w-xl lg:mx-0">
+						Strengthen your relationships with regular personalized messages
+						of love and gratitude.
+					</p>
+					<div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start">
+						<Button
+							asChild
+							size="lg"
+							className="w-full max-w-[320px] bg-[hsl(var(--palette-chestnut))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-hot-fire-red))] sm:w-auto"
+						>
+							{user ? (
+								<Link to="/recipients">Open dashboard</Link>
+							) : (
+								<Link to="/login">Start 14-day FREE trial</Link>
+							)}
+						</Button>
 					</div>
 				</div>
 			</section>
