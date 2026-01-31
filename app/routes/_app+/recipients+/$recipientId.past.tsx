@@ -137,7 +137,7 @@ export default function RecipientRoute() {
 
 	const handleScroll = useCallback((event: UIEvent<HTMLDivElement>) => {
 		const container = event.currentTarget
-		if (container.scrollTop > 80) return
+		if (container.scrollTop > 120) return
 		if (!nextCursor) return
 		if (shouldScrollToBottomRef.current) return
 		if (loadMoreFetcher.state !== 'idle') return
