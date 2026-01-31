@@ -1,4 +1,4 @@
-import { page } from '@vitest/browser/context'
+import { page } from 'vitest/browser'
 import { createRoutesStub } from 'react-router'
 import { type ReactElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
