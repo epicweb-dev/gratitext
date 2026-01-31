@@ -414,7 +414,7 @@ function MessageForms({
 		const formData = new FormData()
 		formData.set('intent', sendMessageActionIntent)
 		formData.set('id', message.id)
-		sendNowFetcher.submit(formData, { method: 'POST' })
+		void sendNowFetcher.submit(formData, { method: 'POST' })
 	}
 
 	const handleEditMessage = () => {
@@ -431,7 +431,7 @@ function MessageForms({
 		const formData = new FormData()
 		formData.set('intent', deleteMessageActionIntent)
 		formData.set('id', message.id)
-		deleteFetcher.submit(formData, { method: 'POST' })
+		void deleteFetcher.submit(formData, { method: 'POST' })
 		setConfirmDelete(false)
 	}
 
