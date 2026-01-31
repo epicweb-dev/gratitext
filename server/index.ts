@@ -79,7 +79,8 @@ const setupHotkeys = ({
 	urls: ServerUrls
 	printUrls: () => void
 }) => {
-	if (!process.stdin.isTTY || process.env.CI) {
+	const allowNonTtyHotkeys = process.env.ENABLE_HOTKEYS === 'true'
+	if ((!process.stdin.isTTY && !allowNonTtyHotkeys) || process.env.CI) {
 		return null
 	}
 
