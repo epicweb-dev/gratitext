@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import {
 	Form,
 	Link,
@@ -7,6 +7,7 @@ import {
 	type HeadersFunction,
 	type LoaderFunctionArgs,
 	type MetaFunction,
+	useFetcher,
 	useLoaderData,
 	useSubmit,
 } from 'react-router'
@@ -20,9 +21,11 @@ import {
 	DropdownMenuTrigger,
 } from '#app/components/ui/dropdown-menu.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
-import { ThemeSwitch } from '#app/routes/resources+/theme-switch.tsx'
+import { Popover, PopoverContent, PopoverTrigger } from '#app/components/ui/popover.tsx'
+import { ThemeSwitch, useTheme } from '#app/routes/resources+/theme-switch.tsx'
 import { getUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
+import { cn } from '#app/utils/misc.tsx'
 import { useRequestInfo } from '#app/utils/request-info.js'
 import { getCustomerProducts } from '#app/utils/stripe.server.ts'
 import { makeTimings } from '#app/utils/timing.server.ts'
@@ -68,7 +71,7 @@ export default function Layout() {
 	const requestInfo = useRequestInfo()
 	return (
 		<div className="flex h-screen flex-col justify-between">
-			<header className="container py-6">
+			<header className="container py-4 md:py-6">
 				<nav className="flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8">
 					<Logo />
 					<div className="flex items-center gap-10">
@@ -84,9 +87,19 @@ export default function Layout() {
 								<UserDropdown />
 							</div>
 						) : (
-							<Button asChild variant="default" size="lg">
-								<Link to="/login">Log In</Link>
-							</Button>
+							<>
+								<Button
+									asChild
+									variant="default"
+									size="lg"
+									className="hidden sm:inline-flex"
+								>
+									<Link to="/login">Log In</Link>
+								</Button>
+								<div className="sm:hidden">
+									<MobileMenu />
+								</div>
+							</>
 						)}
 					</div>
 				</nav>
@@ -145,7 +158,16 @@ export default function Layout() {
 }
 
 function Logo() {
-	return <Link to="/">GratiText</Link>
+	return (
+		<Link
+			to="/"
+			className={cn(
+				'font-serif text-lg font-semibold lowercase tracking-tight text-foreground md:text-xl',
+			)}
+		>
+			gratitetext
+		</Link>
+	)
 }
 
 function UserDropdown() {
@@ -208,4 +230,90 @@ function UserDropdown() {
 
 export function ErrorBoundary() {
 	return <GeneralErrorBoundary />
+}
+
+function MobileMenu() {
+	const [open, setOpen] = useState(false)
+	const theme = useTheme()
+	const fetcher = useFetcher()
+	const nextTheme = theme === 'dark' ? 'light' : 'dark'
+	const themeLabel =
+		theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'
+	const themeIcon = theme === 'dark' ? 'sun' : 'moon'
+
+	return (
+		<Popover open={open} onOpenChange={setOpen}>
+			<PopoverTrigger asChild>
+				<button
+					type="button"
+					className="flex h-10 w-10 items-center justify-center rounded-full text-foreground transition hover:bg-muted"
+					aria-label="Open menu"
+				>
+					<Icon name="menu" size="lg" aria-hidden="true" />
+				</button>
+			</PopoverTrigger>
+			<PopoverContent
+				align="end"
+				sideOffset={12}
+				className="w-[min(100vw-32px,420px)] border-0 bg-transparent p-0 shadow-none"
+			>
+				<div className="rounded-[32px] bg-card px-6 pb-6 pt-5 shadow-[0_20px_45px_rgba(0,0,0,0.18)]">
+					<div className="flex items-center justify-between">
+						<Logo />
+						<button
+							type="button"
+							className="flex h-10 w-10 items-center justify-center rounded-full text-foreground transition hover:bg-muted"
+							onClick={() => setOpen(false)}
+							aria-label="Close menu"
+						>
+							<Icon name="close" size="lg" aria-hidden="true" />
+						</button>
+					</div>
+					<Button
+						asChild
+						size="lg"
+						className="mt-6 w-full bg-[hsl(var(--palette-orange))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-chestnut))]"
+					>
+						<Link to="/login" onClick={() => setOpen(false)}>
+							<Icon name="star" size="sm" aria-hidden="true">
+								Start 14-day FREE Trial
+							</Icon>
+						</Link>
+					</Button>
+					<div className="mt-4 grid gap-3 text-body-sm font-semibold text-foreground">
+						<Link
+							to="/login"
+							onClick={() => setOpen(false)}
+							className="flex items-center gap-3"
+						>
+							<Icon
+								name="log in"
+								size="sm"
+								className="text-[hsl(var(--palette-cloud))]"
+								aria-hidden="true"
+							/>
+							Log In
+						</Link>
+						<div className="h-px bg-border" />
+						<fetcher.Form method="POST" action="/resources/theme-switch">
+							<input type="hidden" name="theme" value={nextTheme} />
+							<button
+								type="submit"
+								onClick={() => setOpen(false)}
+								className="flex w-full items-center gap-3"
+							>
+								<Icon
+									name={themeIcon}
+									size="sm"
+									className="text-[hsl(var(--palette-cloud))]"
+									aria-hidden="true"
+								/>
+								{themeLabel}
+							</button>
+						</fetcher.Form>
+					</div>
+				</div>
+			</PopoverContent>
+		</Popover>
+	)
 }
