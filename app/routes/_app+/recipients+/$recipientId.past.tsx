@@ -1,5 +1,12 @@
 import { invariantResponse } from '@epic-web/invariant'
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import {
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import {
 	data as json,
 	type LoaderFunctionArgs,
@@ -88,7 +95,6 @@ export default function RecipientRoute() {
 	const [messages, setMessages] = useState(data.pastMessages)
 	const [nextCursor, setNextCursor] = useState(data.nextCursor)
 	const scrollContainerRef = useRef<HTMLDivElement | null>(null)
-	const topSentinelRef = useRef<HTMLDivElement | null>(null)
 	const pendingScrollRef = useRef<{ height: number; top: number } | null>(null)
 	const shouldScrollToBottomRef = useRef(true)
 	const isLoadingMore = loadMoreFetcher.state !== 'idle'
@@ -128,31 +134,22 @@ export default function RecipientRoute() {
 		pendingScrollRef.current = null
 	}, [messages, scrollContainerRef])
 
-	useEffect(() => {
-		const sentinel = topSentinelRef.current
-		if (!sentinel || !nextCursor) return
-		const root = scrollContainerRef?.current ?? null
-		const observer = new IntersectionObserver(
-			(entries) => {
-				if (!entries[0]?.isIntersecting) return
-				if (shouldScrollToBottomRef.current) return
-				if (loadMoreFetcher.state !== 'idle') return
-				const params = new URLSearchParams(searchParams)
-				params.set('cursor', nextCursor)
-				const queryString = params.toString()
-				if (scrollContainerRef?.current) {
-					pendingScrollRef.current = {
-						height: scrollContainerRef.current.scrollHeight,
-						top: scrollContainerRef.current.scrollTop,
-					}
-				}
-				loadMoreFetcher.load(queryString ? `?${queryString}` : '.')
-			},
-			{ root, rootMargin: '200px 0px' },
-		)
-		observer.observe(sentinel)
-		return () => observer.disconnect()
-	}, [nextCursor, loadMoreFetcher, searchParams, scrollContainerRef])
+	const handleScroll = useCallback(() => {
+		const container = scrollContainerRef.current
+		if (!container || !nextCursor) return
+		if (shouldScrollToBottomRef.current) return
+		if (loadMoreFetcher.state !== 'idle') return
+		if (container.scrollTop > 80) return
+
+		const params = new URLSearchParams(searchParams)
+		params.set('cursor', nextCursor)
+		const queryString = params.toString()
+		pendingScrollRef.current = {
+			height: container.scrollHeight,
+			top: container.scrollTop,
+		}
+		loadMoreFetcher.load(queryString ? `?${queryString}` : '.')
+	}, [nextCursor, loadMoreFetcher, searchParams])
 
 	const emptyMessage = data.searchQuery
 		? 'No messages match your search.'
@@ -177,13 +174,11 @@ export default function RecipientRoute() {
 				) : (
 					<div
 						ref={scrollContainerRef}
+						onScroll={handleScroll}
 						className="border-border/60 bg-muted max-h-[65vh] overflow-y-auto rounded-[24px] border px-4 py-5 sm:px-5 sm:py-6"
 					>
 						<div className="flex flex-col gap-4">
-							<div
-								ref={topSentinelRef}
-								className="text-muted-foreground flex flex-col items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em]"
-							>
+							<div className="text-muted-foreground flex flex-col items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em]">
 								<span aria-live="polite">{loadMoreLabel}</span>
 							</div>
 							<ul className="flex flex-col gap-4 sm:gap-5">
