@@ -1,5 +1,5 @@
-import { redirect } from 'react-router'
 import bcrypt from 'bcryptjs'
+import { redirect } from 'react-router'
 import { safeRedirect } from 'remix-utils/safe-redirect'
 import {
 	type Password,

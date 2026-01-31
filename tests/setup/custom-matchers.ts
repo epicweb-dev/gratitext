@@ -10,8 +10,6 @@ import {
 } from '#app/utils/toast.server.ts'
 import { convertSetCookieToCookie } from '#tests/utils.ts'
 
-import '@testing-library/jest-dom/vitest'
-
 expect.extend({
 	toHaveRedirect(response: Response, redirectTo?: string) {
 		const location = response.headers.get('location')

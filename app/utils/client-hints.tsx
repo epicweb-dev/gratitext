@@ -7,8 +7,8 @@ import {
 	clientHint as colorSchemeHint,
 	subscribeToSchemeChange,
 } from '@epic-web/client-hints/color-scheme'
-import { useRevalidator } from 'react-router'
 import * as React from 'react'
+import { useRevalidator } from 'react-router'
 import { useRequestInfo } from './request-info.ts'
 
 const hintsUtils = getHintUtils({

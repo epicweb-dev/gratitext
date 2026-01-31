@@ -1,10 +1,12 @@
 import { invariantResponse } from '@epic-web/invariant'
 import {
-	type MetaFunction,
+	Link,
 	data as json,
 	type LoaderFunctionArgs,
+	type MetaFunction,
+	useLoaderData,
+	useSearchParams,
 } from 'react-router'
-import { Link, useLoaderData, useSearchParams } from 'react-router'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { SearchBar } from '#app/components/search-bar.tsx'
 import { Button } from '#app/components/ui/button.tsx'

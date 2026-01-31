@@ -72,6 +72,17 @@ jobs:
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
 
+      - name: 🎭 Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
+      - name: 🎭 Install Playwright browsers
+        run: npm run test:e2e:install
+
       - name: 🏄 Copy test env vars
         run: cp .env.example .env
 
@@ -99,6 +110,14 @@ jobs:
 
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
+
+      - name: 🎭 Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
 
       - name: 📥 Install Playwright Browsers
         run: npm run test:e2e:install
