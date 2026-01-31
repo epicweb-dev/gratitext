@@ -1,19 +1,11 @@
 import { invariantResponse } from '@epic-web/invariant'
-import {
-	type RefObject,
-	useEffect,
-	useLayoutEffect,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import {
 	data as json,
 	type LoaderFunctionArgs,
 	type MetaFunction,
 	useFetcher,
 	useLoaderData,
-	useOutletContext,
 	useSearchParams,
 } from 'react-router'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
@@ -88,18 +80,14 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 
 type LoaderData = Awaited<ReturnType<typeof loader>>['data']
 
-type RecipientOutletContext = {
-	scrollContainerRef: RefObject<HTMLDivElement>
-}
-
 export default function RecipientRoute() {
 	const data = useLoaderData<typeof loader>()
 	const [searchParams] = useSearchParams()
 	const loadMoreFetcher = useFetcher<LoaderData>()
 	const loadMoreData = loadMoreFetcher.data
-	const { scrollContainerRef } = useOutletContext<RecipientOutletContext>()
 	const [messages, setMessages] = useState(data.pastMessages)
 	const [nextCursor, setNextCursor] = useState(data.nextCursor)
+	const scrollContainerRef = useRef<HTMLDivElement | null>(null)
 	const topSentinelRef = useRef<HTMLDivElement | null>(null)
 	const pendingScrollRef = useRef<{ height: number; top: number } | null>(null)
 	const shouldScrollToBottomRef = useRef(true)
@@ -187,28 +175,33 @@ export default function RecipientRoute() {
 						{emptyMessage}
 					</p>
 				) : (
-					<div className="flex flex-col gap-4">
-						<div
-							ref={topSentinelRef}
-							className="text-muted-foreground flex flex-col items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em]"
-						>
-							<span aria-live="polite">{loadMoreLabel}</span>
+					<div
+						ref={scrollContainerRef}
+						className="border-border/60 bg-muted max-h-[65vh] overflow-y-auto rounded-[24px] border px-4 py-5 sm:px-5 sm:py-6"
+					>
+						<div className="flex flex-col gap-4">
+							<div
+								ref={topSentinelRef}
+								className="text-muted-foreground flex flex-col items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em]"
+							>
+								<span aria-live="polite">{loadMoreLabel}</span>
+							</div>
+							<ul className="flex flex-col gap-4 sm:gap-5">
+								{messagesForDisplay.map((m) => (
+									<li key={m.id} className="flex flex-col items-end gap-1">
+										<div className="bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] max-w-[75%] rounded-[24px] px-4 py-3 text-sm leading-relaxed shadow-sm sm:max-w-[65%] sm:px-5 sm:py-4">
+											<p className="whitespace-pre-wrap">{m.content}</p>
+										</div>
+										<time
+											dateTime={m.sentAtIso}
+											className="text-muted-foreground text-[0.7rem] font-semibold tracking-[0.2em] uppercase"
+										>
+											{m.sentAtDisplay}
+										</time>
+									</li>
+								))}
+							</ul>
 						</div>
-						<ul className="flex flex-col gap-4 sm:gap-5">
-							{messagesForDisplay.map((m) => (
-								<li key={m.id} className="flex flex-col items-end gap-1">
-									<div className="bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] max-w-[75%] rounded-[24px] px-4 py-3 text-sm leading-relaxed shadow-sm sm:max-w-[65%] sm:px-5 sm:py-4">
-										<p className="whitespace-pre-wrap">{m.content}</p>
-									</div>
-									<time
-										dateTime={m.sentAtIso}
-										className="text-muted-foreground text-[0.7rem] font-semibold tracking-[0.2em] uppercase"
-									>
-										{m.sentAtDisplay}
-									</time>
-								</li>
-							))}
-						</ul>
 					</div>
 				)}
 			</div>

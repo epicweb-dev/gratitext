@@ -84,7 +84,6 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 export default function RecipientRoute() {
 	const data = useLoaderData<typeof loader>()
 	const firstLinkRef = useRef<HTMLAnchorElement | null>(null)
-	const scrollContainerRef = useRef<HTMLDivElement | null>(null)
 	const matches = useMatches()
 	const lastMatch = matches[matches.length - 1]
 	const idPortion = lastMatch?.id.split('.')?.at(-1) ?? '.'
@@ -232,8 +231,8 @@ export default function RecipientRoute() {
 						</Icon>
 					</Link>
 				</nav>
-				<div ref={scrollContainerRef} className="overflow-y-auto">
-					<Outlet context={{ scrollContainerRef }} />
+				<div className="overflow-y-auto">
+					<Outlet />
 				</div>
 			</section>
 		</div>
