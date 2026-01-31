@@ -44,7 +44,7 @@ export default function RecipientsIndexRoute() {
 					aria-label="Add recipient"
 					className="h-14 w-14 bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] shadow-sm hover:bg-[hsl(var(--palette-green-700))]"
 				>
-					<span aria-hidden="true" className="text-2xl font-semibold leading-none">
+					<span aria-hidden="true" className="text-3xl font-bold leading-none">
 						+
 					</span>
 				</ButtonLink>
