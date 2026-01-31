@@ -96,7 +96,7 @@ export default function AboutRoute() {
 			<section className="container mt-12" aria-labelledby="gratitude-faq">
 				<div className="max-w-3xl space-y-6">
 					<h2 id="gratitude-faq" className="text-h4 md:text-h3">
-						Wondering How a Set of Questions in an FAQ Could Look?
+						Frequently Asked Questions
 					</h2>
 					<div className="rounded-[28px] border border-border bg-muted p-4 shadow-sm sm:p-6">
 						<div className="space-y-4">
