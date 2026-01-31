@@ -25,7 +25,8 @@ function normalizeSvgColors(svg: HTMLElement) {
 	const attributesToNormalize = ['stroke', 'fill'] as const
 
 	for (const attribute of attributesToNormalize) {
-		for (const element of svg.querySelectorAll(`[${attribute}]`)) {
+		const elements = [svg, ...svg.querySelectorAll(`[${attribute}]`)]
+		for (const element of elements) {
 			const value = element.getAttribute(attribute)
 			if (value && hexColorPattern.test(value)) {
 				element.setAttribute(attribute, 'currentColor')
