@@ -185,9 +185,9 @@ test('login as existing user', async ({ page, insertNewUser }) => {
 	await page.goto('/login')
 	await page.waitForLoadState('domcontentloaded')
 
-	const phoneNumberInput = page.getByRole('textbox', { name: /phone number/i })
-	await phoneNumberInput.waitFor({ state: 'visible' })
-	await phoneNumberInput.fill(user.phoneNumber)
+	const usernameInput = page.getByRole('textbox', { name: /username/i })
+	await usernameInput.waitFor({ state: 'visible' })
+	await usernameInput.fill(user.username)
 	await page.getByLabel(/^password$/i).fill(password)
 	await page.getByRole('button', { name: /log in/i }).click()
 
@@ -261,17 +261,17 @@ test('reset password with a link', async ({ page, insertNewUser }) => {
 	await expect(page).toHaveURL('/login', { timeout: 15_000 })
 	await page.waitForLoadState('domcontentloaded')
 
-	const loginPhoneInput = page.getByRole('textbox', { name: /phone number/i })
-	await loginPhoneInput.waitFor({ state: 'visible' })
-	await loginPhoneInput.fill(user.phoneNumber)
+	const loginUsernameInput = page.getByRole('textbox', { name: /username/i })
+	await loginUsernameInput.waitFor({ state: 'visible' })
+	await loginUsernameInput.fill(user.username)
 	await page.getByLabel(/^password$/i).fill(originalPassword)
 	await page.getByRole('button', { name: /log in/i }).click()
 
 	await expect(
-		page.getByText(/invalid phone number or password/i),
+		page.getByText(/invalid username or password/i),
 	).toBeVisible()
 
-	await loginPhoneInput.fill(user.phoneNumber)
+	await loginUsernameInput.fill(user.username)
 	await page.getByLabel(/^password$/i).fill(newPassword)
 	await page.getByRole('button', { name: /log in/i }).click()
 
