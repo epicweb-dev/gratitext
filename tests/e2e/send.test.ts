@@ -59,9 +59,15 @@ test('Users can write and send a message immediately', async ({
 		timeout: 20000,
 	})
 
-	const sendNowButton = page.getByRole('button', { name: /send now/i })
-	await sendNowButton.waitFor({ state: 'visible' })
-	await sendNowButton.click()
+	const messageActionsButton = page
+		.getByRole('button', { name: /message actions/i })
+		.first()
+	await messageActionsButton.waitFor({ state: 'visible' })
+	await messageActionsButton.click()
+
+	const sendNowItem = page.getByRole('menuitem', { name: /send now/i })
+	await sendNowItem.waitFor({ state: 'visible' })
+	await sendNowItem.click()
 
 	await expect(page.getByText(/message sent/i)).toBeVisible({ timeout: 15000 })
 
