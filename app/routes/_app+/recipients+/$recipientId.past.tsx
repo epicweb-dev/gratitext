@@ -59,6 +59,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 
 	return json({
 		recipient,
+		recipientId: params.recipientId,
 		searchQuery,
 		nextCursor,
 		pastMessages: pageMessages.map((m) => ({
@@ -94,33 +95,38 @@ export default function RecipientRoute() {
 	const loadMoreData = loadMoreFetcher.data ?? null
 	const [messages, setMessages] = useState(data.pastMessages)
 	const [nextCursor, setNextCursor] = useState(data.nextCursor)
-	const [scrollContainer, setScrollContainer] =
-		useState<HTMLDivElement | null>(null)
+	const isCurrentThread =
+		loadMoreData?.searchQuery === data.searchQuery &&
+		loadMoreData?.recipientId === data.recipientId
+	const nextCursorForScroll = isCurrentThread
+		? (loadMoreData?.nextCursor ?? null)
+		: nextCursor
+	const nextCursorRef = useRef(nextCursorForScroll)
+	const [scrollContainer, setScrollContainer] = useState<HTMLDivElement | null>(
+		null,
+	)
 	const pendingScrollRef = useRef<{ height: number; top: number } | null>(null)
 	const shouldScrollToBottomRef = useRef(true)
 	const isLoadingMore = loadMoreFetcher.state !== 'idle'
 	const messagesForDisplay = useMemo(() => [...messages].reverse(), [messages])
+	nextCursorRef.current = nextCursorForScroll
 
 	useEffect(() => {
 		setMessages(data.pastMessages)
 		setNextCursor(data.nextCursor)
 		pendingScrollRef.current = null
 		shouldScrollToBottomRef.current = true
-	}, [
-		data.pastMessages,
-		data.nextCursor,
-		data.searchQuery,
-		data.recipient.phoneNumber,
-	])
+	}, [data.pastMessages, data.nextCursor, data.searchQuery, data.recipientId])
 
 	useEffect(() => {
 		if (!loadMoreData) return
 		if (loadMoreData.searchQuery !== data.searchQuery) return
+		if (loadMoreData.recipientId !== data.recipientId) return
 		if (loadMoreData.pastMessages.length) {
 			setMessages((prev) => [...prev, ...loadMoreData.pastMessages])
 		}
 		setNextCursor(loadMoreData.nextCursor)
-	}, [data.searchQuery, loadMoreData])
+	}, [data.recipientId, data.searchQuery, loadMoreData])
 
 	useLayoutEffect(() => {
 		const container = scrollContainer
@@ -132,25 +138,30 @@ export default function RecipientRoute() {
 		}
 		const pending = pendingScrollRef.current
 		if (!pending) return
-		container.scrollTop = pending.top + (container.scrollHeight - pending.height)
+		container.scrollTop =
+			pending.top + (container.scrollHeight - pending.height)
 		pendingScrollRef.current = null
 	}, [messages, scrollContainer])
 
-	const handleScroll = useCallback((container: HTMLDivElement) => {
-		if (container.scrollTop > 120) return
-		if (!nextCursor) return
-		if (shouldScrollToBottomRef.current) return
-		if (loadMoreFetcher.state !== 'idle') return
+	const handleScroll = useCallback(
+		(container: HTMLDivElement) => {
+			if (container.scrollTop > 120) return
+			const cursor = nextCursorRef.current
+			if (!cursor) return
+			if (shouldScrollToBottomRef.current) return
+			if (loadMoreFetcher.state !== 'idle') return
 
-		const params = new URLSearchParams(searchParams)
-		params.set('cursor', nextCursor)
-		const queryString = params.toString()
-		pendingScrollRef.current = {
-			height: container.scrollHeight,
-			top: container.scrollTop,
-		}
-		void loadMoreFetcher.load(queryString ? `?${queryString}` : '.')
-	}, [nextCursor, loadMoreFetcher, searchParams])
+			const params = new URLSearchParams(searchParams)
+			params.set('cursor', cursor)
+			const queryString = params.toString()
+			pendingScrollRef.current = {
+				height: container.scrollHeight,
+				top: container.scrollTop,
+			}
+			void loadMoreFetcher.load(queryString ? `?${queryString}` : '.')
+		},
+		[loadMoreFetcher, searchParams],
+	)
 
 	useEffect(() => {
 		const container = scrollContainer
@@ -173,9 +184,7 @@ export default function RecipientRoute() {
 
 	return (
 		<div className="flex flex-col gap-6">
-			<div className="flex flex-col gap-4">
-				<SearchBar status="idle" autoSubmit />
-			</div>
+			<SearchBar status="idle" autoSubmit />
 
 			<div className="border-border bg-card rounded-3xl border px-4 py-5 shadow-sm sm:px-6 sm:py-6">
 				{messagesForDisplay.length === 0 ? (
@@ -188,13 +197,13 @@ export default function RecipientRoute() {
 						className="border-border/60 bg-muted max-h-[65vh] overflow-y-auto rounded-[24px] border px-4 py-5 sm:px-5 sm:py-6"
 					>
 						<div className="flex flex-col gap-4">
-							<div className="text-muted-foreground flex flex-col items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em]">
+							<div className="text-muted-foreground flex flex-col items-center gap-2 text-xs font-semibold tracking-[0.2em] uppercase">
 								<span aria-live="polite">{loadMoreLabel}</span>
 							</div>
 							<ul className="flex flex-col gap-4 sm:gap-5">
 								{messagesForDisplay.map((m) => (
 									<li key={m.id} className="flex flex-col items-end gap-1">
-										<div className="bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] max-w-[75%] rounded-[24px] px-4 py-3 text-sm leading-relaxed shadow-sm sm:max-w-[65%] sm:px-5 sm:py-4">
+										<div className="max-w-[75%] rounded-[24px] bg-[hsl(var(--palette-green-500))] px-4 py-3 text-sm leading-relaxed text-[hsl(var(--palette-cream))] shadow-sm sm:max-w-[65%] sm:px-5 sm:py-4">
 											<p className="whitespace-pre-wrap">{m.content}</p>
 										</div>
 										<time
