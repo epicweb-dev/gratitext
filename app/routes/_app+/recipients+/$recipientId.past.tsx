@@ -1,5 +1,6 @@
 import { invariantResponse } from '@epic-web/invariant'
 import {
+	type UIEvent,
 	useCallback,
 	useEffect,
 	useLayoutEffect,
@@ -134,9 +135,9 @@ export default function RecipientRoute() {
 		pendingScrollRef.current = null
 	}, [messages, scrollContainerRef])
 
-	const handleScroll = useCallback(() => {
-		const container = scrollContainerRef.current
-		if (!container || !nextCursor) return
+	const handleScroll = useCallback((event: UIEvent<HTMLDivElement>) => {
+		const container = event.currentTarget
+		if (!nextCursor) return
 		if (shouldScrollToBottomRef.current) return
 		if (loadMoreFetcher.state !== 'idle') return
 		if (container.scrollTop > 80) return
