@@ -132,8 +132,8 @@ const rateLimitDefault = {
 			req.get('fly-client-ip') ??
 			req.ip ??
 			req.socket.remoteAddress ??
-			'unknown'
-		return clientIp === 'unknown' ? clientIp : ipKeyGenerator(clientIp)
+			'0.0.0.0'
+		return ipKeyGenerator(clientIp)
 	},
 }
 
