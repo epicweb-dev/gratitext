@@ -7,7 +7,7 @@ import {
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, expect, test, vi } from 'vitest'
 import { useOptionalUser } from '#app/utils/user.ts'
-import { default as UsernameRoute } from './$username.tsx'
+import { default as UserProfile } from './user-profile.tsx'
 
 type LinkProps = ComponentPropsWithoutRef<'a'> & {
 	to?: string | { pathname?: string }
@@ -77,7 +77,7 @@ test('The user profile when not logged in as self', async () => {
 		user,
 		userJoinedDisplay: user.createdAt.toLocaleDateString(),
 	})
-	render(<UsernameRoute />)
+	render(<UserProfile />)
 
 	await expect
 		.element(page.getByRole('heading', { level: 1, name: user.name }))
@@ -103,7 +103,7 @@ test('The user profile when logged in as self', async () => {
 		user,
 		userJoinedDisplay: user.createdAt.toLocaleDateString(),
 	})
-	render(<UsernameRoute />)
+	render(<UserProfile />)
 
 	await expect
 		.element(page.getByRole('heading', { level: 1, name: user.name }))
