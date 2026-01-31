@@ -46,7 +46,7 @@
 	--popover: var(--palette-beige);
 	--popover-foreground: var(--palette-dark-navy);
 
-	--card: 0 0% 100%;
+	--card: var(--palette-cream);
 	--card-foreground: var(--palette-dark-navy);
 
 	--border: var(--palette-smoke);

@@ -75,9 +75,11 @@ export default function RecipientsIndexRoute() {
 								messageCount === 0
 									? 'text-[hsl(var(--palette-orange))]'
 									: 'text-muted-foreground'
-							const scheduleTone = recipient.cronError
-								? 'text-foreground-destructive'
-								: 'text-muted-foreground'
+							const scheduleTone = recipient.disabled
+								? 'text-muted-foreground'
+								: recipient.cronError
+									? 'text-foreground-destructive'
+									: 'text-muted-foreground'
 							return (
 								<div
 									key={recipient.id}
