@@ -2,7 +2,12 @@ import { invariant } from '@epic-web/invariant'
 import { faker } from '@faker-js/faker'
 import { prisma } from '#app/utils/db.server.ts'
 import { deleteText, waitForText } from '#tests/mocks/utils.ts'
-import { test as base, createUser, expect } from '#tests/playwright-utils.ts'
+import {
+	test as base,
+	createPhoneNumber,
+	createUser,
+	expect,
+} from '#tests/playwright-utils.ts'
 
 const URL_REGEX = /(?<url>https?:\/\/[^\s$.?#].[^\s]*)/
 const CODE_REGEX = /code: (?<code>[\d\w]+)/
@@ -16,6 +21,9 @@ function formatPhoneNumber(
 	countryCode = defaultCountryCode,
 ) {
 	const digitsOnly = phoneNumber.replace(/\D/g, '')
+	if (phoneNumber.trim().startsWith('+')) {
+		return `+${digitsOnly}`.replace(/\s+/g, '')
+	}
 	return `${countryCode}${digitsOnly}`.replace(/\s+/g, '')
 }
 
@@ -29,21 +37,23 @@ const test = base.extend<{
 }>({
 	getOnboardingData: async ({}, use) => {
 		const userData = createUser()
+		const phoneNumber = createPhoneNumber({ includeCountryCode: false })
 		// Clean up any stale text fixtures for this phone number before test
-		await deleteText(userData.phoneNumber)
-		await deleteText(formatPhoneNumber(userData.phoneNumber))
+		await deleteText(phoneNumber)
+		await deleteText(formatPhoneNumber(phoneNumber))
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		await use(() => {
 			const onboardingData = {
 				...userData,
+				phoneNumber,
 				password: faker.internet.password(),
 			}
 			return onboardingData
 		})
 		await prisma.user.deleteMany({ where: { username: userData.username } })
 		// Clean up text fixtures after test
-		await deleteText(userData.phoneNumber)
-		await deleteText(formatPhoneNumber(userData.phoneNumber))
+		await deleteText(phoneNumber)
+		await deleteText(formatPhoneNumber(phoneNumber))
 	},
 })
 

@@ -3,7 +3,7 @@ import { faker } from '@faker-js/faker'
 import { verifyUserPassword } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { deleteText, waitForText } from '#tests/mocks/utils.ts'
-import { createUser, expect, test } from '#tests/playwright-utils.ts'
+import { createPhoneNumber, createUser, expect, test } from '#tests/playwright-utils.ts'
 
 const CODE_REGEX = /Here's your verification code: (?<code>[\d\w]+)/
 
@@ -68,7 +68,7 @@ test('Users can update their password', async ({ page, login }) => {
 
 test('Users can change their phone number', async ({ page, login }) => {
 	const preUpdateUser = await login()
-	const newPhoneNumber = faker.phone.number()
+	const newPhoneNumber = createPhoneNumber()
 	expect(preUpdateUser.phoneNumber).not.toEqual(newPhoneNumber)
 
 	// Clean up any stale fixtures for both phone numbers

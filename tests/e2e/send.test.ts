@@ -39,24 +39,25 @@ test('Users can write and send a message immediately', async ({
 
 	await page.waitForLoadState('domcontentloaded')
 
-	const { content: textMessageContent } = createMessage()
+	const textMessageContent = `Test message ${faker.string.alphanumeric(8)}`
 	const messageTextbox = page.getByRole('textbox', { name: /message/i })
 	await messageTextbox.waitFor({ state: 'visible' })
-	await messageTextbox.fill(textMessageContent)
+	await messageTextbox.click()
+	await messageTextbox.fill('')
+	await messageTextbox.type(textMessageContent, { delay: 5 })
+	await expect(messageTextbox).toHaveValue(textMessageContent)
 
-	await page.getByRole('button', { name: /save/i }).click()
-	await waitFor(
-		async () => {
-			const createdMessage = await prisma.message.findFirst({
-				select: { id: true },
-				where: { recipientId: recipient.id, content: textMessageContent },
-			})
-			if (createdMessage) return createdMessage
-		},
-		{ timeout: 15000, errorMessage: 'Message not created' },
-	)
-	await page.goto(`/recipients/${recipient.id}`)
+	await Promise.all([
+		page.waitForURL(`/recipients/${recipient.id}`, {
+			timeout: 30000,
+			waitUntil: 'domcontentloaded',
+		}),
+		page.getByRole('button', { name: /save/i }).click(),
+	])
 	await page.waitForLoadState('domcontentloaded')
+	await expect(page.getByText(textMessageContent)).toBeVisible({
+		timeout: 20000,
+	})
 
 	const sendNowButton = page.getByRole('button', { name: /send now/i })
 	await sendNowButton.waitFor({ state: 'visible' })
