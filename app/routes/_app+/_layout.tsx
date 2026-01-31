@@ -159,7 +159,7 @@ function Logo() {
 	return (
 		<Link
 			to="/"
-			className="font-serif text-lg font-semibold lowercase leading-none tracking-tight text-foreground md:text-xl"
+			className="text-foreground font-serif text-lg leading-none font-semibold tracking-tight lowercase md:text-xl"
 		>
 			gratitext
 		</Link>
@@ -239,16 +239,17 @@ function MobileMenu() {
 
 	return (
 		<>
-			<button
+			<Button
 				type="button"
-				className="flex h-10 w-10 items-center justify-center rounded-full text-foreground transition hover:bg-muted"
+				variant="ghost"
+				size="icon"
 				aria-label="Open menu"
 				aria-expanded={open}
 				aria-controls="mobile-menu-panel"
 				onClick={() => setOpen(true)}
 			>
 				<Icon name="menu" size="lg" aria-hidden="true" />
-			</button>
+			</Button>
 			{open ? (
 				<div className="fixed inset-0 z-50 flex justify-center">
 					<button
@@ -259,18 +260,19 @@ function MobileMenu() {
 					/>
 					<div
 						id="mobile-menu-panel"
-						className="relative mx-4 mt-5 w-full max-w-[420px] rounded-[32px] bg-card px-6 pb-6 pt-6 shadow-[0_20px_45px_rgba(0,0,0,0.18)]"
+						className="bg-card relative mx-4 mt-5 w-full max-w-[420px] rounded-[32px] px-6 pt-6 pb-6 shadow-[0_20px_45px_rgba(0,0,0,0.18)]"
 					>
 						<div className="flex items-center justify-between">
 							<Logo />
-							<button
+							<Button
 								type="button"
-								className="flex h-10 w-10 items-center justify-center rounded-full text-foreground transition hover:bg-muted"
+								variant="ghost"
+								size="icon"
 								onClick={() => setOpen(false)}
 								aria-label="Close menu"
 							>
 								<Icon name="close" size="lg" aria-hidden="true" />
-							</button>
+							</Button>
 						</div>
 						<Button
 							asChild
@@ -283,7 +285,7 @@ function MobileMenu() {
 								</Icon>
 							</Link>
 						</Button>
-						<div className="mt-4 grid gap-3 text-body-sm font-semibold text-foreground">
+						<div className="text-body-sm text-foreground mt-4 grid gap-3 font-semibold">
 							<Link
 								to="/login"
 								onClick={() => setOpen(false)}
@@ -297,7 +299,7 @@ function MobileMenu() {
 								/>
 								Log In
 							</Link>
-							<div className="h-px bg-border" />
+							<div className="bg-border h-px" />
 							<fetcher.Form method="POST" action="/resources/theme-switch">
 								<input type="hidden" name="theme" value={nextTheme} />
 								<button
