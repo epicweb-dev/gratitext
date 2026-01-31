@@ -94,7 +94,7 @@ export default function RecipientRoute() {
 	}, [currentPath])
 
 	return (
-		<div className="grid gap-10 lg:grid-cols-[320px_1fr]">
+		<div className="grid gap-8 lg:grid-cols-[320px_1fr] lg:gap-10">
 			<aside className="space-y-6">
 				<Link
 					to="/recipients"
@@ -105,7 +105,7 @@ export default function RecipientRoute() {
 				</Link>
 				<div className="flex flex-wrap items-start justify-between gap-4">
 					<div>
-						<h2 className="text-foreground text-3xl font-bold">
+						<h2 className="text-foreground text-2xl font-bold sm:text-3xl">
 							{data.recipient.name}
 						</h2>
 						<div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-2 text-xs font-semibold tracking-[0.2em] uppercase">
@@ -160,13 +160,13 @@ export default function RecipientRoute() {
 					</SimpleTooltip>
 				</div>
 			</aside>
-			<section className="border-border bg-muted rounded-[32px] border px-6 py-8 shadow-sm">
-				<nav className="mb-6 flex flex-wrap gap-2">
+			<section className="border-border bg-muted min-w-0 rounded-[32px] border px-4 py-6 shadow-sm sm:px-6 sm:py-8">
+				<nav className="mb-6 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
 					<Link
 						to="."
 						preventScrollReset
 						className={cn(
-							'border-border text-muted-foreground hover:bg-card hover:text-foreground flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold tracking-[0.2em] uppercase transition',
+							'border-border text-muted-foreground hover:bg-card hover:text-foreground flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold tracking-[0.15em] uppercase transition sm:w-auto sm:justify-start sm:tracking-[0.2em]',
 							currentPath === '.' && 'bg-card text-foreground shadow-sm',
 						)}
 						ref={firstLinkRef}
@@ -179,7 +179,7 @@ export default function RecipientRoute() {
 						to="new"
 						preventScrollReset
 						className={cn(
-							'border-border text-muted-foreground hover:bg-card hover:text-foreground flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold tracking-[0.2em] uppercase transition',
+							'border-border text-muted-foreground hover:bg-card hover:text-foreground flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold tracking-[0.15em] uppercase transition sm:w-auto sm:justify-start sm:tracking-[0.2em]',
 							currentPath === 'new' && 'bg-card text-foreground shadow-sm',
 						)}
 					>
@@ -191,7 +191,7 @@ export default function RecipientRoute() {
 						to="past"
 						preventScrollReset
 						className={cn(
-							'border-border text-muted-foreground hover:bg-card hover:text-foreground flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold tracking-[0.2em] uppercase transition',
+							'border-border text-muted-foreground hover:bg-card hover:text-foreground flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold tracking-[0.15em] uppercase transition sm:w-auto sm:justify-start sm:tracking-[0.2em]',
 							currentPath === 'past' && 'bg-card text-foreground shadow-sm',
 						)}
 					>
@@ -203,7 +203,7 @@ export default function RecipientRoute() {
 						to="edit"
 						preventScrollReset
 						className={cn(
-							'border-border text-muted-foreground hover:bg-card hover:text-foreground flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold tracking-[0.2em] uppercase transition',
+							'border-border text-muted-foreground hover:bg-card hover:text-foreground flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold tracking-[0.15em] uppercase transition sm:w-auto sm:justify-start sm:tracking-[0.2em]',
 							currentPath === 'edit' && 'bg-card text-foreground shadow-sm',
 						)}
 					>
