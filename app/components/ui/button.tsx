@@ -1,7 +1,7 @@
 import { Slot } from '@radix-ui/react-slot'
-import { Link, type LinkProps } from 'react-router'
 import { cva, type VariantProps } from 'class-variance-authority'
 import * as React from 'react'
+import { Link, type LinkProps } from 'react-router'
 
 import { cn } from '#app/utils/misc.tsx'
 

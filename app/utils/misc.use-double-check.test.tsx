@@ -1,7 +1,7 @@
-import { page, userEvent } from 'vitest/browser'
 import { useState, type ReactElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, expect, test } from 'vitest'
+import { page, userEvent } from 'vitest/browser'
 import { useDoubleCheck } from './misc.tsx'
 
 let root: Root | null = null

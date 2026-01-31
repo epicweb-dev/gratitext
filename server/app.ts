@@ -1,6 +1,6 @@
 import { createRequestHandler } from '@react-router/express'
-import { type ServerBuild } from 'react-router'
 import express from 'express'
+import { type ServerBuild } from 'react-router'
 
 declare module 'react-router' {
 	interface AppLoadContext {

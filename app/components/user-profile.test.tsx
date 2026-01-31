@@ -1,8 +1,8 @@
-import { page } from 'vitest/browser'
 import { type ComponentProps, type ReactElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { afterEach, expect, test } from 'vitest'
+import { page } from 'vitest/browser'
 import { UserProfileView } from './user-profile.tsx'
 
 let root: Root | null = null

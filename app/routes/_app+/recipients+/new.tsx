@@ -1,10 +1,10 @@
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import {
-	type MetaFunction,
 	data as json,
 	type LoaderFunctionArgs,
+	type MetaFunction,
+	useLoaderData,
 } from 'react-router'
-import { useLoaderData } from 'react-router'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { RecipientEditor } from './__editor.tsx'
 

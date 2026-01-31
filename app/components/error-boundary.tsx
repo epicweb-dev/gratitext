@@ -1,5 +1,5 @@
-import { type ReactElement, useEffect } from 'react'
 import * as Sentry from '@sentry/react-router'
+import { type ReactElement, useEffect } from 'react'
 import {
 	type ErrorResponse,
 	isRouteErrorResponse,

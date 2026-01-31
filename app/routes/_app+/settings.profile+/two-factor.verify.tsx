@@ -1,14 +1,17 @@
 import { getFormProps, getInputProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
+import * as QRCode from 'qrcode'
 import {
+	Form,
 	data as json,
 	redirect,
 	type LoaderFunctionArgs,
 	type ActionFunctionArgs,
+	useActionData,
+	useLoaderData,
+	useNavigation,
 } from 'react-router'
-import { Form, useActionData, useLoaderData, useNavigation } from 'react-router'
-import * as QRCode from 'qrcode'
 import { z } from 'zod'
 import { ErrorList, OTPField } from '#app/components/forms.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'

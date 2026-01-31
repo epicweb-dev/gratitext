@@ -9,7 +9,7 @@ import { prisma } from '#app/utils/db.server.ts'
 import { type User as UserModel } from '#app/utils/prisma-generated.server/client.ts'
 import { authSessionStorage } from '#app/utils/session.server.ts'
 import { createUser } from './db-utils.ts'
-import { deleteText, waitFor } from './mocks/utils.ts'
+import { deleteText } from './mocks/utils.ts'
 
 export * from './db-utils.ts'
 export { waitFor } from './mocks/utils.ts'
