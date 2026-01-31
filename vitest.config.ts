@@ -17,9 +17,6 @@ export default defineConfig({
 					setupFiles: ['./tests/setup/setup-test-env.ts'],
 					globalSetup: ['./tests/setup/global-setup.ts'],
 					restoreMocks: true,
-					coverage: {
-						include: ['app/**/*.{ts,tsx}'],
-					},
 				},
 			},
 			{
@@ -39,5 +36,8 @@ export default defineConfig({
 				},
 			},
 		],
+		coverage: {
+			include: ['app/**/*.{ts,tsx}'],
+		},
 	},
 })
