@@ -173,20 +173,21 @@ const setupHotkeys = ({
 	)
 
 	const onKeypress = (input: Buffer) => {
-		const rawKey = input.toString('utf8')
-		if (rawKey === '\u0003') {
-			process.kill(process.pid, 'SIGINT')
-			return
-		}
-		if (rawKey === '\r' || rawKey === '\n') {
-			process.stdout.write('\n')
-			return
-		}
-		const normalizedKey =
-			rawKey.length === 1 ? rawKey.toLowerCase() : rawKey
-		const hotkey = hotkeys.find((entry) => entry.key === normalizedKey)
-		if (hotkey) {
-			void hotkey.action()
+		const rawKeys = input.toString('utf8')
+		for (const rawKey of rawKeys) {
+			if (rawKey === '\u0003') {
+				process.kill(process.pid, 'SIGINT')
+				continue
+			}
+			if (rawKey === '\r' || rawKey === '\n') {
+				process.stdout.write('\n')
+				continue
+			}
+			const normalizedKey = rawKey.toLowerCase()
+			const hotkey = hotkeys.find((entry) => entry.key === normalizedKey)
+			if (hotkey) {
+				void hotkey.action()
+			}
 		}
 	}
 
