@@ -1,91 +1,103 @@
-/**
- * @vitest-environment jsdom
- */
+import { page } from '@vitest/browser/context'
 import { createRoutesStub } from 'react-router'
-import { render, screen } from '@testing-library/react'
-import setCookieParser from 'set-cookie-parser'
-import { test } from 'vitest'
-import { loader as rootLoader } from '#app/root.tsx'
-import { getSessionExpirationDate, sessionKey } from '#app/utils/auth.server.ts'
-import { prisma } from '#app/utils/db.server.ts'
-import { authSessionStorage } from '#app/utils/session.server.ts'
-import { createUser } from '#tests/db-utils.ts'
-import { default as UsernameRoute, loader } from './$username.tsx'
+import { type ReactElement } from 'react'
+import { createRoot, type Root } from 'react-dom/client'
+import { afterEach, expect, test, vi } from 'vitest'
+import { useOptionalUser } from '#app/utils/user.ts'
+import { default as UsernameRoute } from './$username.tsx'
 
-type RootLoaderArgs = Parameters<typeof rootLoader>[0]
-type UsernameLoaderArgs = Parameters<typeof loader>[0]
+vi.mock('#app/utils/user.ts', () => ({
+	useOptionalUser: vi.fn(),
+}))
 
-test('The user profile when not logged in as self', async () => {
-	const user = await prisma.user.create({
-		select: { id: true, username: true, name: true },
-		data: { ...createUser() },
-	})
-	const App = createRoutesStub([
+const mockedUseOptionalUser = vi.mocked(useOptionalUser)
+
+let root: Root | null = null
+let container: HTMLDivElement | null = null
+
+const render = (ui: ReactElement) => {
+	container = document.createElement('div')
+	document.body.appendChild(container)
+	root = createRoot(container)
+	root.render(ui)
+}
+
+afterEach(() => {
+	root?.unmount()
+	root = null
+	container?.remove()
+	container = null
+})
+
+type UserStub = {
+	id: string
+	username: string
+	name: string
+	createdAt: Date
+}
+
+const buildApp = (user: UserStub) => {
+	return createRoutesStub([
 		{
 			id: 'routes/users.$username',
 			path: '/users/:username',
 			Component: UsernameRoute,
-			loader,
+			loader: async () => ({
+				user,
+				userJoinedDisplay: user.createdAt.toLocaleDateString(),
+			}),
 		},
 	])
+}
+
+test('The user profile when not logged in as self', async () => {
+	const user = {
+		id: 'user_1',
+		username: 'harry',
+		name: 'Harry Example',
+		createdAt: new Date('2024-01-01T00:00:00Z'),
+	}
+	mockedUseOptionalUser.mockReturnValue(null)
+	const App = buildApp(user)
 
 	const routeUrl = `/users/${user.username}`
 	render(<App initialEntries={[routeUrl]} />)
 
-	await screen.findByRole('heading', { level: 1, name: user.name! })
-	await screen.findByRole('link', { name: `${user.name}'s recipients` })
+	await expect
+		.element(page.getByRole('heading', { level: 1, name: user.name }))
+		.toBeVisible()
+	await expect
+		.element(page.getByRole('link', { name: `${user.name}'s recipients` }))
+		.toBeVisible()
 })
 
 test('The user profile when logged in as self', async () => {
-	const user = await prisma.user.create({
-		select: { id: true, username: true, name: true },
-		data: { ...createUser() },
+	const user = {
+		id: 'user_2',
+		username: 'logan',
+		name: 'Logan Example',
+		createdAt: new Date('2024-01-01T00:00:00Z'),
+	}
+	mockedUseOptionalUser.mockReturnValue({
+		id: user.id,
+		username: user.username,
+		name: user.name,
 	})
-	const session = await prisma.session.create({
-		select: { id: true },
-		data: {
-			expirationDate: getSessionExpirationDate({ isRenewal: false }),
-			userId: user.id,
-		},
-	})
-
-	const authSession = await authSessionStorage.getSession()
-	authSession.set(sessionKey, session.id)
-	const setCookieHeader = await authSessionStorage.commitSession(authSession)
-	const parsedCookie = setCookieParser.parseString(setCookieHeader)
-	const cookieHeader = new URLSearchParams({
-		[parsedCookie.name]: parsedCookie.value,
-	}).toString()
-
-	const App = createRoutesStub([
-		{
-			id: 'root',
-			path: '/',
-			loader: async (args: RootLoaderArgs) => {
-				// add the cookie header to the request
-				args.request.headers.set('cookie', cookieHeader)
-				return rootLoader(args)
-			},
-			children: [
-				{
-					id: 'routes/users.$username',
-					path: 'users/:username',
-					Component: UsernameRoute,
-					loader: async (args: UsernameLoaderArgs) => {
-						// add the cookie header to the request
-						args.request.headers.set('cookie', cookieHeader)
-						return loader(args)
-					},
-				},
-			],
-		},
-	])
+	const App = buildApp(user)
 
 	const routeUrl = `/users/${user.username}`
-	await render(<App initialEntries={[routeUrl]} />)
+	render(<App initialEntries={[routeUrl]} />)
 
-	await screen.findByRole('heading', { level: 1, name: user.name! })
-	await screen.findByRole('button', { name: /logout/i })
-	await screen.findByRole('link', { name: /my recipients/i })
-	await screen.findByRole('link', { name: /edit profile/i })
+	await expect
+		.element(page.getByRole('heading', { level: 1, name: user.name }))
+		.toBeVisible()
+	await expect
+		.element(page.getByRole('button', { name: /logout/i }))
+		.toBeVisible()
+	await expect
+		.element(page.getByRole('link', { name: /my recipients/i }))
+		.toBeVisible()
+	await expect
+		.element(page.getByRole('link', { name: /edit profile/i }))
+		.toBeVisible()
 })

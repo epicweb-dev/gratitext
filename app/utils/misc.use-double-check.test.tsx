@@ -1,11 +1,25 @@
-/**
- * @vitest-environment jsdom
- */
-import { render, screen, waitFor } from '@testing-library/react'
-import { userEvent } from '@testing-library/user-event'
-import { useState } from 'react'
-import { expect, test } from 'vitest'
+import { page, userEvent } from '@vitest/browser/context'
+import { useState, type ReactElement } from 'react'
+import { createRoot, type Root } from 'react-dom/client'
+import { afterEach, expect, test } from 'vitest'
 import { useDoubleCheck } from './misc.tsx'
+
+let root: Root | null = null
+let container: HTMLDivElement | null = null
+
+const render = (ui: ReactElement) => {
+	container = document.createElement('div')
+	document.body.appendChild(container)
+	root = createRoot(container)
+	root.render(ui)
+}
+
+afterEach(() => {
+	root?.unmount()
+	root = null
+	container?.remove()
+	container = null
+})
 
 function TestComponent({ safeDelayMs = 0 }: { safeDelayMs?: number }) {
 	const [defaultPrevented, setDefaultPrevented] = useState<
@@ -31,68 +45,62 @@ test('prevents default on the first click, and does not on the second', async ()
 	const user = userEvent.setup()
 	render(<TestComponent safeDelayMs={200} />)
 
-	const status = screen.getByRole('status')
-	const button = screen.getByRole('button')
+	const status = page.getByRole('status')
+	const button = page.getByRole('button')
 
-	expect(status).toHaveTextContent('Default Prevented: idle')
-	expect(button).toHaveTextContent('Click me')
+	await expect.element(status).toHaveTextContent('Default Prevented: idle')
+	await expect.element(button).toHaveTextContent('Click me')
 
 	await user.click(button)
-	expect(button).toHaveTextContent('You sure?')
-	expect(status).toHaveTextContent('Default Prevented: yes')
-	await waitFor(() =>
-		expect(button).toHaveAttribute('data-safe-delay', 'true'),
-	)
+	await expect.element(button).toHaveTextContent('You sure?')
+	await expect.element(status).toHaveTextContent('Default Prevented: yes')
+	await expect.element(button).toHaveAttribute('data-safe-delay', 'true')
 
 	// clicking it during the safe delay does nothing
 	await user.click(button)
-	expect(button).toHaveTextContent('You sure?')
-	expect(status).toHaveTextContent('Default Prevented: yes')
-	await waitFor(() =>
-		expect(button).toHaveAttribute('data-safe-delay', 'true'),
-	)
+	await expect.element(button).toHaveTextContent('You sure?')
+	await expect.element(status).toHaveTextContent('Default Prevented: yes')
+	await expect.element(button).toHaveAttribute('data-safe-delay', 'true')
 
-	await waitFor(() =>
-		expect(button).toHaveAttribute('data-safe-delay', 'false'),
-	)
+	await expect.element(button).toHaveAttribute('data-safe-delay', 'false')
 
 	await user.click(button)
-	expect(button).toHaveTextContent('You sure?')
-	expect(status).toHaveTextContent('Default Prevented: no')
+	await expect.element(button).toHaveTextContent('You sure?')
+	await expect.element(status).toHaveTextContent('Default Prevented: no')
 })
 
 test('blurring the button starts things over', async () => {
 	const user = userEvent.setup()
 	render(<TestComponent />)
 
-	const status = screen.getByRole('status')
-	const button = screen.getByRole('button')
+	const status = page.getByRole('status')
+	const button = page.getByRole('button')
 
 	await user.click(button)
-	expect(button).toHaveTextContent('You sure?')
-	expect(status).toHaveTextContent('Default Prevented: yes')
+	await expect.element(button).toHaveTextContent('You sure?')
+	await expect.element(status).toHaveTextContent('Default Prevented: yes')
 
 	await user.click(document.body)
 	// button goes back to click me
-	expect(button).toHaveTextContent('Click me')
+	await expect.element(button).toHaveTextContent('Click me')
 	// our callback wasn't called, so the status doesn't change
-	expect(status).toHaveTextContent('Default Prevented: yes')
+	await expect.element(status).toHaveTextContent('Default Prevented: yes')
 })
 
 test('hitting "escape" on the input starts things over', async () => {
 	const user = userEvent.setup()
 	render(<TestComponent />)
 
-	const status = screen.getByRole('status')
-	const button = screen.getByRole('button')
+	const status = page.getByRole('status')
+	const button = page.getByRole('button')
 
 	await user.click(button)
-	expect(button).toHaveTextContent('You sure?')
-	expect(status).toHaveTextContent('Default Prevented: yes')
+	await expect.element(button).toHaveTextContent('You sure?')
+	await expect.element(status).toHaveTextContent('Default Prevented: yes')
 
 	await user.keyboard('{Escape}')
 	// button goes back to click me
-	expect(button).toHaveTextContent('Click me')
+	await expect.element(button).toHaveTextContent('Click me')
 	// our callback wasn't called, so the status doesn't change
-	expect(status).toHaveTextContent('Default Prevented: yes')
+	await expect.element(status).toHaveTextContent('Default Prevented: yes')
 })
