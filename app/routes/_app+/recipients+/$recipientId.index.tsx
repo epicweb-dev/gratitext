@@ -1,6 +1,7 @@
 import { getFormProps, getTextareaProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4'
 import { invariantResponse } from '@epic-web/invariant'
+import { useRef, useState } from 'react'
 import {
 	data as json,
 	type ActionFunctionArgs,
@@ -12,9 +13,16 @@ import {
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { ErrorList } from '#app/components/forms.js'
+import { Button } from '#app/components/ui/button.tsx'
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from '#app/components/ui/dropdown-menu.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.js'
-import { SimpleTooltip } from '#app/components/ui/tooltip.js'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { getHints } from '#app/utils/client-hints.js'
 import {
@@ -23,7 +31,6 @@ import {
 	getSendTime,
 } from '#app/utils/cron.server.js'
 import { prisma } from '#app/utils/db.server.ts'
-import { useDoubleCheck } from '#app/utils/misc.js'
 import { sendTextToRecipient } from '#app/utils/text.server.js'
 import { createToastHeaders } from '#app/utils/toast.server.js'
 
@@ -327,26 +334,27 @@ export default function RecipientRoute() {
 				<newMessageFetcher.Form
 					method="POST"
 					action="new"
-					className="border-border bg-card rounded-full border p-2 shadow-sm"
+					className="border-border bg-card rounded-full border p-2 shadow-sm transition focus-within:rounded-[28px] focus-within:p-3"
 				>
 					<label htmlFor="new-message" className="sr-only">
 						Add a new message
 					</label>
-					<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+					<div className="flex items-center gap-3">
 						<textarea
 							id="new-message"
 							name="content"
-							placeholder="I am endlessly grateful for your love, your smile, and the joy you bring..."
-							className="text-foreground placeholder:text-muted-foreground flex-1 resize-none rounded-full bg-transparent px-4 py-3 text-sm focus-visible:outline-none"
-							rows={2}
+							placeholder="Aa"
+							className="text-foreground placeholder:text-muted-foreground min-h-[44px] flex-1 resize-none rounded-full bg-transparent px-4 py-2 text-sm leading-relaxed focus-visible:outline-none"
+							rows={1}
 							required
 						/>
 						<StatusButton
 							status={isCreating ? 'pending' : 'idle'}
 							type="submit"
-							className="w-full bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))] sm:w-auto"
+							size="pill"
+							className="shrink-0 bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))]"
 						>
-							<Icon name="check">Add to Queue</Icon>
+							<Icon name="check">Add</Icon>
 						</StatusButton>
 					</div>
 				</newMessageFetcher.Form>
@@ -372,6 +380,11 @@ function MessageForms({
 	index: number
 }) {
 	const updateContentFetcher = useFetcher<typeof updateMessageContentAction>()
+	const sendNowFetcher = useFetcher<typeof action>()
+	const deleteFetcher = useFetcher<typeof action>()
+	const [confirmDelete, setConfirmDelete] = useState(false)
+	const formRef = useRef<HTMLFormElement | null>(null)
+	const textareaRef = useRef<HTMLTextAreaElement | null>(null)
 	const [updateContentForm, updateContentFields] = useForm({
 		id: `message-form-${message.id}`,
 		constraint: getZodConstraint(UpdateMessageContentSchema),
@@ -389,13 +402,41 @@ function MessageForms({
 	const headerText = message.sendAtDisplay
 		? `Scheduled for ${message.sendAtDisplay}`
 		: 'Message'
+	const sendErrors = getResultErrors(sendNowFetcher.data?.result)
+	const deleteErrors = getResultErrors(deleteFetcher.data?.result)
+	const updateIsPending = updateContentFetcher.state !== 'idle'
+	const sendIsPending = sendNowFetcher.state !== 'idle'
+	const deleteIsPending = deleteFetcher.state !== 'idle'
+	const textareaProps = getTextareaProps(updateContentFields.content)
+
+	const handleSendNow = () => {
+		setConfirmDelete(false)
+		const formData = new FormData()
+		formData.set('intent', sendMessageActionIntent)
+		formData.set('id', message.id)
+		sendNowFetcher.submit(formData, { method: 'POST' })
+	}
+
+	const handleEditMessage = () => {
+		setConfirmDelete(false)
+		setTimeout(() => textareaRef.current?.focus(), 0)
+	}
+
+	const handleDeleteSelect = (event: Event) => {
+		if (!confirmDelete) {
+			event.preventDefault()
+			setConfirmDelete(true)
+			return
+		}
+		const formData = new FormData()
+		formData.set('intent', deleteMessageActionIntent)
+		formData.set('id', message.id)
+		deleteFetcher.submit(formData, { method: 'POST' })
+		setConfirmDelete(false)
+	}
 
 	return (
-		<div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-start">
-			<div className="flex gap-2 lg:flex-col">
-				<UpdateOrderForm message={message} direction="earlier" />
-				<UpdateOrderForm message={message} direction="later" />
-			</div>
+		<div className="flex flex-col gap-3 sm:gap-4">
 			<div className="flex-1 space-y-3">
 				<div
 					className={`rounded-[28px] px-4 py-4 text-[hsl(var(--palette-cream))] shadow-sm sm:px-6 sm:py-5 ${cardTone}`}
@@ -405,12 +446,10 @@ function MessageForms({
 							<Icon name={isPrimary ? 'check' : 'clock'} size="sm" />
 							<span>{headerText}</span>
 						</div>
-						<div className="flex flex-wrap items-center gap-2 sm:flex-nowrap sm:justify-end">
+						<div className="flex items-center gap-2">
 							<StatusButton
 								form={updateContentForm.id}
-								status={
-									updateContentFetcher.state !== 'idle' ? 'pending' : 'idle'
-								}
+								status={updateIsPending ? 'pending' : 'idle'}
 								className="h-11 w-11 gap-0 text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-cream))/0.15] sm:h-10 sm:w-10"
 								size="icon"
 								variant="ghost"
@@ -421,11 +460,55 @@ function MessageForms({
 								<Icon name="check" size="sm" />
 								<span className="sr-only">Save</span>
 							</StatusButton>
-							<SendNowForm message={message} />
-							<DeleteForm message={message} />
+							<DropdownMenu
+								onOpenChange={(open) => {
+									if (!open) setConfirmDelete(false)
+								}}
+							>
+								<DropdownMenuTrigger asChild>
+									<Button
+										variant="ghost"
+										size="icon"
+										className="h-11 w-11 text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-cream))/0.15] sm:h-10 sm:w-10"
+										aria-label="Message actions"
+									>
+										<Icon name="dots-horizontal" size="sm" />
+									</Button>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent
+									align="end"
+									className="w-48 rounded-2xl border-border/70 bg-card p-2 shadow-lg"
+								>
+									<DropdownMenuItem
+										className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold"
+										disabled={sendIsPending}
+										onSelect={handleSendNow}
+									>
+										<Icon name="send" size="sm" />
+										Send Now
+									</DropdownMenuItem>
+									<DropdownMenuItem
+										className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold"
+										onSelect={handleEditMessage}
+									>
+										<Icon name="pencil-1" size="sm" />
+										Edit Message
+									</DropdownMenuItem>
+									<DropdownMenuSeparator className="bg-border/60" />
+									<DropdownMenuItem
+										className="text-foreground-destructive focus:text-foreground-destructive flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold"
+										disabled={deleteIsPending}
+										onSelect={handleDeleteSelect}
+									>
+										<Icon name={confirmDelete ? 'check' : 'trash'} size="sm" />
+										{confirmDelete ? 'Confirm delete' : 'Delete'}
+									</DropdownMenuItem>
+								</DropdownMenuContent>
+							</DropdownMenu>
 						</div>
 					</div>
 					<updateContentFetcher.Form
+						ref={formRef}
 						method="POST"
 						{...getFormProps(updateContentForm)}
 					>
@@ -434,7 +517,8 @@ function MessageForms({
 							Message content
 						</label>
 						<textarea
-							{...getTextareaProps(updateContentFields.content)}
+							{...textareaProps}
+							ref={textareaRef}
 							className="mt-4 w-full resize-none bg-transparent text-sm leading-relaxed text-[hsl(var(--palette-cream))] placeholder:text-[hsl(var(--palette-cream))]/80 focus-visible:outline-none"
 							rows={4}
 						/>
@@ -448,141 +532,21 @@ function MessageForms({
 					id={updateContentFields.content.errorId}
 					errors={updateContentFields.content.errors}
 				/>
+				<ErrorList errors={sendErrors} />
+				<ErrorList errors={deleteErrors} />
 			</div>
 		</div>
 	)
 }
 
-function UpdateOrderForm({
-	message,
-	direction: direction,
-}: {
-	message: Pick<FutureMessage, 'id' | 'order' | 'laterOrder' | 'earlierOrder'>
-	direction: 'later' | 'earlier'
-}) {
-	const fetcher = useFetcher<typeof updateMessageOrderAction>()
-	const [form, fields] = useForm({
-		id: `message-earlier-form-${message.id}`,
-		constraint: getZodConstraint(UpdateMessageOrderSchema),
-		defaultValue: { id: message.id, order: direction === 'later' ? 0 : 1 },
-		lastResult: fetcher.data?.result,
-		onValidate({ formData }) {
-			const result = parseWithZod(formData, {
-				schema: UpdateMessageOrderSchema,
-			})
-			if (result.status === 'error') {
-				console.error(result.error)
-			}
-			return result
-		},
-		shouldRevalidate: 'onBlur',
-	})
-	const newOrder =
-		direction === 'later' ? message.laterOrder : message.earlierOrder
-	return newOrder ? (
-		<fetcher.Form method="POST" {...getFormProps(form)}>
-			<input type="hidden" name="id" value={message.id} />
-			<input type="hidden" name="order" value={newOrder.toString()} />
-			<SimpleTooltip
-				delayDuration={1000}
-				content={direction === 'later' ? 'Move earlier' : 'Move later'}
-			>
-				<StatusButton
-					variant="secondary"
-					size="icon"
-					status={fetcher.state !== 'idle' ? 'pending' : 'idle'}
-					className="h-11 w-11 gap-0 text-muted-foreground hover:text-foreground sm:h-10 sm:w-10"
-					type="submit"
-					name="intent"
-					value={updateMessageOrderActionIntent}
-				>
-					{direction === 'later' ? (
-						<Icon size="sm" name="chevron-down" />
-					) : (
-						<Icon size="sm" name="chevron-up" />
-					)}
-					<span className="sr-only">
-						{direction === 'later' ? 'Move earlier' : 'Move later'}
-					</span>
-				</StatusButton>
-			</SimpleTooltip>
-			<ErrorList id={fields.order.errorId} errors={fields.order.errors} />
-		</fetcher.Form>
-	) : null
-}
-
-function SendNowForm({ message }: { message: Pick<FutureMessage, 'id'> }) {
-	const fetcher = useFetcher<typeof sendMessageAction>()
-	const [form] = useForm({
-		id: `send-now-form-${message.id}`,
-		constraint: getZodConstraint(SendMessageSchema),
-		defaultValue: { id: message.id },
-		lastResult: fetcher.data?.result,
-		onValidate({ formData }) {
-			return parseWithZod(formData, { schema: SendMessageSchema })
-		},
-		shouldRevalidate: 'onBlur',
-	})
-
-	return (
-		<fetcher.Form method="POST" {...getFormProps(form)}>
-			<input type="hidden" name="id" value={message.id} />
-			<StatusButton
-				variant="ghost"
-				size="icon"
-				className="h-11 w-11 gap-0 text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-cream))/0.15] sm:h-10 sm:w-10"
-				status={fetcher.state !== 'idle' ? 'pending' : 'idle'}
-				type="submit"
-				name="intent"
-				value={sendMessageActionIntent}
-			>
-				<Icon name="send" size="sm" />
-				<span className="sr-only">Send now</span>
-			</StatusButton>
-			<ErrorList id={form.errorId} errors={form.errors} />
-		</fetcher.Form>
-	)
-}
-
-function DeleteForm({ message }: { message: Pick<FutureMessage, 'id'> }) {
-	const fetcher = useFetcher<typeof deleteMessageAction>()
-	const [form] = useForm({
-		id: `delete-form-${message.id}`,
-		constraint: getZodConstraint(DeleteMessageSchema),
-		defaultValue: { id: message.id },
-		lastResult: fetcher.data?.result,
-		onValidate({ formData }) {
-			return parseWithZod(formData, { schema: DeleteMessageSchema })
-		},
-		shouldRevalidate: 'onBlur',
-	})
-	const dc = useDoubleCheck()
-	const deleteClassName = dc.doubleCheck
-		? 'h-11 w-11 gap-0 data-[safe-delay=true]:opacity-50 sm:h-10 sm:w-10'
-		: 'h-11 w-11 gap-0 text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-cream))/0.15] data-[safe-delay=true]:opacity-50 sm:h-10 sm:w-10'
-
-	return (
-		<fetcher.Form method="POST" {...getFormProps(form)}>
-			<input type="hidden" name="id" value={message.id} />
-			<StatusButton
-				variant={dc.doubleCheck ? 'destructive' : 'ghost'}
-				status={fetcher.state !== 'idle' ? 'pending' : 'idle'}
-				size="icon"
-				className={deleteClassName}
-				{...dc.getButtonProps({
-					type: 'submit',
-					name: 'intent',
-					value: deleteMessageActionIntent,
-				})}
-			>
-				<Icon name={dc.doubleCheck ? 'check' : 'trash'} size="sm" />
-				<span className="sr-only">
-					{dc.doubleCheck ? 'Confirm delete' : 'Delete'}
-				</span>
-			</StatusButton>
-			<ErrorList id={form.errorId} errors={form.errors} />
-		</fetcher.Form>
-	)
+function getResultErrors(
+	result:
+		| { error?: Record<string, Array<string | null | undefined> | null> }
+		| null
+		| undefined,
+) {
+	if (!result?.error) return null
+	return Object.values(result.error).flat().filter(Boolean)
 }
 
 export function ErrorBoundary() {
