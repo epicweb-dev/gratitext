@@ -1,6 +1,5 @@
 import { invariantResponse } from '@epic-web/invariant'
 import {
-	type UIEvent,
 	useCallback,
 	useEffect,
 	useLayoutEffect,
@@ -135,8 +134,7 @@ export default function RecipientRoute() {
 		pendingScrollRef.current = null
 	}, [messages, scrollContainerRef])
 
-	const handleScroll = useCallback((event: UIEvent<HTMLDivElement>) => {
-		const container = event.currentTarget
+	const handleScroll = useCallback((container: HTMLDivElement) => {
 		if (container.scrollTop > 120) return
 		if (!nextCursor) return
 		if (shouldScrollToBottomRef.current) return
@@ -151,6 +149,16 @@ export default function RecipientRoute() {
 		}
 		loadMoreFetcher.load(queryString ? `?${queryString}` : '.')
 	}, [nextCursor, loadMoreFetcher, searchParams])
+
+	useEffect(() => {
+		const container = scrollContainerRef.current
+		if (!container) return
+		const onScroll = () => handleScroll(container)
+		container.addEventListener('scroll', onScroll, { passive: true })
+		return () => {
+			container.removeEventListener('scroll', onScroll)
+		}
+	}, [handleScroll])
 
 	const emptyMessage = data.searchQuery
 		? 'No messages match your search.'
@@ -175,7 +183,6 @@ export default function RecipientRoute() {
 				) : (
 					<div
 						ref={scrollContainerRef}
-						onScroll={handleScroll}
 						className="border-border/60 bg-muted max-h-[65vh] overflow-y-auto rounded-[24px] border px-4 py-5 sm:px-5 sm:py-6"
 					>
 						<div className="flex flex-col gap-4">
