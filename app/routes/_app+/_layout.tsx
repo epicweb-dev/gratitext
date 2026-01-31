@@ -24,7 +24,6 @@ import { Icon } from '#app/components/ui/icon.tsx'
 import { ThemeSwitch, useTheme } from '#app/routes/resources+/theme-switch.tsx'
 import { getUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
-import { cn } from '#app/utils/misc.tsx'
 import { useRequestInfo } from '#app/utils/request-info.js'
 import { getCustomerProducts } from '#app/utils/stripe.server.ts'
 import { makeTimings } from '#app/utils/timing.server.ts'
@@ -160,11 +159,9 @@ function Logo() {
 	return (
 		<Link
 			to="/"
-			className={cn(
-				'font-serif text-lg font-semibold lowercase leading-none tracking-tight text-foreground md:text-xl',
-			)}
+			className="font-serif text-lg font-semibold lowercase leading-none tracking-tight text-foreground md:text-xl"
 		>
-			gratitetext
+			gratitext
 		</Link>
 	)
 }
