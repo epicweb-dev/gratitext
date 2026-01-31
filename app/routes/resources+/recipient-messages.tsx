@@ -2,28 +2,13 @@ import { invariantResponse } from '@epic-web/invariant'
 import { data as json, type LoaderFunctionArgs } from 'react-router'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
+import { formatMessage } from '#app/utils/message-format.ts'
 
 const MESSAGES_PER_PAGE = 30
 
 type MessageCursor = {
 	sentAt: Date
 	id: string
-}
-
-function formatMessage(message: { id: string; content: string; sentAt: Date }) {
-	return {
-		id: message.id,
-		content: message.content,
-		sentAtIso: message.sentAt.toISOString(),
-		sentAtDisplay: message.sentAt.toLocaleDateString('en-US', {
-			weekday: 'short',
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric',
-			hour: 'numeric',
-			minute: 'numeric',
-		}),
-	}
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {

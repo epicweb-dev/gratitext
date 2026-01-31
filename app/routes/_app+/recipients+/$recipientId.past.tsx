@@ -11,6 +11,7 @@ import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { SearchBar } from '#app/components/search-bar.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
+import { formatMessage } from '#app/utils/message-format.ts'
 import { cn, useDelayedIsPending } from '#app/utils/misc.tsx'
 
 const MESSAGES_PER_PAGE = 30
@@ -30,22 +31,6 @@ type MessageItem = {
 type MessagesPage = {
 	messages: Array<MessageItem>
 	nextCursor: MessageCursor | null
-}
-
-function formatMessage(message: { id: string; content: string; sentAt: Date }) {
-	return {
-		id: message.id,
-		content: message.content,
-		sentAtIso: message.sentAt.toISOString(),
-		sentAtDisplay: message.sentAt.toLocaleDateString('en-US', {
-			weekday: 'short',
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric',
-			hour: 'numeric',
-			minute: 'numeric',
-		}),
-	}
 }
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
@@ -196,7 +181,7 @@ export default function RecipientRoute() {
 		if (hasAutoScrolledRef.current || messages.length === 0) return
 		bottomRef.current?.scrollIntoView({ block: 'end' })
 		hasAutoScrolledRef.current = true
-	}, [messages.length])
+	}, [messages.length, data.recipientId, data.searchQuery])
 
 	useEffect(() => {
 		const node = topSentinelRef.current
@@ -275,7 +260,7 @@ export default function RecipientRoute() {
 									{message.sentAtDisplay}
 								</time>
 								<div className="border-border bg-card text-foreground w-full max-w-[min(92%,36rem)] rounded-3xl border px-4 py-3 text-sm shadow-sm sm:text-base">
-									<p className="whitespace-pre-wrap break-words">
+									<p className="break-words whitespace-pre-wrap">
 										{message.content}
 									</p>
 								</div>
