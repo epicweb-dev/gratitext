@@ -1,7 +1,7 @@
 import { getFormProps, getTextareaProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4'
 import { invariantResponse } from '@epic-web/invariant'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
 	data as json,
 	type ActionFunctionArgs,
@@ -382,7 +382,9 @@ function MessageForms({
 	const updateContentFetcher = useFetcher<typeof updateMessageContentAction>()
 	const sendNowFetcher = useFetcher<typeof action>()
 	const deleteFetcher = useFetcher<typeof action>()
+	const deleteSafeDelayMs = 150
 	const [confirmDelete, setConfirmDelete] = useState(false)
+	const [canDelete, setCanDelete] = useState(false)
 	const formRef = useRef<HTMLFormElement | null>(null)
 	const textareaRef = useRef<HTMLTextAreaElement | null>(null)
 	const [updateContentForm, updateContentFields] = useForm({
@@ -409,6 +411,16 @@ function MessageForms({
 	const deleteIsPending = deleteFetcher.state !== 'idle'
 	const textareaProps = getTextareaProps(updateContentFields.content)
 
+	useEffect(() => {
+		if (confirmDelete) {
+			const timeout = setTimeout(() => {
+				setCanDelete(true)
+			}, deleteSafeDelayMs)
+			return () => clearTimeout(timeout)
+		}
+		setCanDelete(false)
+	}, [confirmDelete, deleteSafeDelayMs])
+
 	const handleSendNow = () => {
 		setConfirmDelete(false)
 		const formData = new FormData()
@@ -426,6 +438,10 @@ function MessageForms({
 		if (!confirmDelete) {
 			event.preventDefault()
 			setConfirmDelete(true)
+			return
+		}
+		if (!canDelete) {
+			event.preventDefault()
 			return
 		}
 		const formData = new FormData()
