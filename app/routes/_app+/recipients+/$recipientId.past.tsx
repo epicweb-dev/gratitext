@@ -148,7 +148,7 @@ export default function RecipientRoute() {
 			height: container.scrollHeight,
 			top: container.scrollTop,
 		}
-		loadMoreFetcher.load(queryString ? `?${queryString}` : '.')
+		void loadMoreFetcher.load(queryString ? `?${queryString}` : '.')
 	}, [nextCursor, loadMoreFetcher, searchParams])
 
 	useEffect(() => {
