@@ -1,42 +1,16 @@
 import { page } from 'vitest/browser'
-import {
-	type ComponentPropsWithoutRef,
-	type ReactElement,
-	type ReactNode,
-} from 'react'
+import { createRoutesStub } from 'react-router'
+import { type ReactElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, expect, test, vi } from 'vitest'
-import { useLoaderData } from 'react-router'
 import { useOptionalUser } from '#app/utils/user.ts'
 import { default as UserProfile } from './user-profile.tsx'
-
-type LinkProps = ComponentPropsWithoutRef<'a'> & {
-	to?: string | { pathname?: string }
-	children?: ReactNode
-}
-
-type FormProps = ComponentPropsWithoutRef<'form'> & {
-	children?: ReactNode
-}
-
-vi.mock('react-router', () => ({
-	useLoaderData: vi.fn(),
-	Link: ({ to, children, ...props }: LinkProps) => (
-		<a href={typeof to === 'string' ? to : (to?.pathname ?? '')} {...props}>
-			{children}
-		</a>
-	),
-	Form: ({ children, ...props }: FormProps) => (
-		<form {...props}>{children}</form>
-	),
-}))
 
 vi.mock('#app/utils/user.ts', () => ({
 	useOptionalUser: vi.fn(),
 }))
 
 const mockedUseOptionalUser = vi.mocked(useOptionalUser)
-const mockedUseLoaderData = vi.mocked(useLoaderData)
 
 let root: Root | null = null
 let container: HTMLDivElement | null = null
@@ -55,6 +29,27 @@ afterEach(() => {
 	container = null
 })
 
+type UserStub = {
+	id: string
+	username: string
+	name: string
+	createdAt: Date
+}
+
+const buildApp = (user: UserStub) => {
+	return createRoutesStub([
+		{
+			id: 'routes/users.$username',
+			path: '/users/:username',
+			Component: UserProfile,
+			loader: async () => ({
+				user,
+				userJoinedDisplay: user.createdAt.toLocaleDateString(),
+			}),
+		},
+	])
+}
+
 test('The user profile when not logged in as self', async () => {
 	const user = {
 		id: 'user_1',
@@ -63,11 +58,10 @@ test('The user profile when not logged in as self', async () => {
 		createdAt: new Date('2024-01-01T00:00:00Z'),
 	}
 	mockedUseOptionalUser.mockReturnValue(null)
-	mockedUseLoaderData.mockReturnValue({
-		user,
-		userJoinedDisplay: user.createdAt.toLocaleDateString(),
-	})
-	render(<UserProfile />)
+	const App = buildApp(user)
+
+	const routeUrl = `/users/${user.username}`
+	render(<App initialEntries={[routeUrl]} />)
 
 	await expect
 		.element(page.getByRole('heading', { level: 1, name: user.name }))
@@ -89,11 +83,10 @@ test('The user profile when logged in as self', async () => {
 		username: user.username,
 		name: user.name,
 	})
-	mockedUseLoaderData.mockReturnValue({
-		user,
-		userJoinedDisplay: user.createdAt.toLocaleDateString(),
-	})
-	render(<UserProfile />)
+	const App = buildApp(user)
+
+	const routeUrl = `/users/${user.username}`
+	render(<App initialEntries={[routeUrl]} />)
 
 	await expect
 		.element(page.getByRole('heading', { level: 1, name: user.name }))
