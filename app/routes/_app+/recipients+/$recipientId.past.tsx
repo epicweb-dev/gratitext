@@ -91,7 +91,7 @@ export default function RecipientRoute() {
 	const data = useLoaderData<typeof loader>()
 	const [searchParams] = useSearchParams()
 	const loadMoreFetcher = useFetcher<LoaderData>()
-	const loadMoreData = loadMoreFetcher.data
+	const loadMoreData = loadMoreFetcher.data ?? null
 	const [messages, setMessages] = useState(data.pastMessages)
 	const [nextCursor, setNextCursor] = useState(data.nextCursor)
 	const [scrollContainer, setScrollContainer] =
