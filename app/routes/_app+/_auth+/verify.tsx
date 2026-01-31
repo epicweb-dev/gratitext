@@ -11,7 +11,7 @@ import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { ErrorList, OTPField } from '#app/components/forms.tsx'
-import { Spacer } from '#app/components/spacer.tsx'
+import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { checkHoneypot } from '#app/utils/honeypot.server.ts'
 import { useIsPending } from '#app/utils/misc.tsx'
@@ -53,13 +53,17 @@ export default function VerifyRoute() {
 	)
 	const type = parseWithZoddType.success ? parseWithZoddType.data : null
 
-	const checkPhoneNumber = (
+	const headingClasses = 'text-h2 sm:text-h1'
+	const bodyClasses = 'text-body-md text-muted-foreground mt-4'
+	const buildHeading = (title: string, description: string) => (
 		<>
-			<h1 className="text-h1">Check your texts</h1>
-			<p className="text-body-md text-muted-foreground mt-3">
-				We've texted you a code to verify your phone number.
-			</p>
+			<h1 className={headingClasses}>{title}</h1>
+			<p className={bodyClasses}>{description}</p>
 		</>
+	)
+	const checkPhoneNumber = buildHeading(
+		'Check Your Texts',
+		"We've texted you a code to verify your phone number",
 	)
 
 	const headings: Record<VerificationTypes, React.ReactNode> = {
@@ -67,22 +71,14 @@ export default function VerifyRoute() {
 		'reset-password': checkPhoneNumber,
 		'change-phone-number': checkPhoneNumber,
 		'validate-recipient': (
-			<>
-				<h1 className="text-h1">Check your texts</h1>
-				<p className="text-body-md text-muted-foreground mt-3">
-					We've texted you a code to verify the phone number you gave us. Please
-					inform your recipient of what you're up to and ask your recipient to
-					provide you with that code.
-				</p>
-			</>
+			buildHeading(
+				'Check Your Texts',
+				"We've texted you a code to verify the phone number you gave us. Please inform your recipient of what you're up to and ask your recipient to provide you with that code.",
+			)
 		),
-		'2fa': (
-			<>
-				<h1 className="text-h1">Check your 2FA app</h1>
-				<p className="text-body-md text-muted-foreground mt-3">
-					Please enter your 2FA code to verify your identity.
-				</p>
-			</>
+		'2fa': buildHeading(
+			'Check Your 2FA App',
+			'Please enter your 2FA code to verify your identity.',
 		),
 	}
 
@@ -110,40 +106,40 @@ export default function VerifyRoute() {
 	})
 
 	return (
-		<main className="container flex flex-col items-center justify-center pt-20 pb-32">
-			<div className="text-center">
-				<p className="text-muted-foreground text-xs font-semibold tracking-[0.3em] uppercase">
-					GratiText
-				</p>
+		<main className="container flex flex-col items-center justify-start pb-24 pt-12 sm:pt-16">
+			<div className="text-center max-w-lg">
 				{type ? headings[type] : 'Invalid Verification Type'}
 			</div>
 
-			<Spacer size="xs" />
-
-			<div className="border-border bg-card mt-8 w-full max-w-md rounded-[32px] border px-6 py-8 shadow-sm">
-				<ErrorList errors={form.errors} id={form.errorId} />
-				<Form method="POST" {...getFormProps(form)} className="space-y-6">
+			<div className="mt-10 w-full max-w-md">
+				<Form method="POST" {...getFormProps(form)} className="space-y-8">
 					<HoneypotInputs />
-					<div className="flex items-center justify-center">
-						<OTPField
-							type="digits-and-characters"
-							labelProps={{
-								htmlFor: fields[codeQueryParam].id,
-								children: 'Verification Code',
-							}}
-							inputProps={{
-								...getInputProps(fields[codeQueryParam], { type: 'text' }),
-								autoComplete: 'one-time-code',
-								autoFocus: true,
-							}}
-							errors={fields[codeQueryParam].errors}
-						/>
-					</div>
-					<div className="text-body-xs text-muted-foreground text-center">
-						<span>Didn't get it? </span>
+					<ErrorList errors={form.errors} id={form.errorId} />
+					<OTPField
+						type="digits-and-characters"
+						className="w-full"
+						labelProps={{
+							htmlFor: fields[codeQueryParam].id,
+							children: 'Verification Code',
+							className:
+								'text-body-sm font-semibold tracking-normal normal-case text-foreground block mb-3',
+						}}
+						inputProps={{
+							...getInputProps(fields[codeQueryParam], { type: 'text' }),
+							autoComplete: 'one-time-code',
+							autoFocus: true,
+							containerClassName: 'justify-start gap-3',
+						}}
+						errors={fields[codeQueryParam].errors}
+						groupClassName="gap-3"
+						showSeparator={false}
+						slotClassName="h-14 w-14 rounded-full bg-white text-lg font-semibold shadow-none dark:bg-[hsl(var(--palette-navy))]"
+					/>
+					<div className="text-body-sm text-muted-foreground">
+						<span>No text after 5 minutes? </span>
 						<Link
 							to={type ? resendRoutes[type] : '.'}
-							className="text-foreground font-semibold underline"
+							className="text-foreground font-semibold hover:text-foreground/90"
 						>
 							Resend the Code
 						</Link>
@@ -160,12 +156,16 @@ export default function VerifyRoute() {
 						})}
 					/>
 					<StatusButton
+						size="lg"
 						className="w-full bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))]"
 						status={isPending ? 'pending' : (form.status ?? 'idle')}
 						type="submit"
 						disabled={isPending}
 					>
-						Continue
+						<span className="inline-flex items-center gap-3">
+							Continue
+							<Icon name="arrow-right" size="sm" aria-hidden="true" />
+						</span>
 					</StatusButton>
 				</Form>
 			</div>

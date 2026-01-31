@@ -114,12 +114,20 @@ export function OTPField({
 	errors,
 	className,
 	type,
+	slotClassName,
+	groupClassName,
+	separatorClassName,
+	showSeparator = true,
 }: {
 	labelProps: React.LabelHTMLAttributes<HTMLLabelElement>
 	inputProps: Partial<OTPInputProps & { render: never }>
 	errors?: ListOfErrors
 	className?: string
 	type: 'digits' | 'digits-and-characters'
+	slotClassName?: string
+	groupClassName?: string
+	separatorClassName?: string
+	showSeparator?: boolean
 }) {
 	const fallbackId = useId()
 	const id = inputProps.id ?? fallbackId
@@ -138,17 +146,19 @@ export function OTPField({
 				aria-describedby={errorId}
 				{...inputProps}
 			>
-				<InputOTPGroup>
-					<InputOTPSlot index={0} />
-					<InputOTPSlot index={1} />
-					<InputOTPSlot index={2} />
-				</InputOTPGroup>
-				<InputOTPSeparator />
-				<InputOTPGroup>
-					<InputOTPSlot index={3} />
-					<InputOTPSlot index={4} />
-					<InputOTPSlot index={5} />
-				</InputOTPGroup>
+			<InputOTPGroup className={groupClassName}>
+				<InputOTPSlot className={slotClassName} index={0} />
+				<InputOTPSlot className={slotClassName} index={1} />
+				<InputOTPSlot className={slotClassName} index={2} />
+			</InputOTPGroup>
+			{showSeparator ? (
+				<InputOTPSeparator className={separatorClassName} />
+			) : null}
+			<InputOTPGroup className={groupClassName}>
+				<InputOTPSlot className={slotClassName} index={3} />
+				<InputOTPSlot className={slotClassName} index={4} />
+				<InputOTPSlot className={slotClassName} index={5} />
+			</InputOTPGroup>
 			</InputOTP>
 			<div className="min-h-[24px] px-4 pt-2 pb-2">
 				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
