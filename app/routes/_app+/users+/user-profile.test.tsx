@@ -6,7 +6,7 @@ import {
 } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, expect, test, vi } from 'vitest'
-import { UserProfileView } from './user-profile.tsx'
+import { UserProfileView } from '#app/components/user-profile.tsx'
 
 type LinkProps = ComponentPropsWithoutRef<'a'> & {
 	to?: string | { pathname?: string }

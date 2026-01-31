@@ -6,7 +6,9 @@ import {
 } from 'react-router'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { prisma } from '#app/utils/db.server.ts'
-import UserProfile, { type UserProfileLoaderData } from './user-profile.tsx'
+import UserProfile, {
+	type UserProfileLoaderData,
+} from '#app/components/user-profile.tsx'
 
 export async function loader({ params }: LoaderFunctionArgs) {
 	const user = await prisma.user.findFirst({
