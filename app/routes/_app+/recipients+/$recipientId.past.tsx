@@ -94,7 +94,8 @@ export default function RecipientRoute() {
 	const loadMoreData = loadMoreFetcher.data
 	const [messages, setMessages] = useState(data.pastMessages)
 	const [nextCursor, setNextCursor] = useState(data.nextCursor)
-	const scrollContainerRef = useRef<HTMLDivElement | null>(null)
+	const [scrollContainer, setScrollContainer] =
+		useState<HTMLDivElement | null>(null)
 	const pendingScrollRef = useRef<{ height: number; top: number } | null>(null)
 	const shouldScrollToBottomRef = useRef(true)
 	const isLoadingMore = loadMoreFetcher.state !== 'idle'
@@ -121,7 +122,7 @@ export default function RecipientRoute() {
 	}, [loadMoreData])
 
 	useLayoutEffect(() => {
-		const container = scrollContainerRef?.current
+		const container = scrollContainer
 		if (!container) return
 		if (shouldScrollToBottomRef.current) {
 			container.scrollTop = container.scrollHeight
@@ -132,7 +133,7 @@ export default function RecipientRoute() {
 		if (!pending) return
 		container.scrollTop = pending.top + (container.scrollHeight - pending.height)
 		pendingScrollRef.current = null
-	}, [messages, scrollContainerRef])
+	}, [messages, scrollContainer])
 
 	const handleScroll = useCallback((container: HTMLDivElement) => {
 		if (container.scrollTop > 120) return
@@ -151,14 +152,14 @@ export default function RecipientRoute() {
 	}, [nextCursor, loadMoreFetcher, searchParams])
 
 	useEffect(() => {
-		const container = scrollContainerRef.current
+		const container = scrollContainer
 		if (!container) return
 		const onScroll = () => handleScroll(container)
 		container.addEventListener('scroll', onScroll, { passive: true })
 		return () => {
 			container.removeEventListener('scroll', onScroll)
 		}
-	}, [handleScroll])
+	}, [handleScroll, scrollContainer])
 
 	const emptyMessage = data.searchQuery
 		? 'No messages match your search.'
@@ -182,7 +183,7 @@ export default function RecipientRoute() {
 					</p>
 				) : (
 					<div
-						ref={scrollContainerRef}
+						ref={setScrollContainer}
 						className="border-border/60 bg-muted max-h-[65vh] overflow-y-auto rounded-[24px] border px-4 py-5 sm:px-5 sm:py-6"
 					>
 						<div className="flex flex-col gap-4">
