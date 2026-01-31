@@ -196,7 +196,7 @@ Epic Stack uses `express-rate-limit` para prevenir abuso.
 
 ```typescript
 // server/index.ts
-import rateLimit from 'express-rate-limit'
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit'
 
 const rateLimitDefault = {
 	windowMs: 60 * 1000, // 1 minute
@@ -205,7 +205,8 @@ const rateLimitDefault = {
 	legacyHeaders: false,
 	validate: { trustProxy: false },
 	keyGenerator: (req: express.Request) => {
-		return req.get('fly-client-ip') ?? `${req.ip}`
+		const clientIp = req.get('fly-client-ip') ?? req.ip
+		return ipKeyGenerator(clientIp)
 	},
 }
 
@@ -508,13 +509,18 @@ export default function SignupRoute({ actionData }: Route.ComponentProps) {
 
 ```typescript
 // server/index.ts
+import { ipKeyGenerator } from 'express-rate-limit'
 const apiRateLimit = rateLimit({
 	...rateLimitDefault,
 	windowMs: 60 * 1000,
 	limit: 100, // 100 requests per minute for API
 	keyGenerator: (req) => {
 		const apiKey = req.get('X-API-Key')
-		return apiKey ?? req.get('fly-client-ip') ?? req.ip
+		if (apiKey) {
+			return apiKey
+		}
+		const clientIp = req.get('fly-client-ip') ?? req.ip
+		return ipKeyGenerator(clientIp)
 	},
 })
 

@@ -4,7 +4,7 @@ import chalk from 'chalk'
 import closeWithGrace from 'close-with-grace'
 import compression from 'compression'
 import express from 'express'
-import rateLimit from 'express-rate-limit'
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit'
 import getPort, { portNumbers } from 'get-port'
 import helmet from 'helmet'
 import morgan from 'morgan'
@@ -128,7 +128,12 @@ const rateLimitDefault = {
 	// When sitting behind a CDN such as cloudflare, replace fly-client-ip with the CDN
 	// specific header such as cf-connecting-ip
 	keyGenerator: (req: express.Request) => {
-		return req.get('fly-client-ip') ?? `${req.ip}`
+		const clientIp: string =
+			req.get('fly-client-ip') ??
+			req.ip ??
+			req.socket.remoteAddress ??
+			'0.0.0.0'
+		return ipKeyGenerator(clientIp)
 	},
 }
 
