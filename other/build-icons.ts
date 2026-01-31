@@ -2,7 +2,7 @@ import * as path from 'node:path'
 import { $ } from 'execa'
 import fsExtra from 'fs-extra'
 import { glob } from 'glob'
-import { parse } from 'node-html-parser'
+import { parse, type HTMLElement } from 'node-html-parser'
 
 const cwd = process.cwd()
 const inputDir = path.join(cwd, 'other', 'svg-icons')
@@ -18,6 +18,22 @@ const files = glob
 
 const shouldVerboseLog = process.argv.includes('--log=verbose')
 const logVerbose = shouldVerboseLog ? console.log : () => {}
+
+const hexColorPattern = /^#[0-9a-fA-F]{3,8}$/
+
+function normalizeSvgColors(svg: HTMLElement) {
+	const attributesToNormalize = ['stroke', 'fill'] as const
+
+	for (const attribute of attributesToNormalize) {
+		const elements = [svg, ...svg.querySelectorAll(`[${attribute}]`)]
+		for (const element of elements) {
+			const value = element.getAttribute(attribute)
+			if (value && hexColorPattern.test(value)) {
+				element.setAttribute(attribute, 'currentColor')
+			}
+		}
+	}
+}
 
 if (files.length === 0) {
 	console.log(`No SVG files found in ${inputDirRelative}`)
@@ -123,6 +139,7 @@ async function generateSvgSprite({
 			svg.removeAttribute('version')
 			svg.removeAttribute('width')
 			svg.removeAttribute('height')
+			normalizeSvgColors(svg)
 
 			return svg.toString().trim()
 		}),
