@@ -94,11 +94,11 @@ export default function Layout() {
 			<div className="flex-1">
 				<Outlet />
 			</div>
-			<footer className="container my-4 flex items-center justify-between pb-5">
-				<div className="flex items-center gap-4">
+			<footer className="container my-4 flex flex-col gap-4 pb-5 md:flex-row md:items-center md:justify-between">
+				<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
 					<Logo />
 					<nav>
-						<ul className="flex list-none flex-col gap-2 md:flex-row md:gap-4">
+						<ul className="flex list-none flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-4">
 							<li>
 								<Link to="/about" className="text-gray-600 hover:text-gray-900">
 									About
@@ -136,7 +136,9 @@ export default function Layout() {
 						</ul>
 					</nav>
 				</div>
-				<ThemeSwitch userPreference={requestInfo.userPrefs.theme} />
+				<div className="flex items-center self-start md:self-auto">
+					<ThemeSwitch userPreference={requestInfo.userPrefs.theme} />
+				</div>
 			</footer>{' '}
 		</div>
 	)
