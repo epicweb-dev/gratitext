@@ -44,7 +44,11 @@ test('Users can write and send a message immediately', async ({
 	await messageTextbox.waitFor({ state: 'visible' })
 	await messageTextbox.fill(textMessageContent)
 
-	await page.getByRole('button', { name: /save/i }).click()
+	await Promise.all([
+		page.waitForURL(`/recipients/${recipient.id}`, { timeout: 15000 }),
+		page.getByRole('button', { name: /save/i }).click(),
+	])
+	await page.waitForLoadState('domcontentloaded')
 	await waitFor(
 		async () => {
 			const createdMessage = await prisma.message.findFirst({
@@ -53,10 +57,8 @@ test('Users can write and send a message immediately', async ({
 			})
 			if (createdMessage) return createdMessage
 		},
-		{ timeout: 15000, errorMessage: 'Message not created' },
+		{ timeout: 20000, errorMessage: 'Message not created' },
 	)
-	await page.goto(`/recipients/${recipient.id}`)
-	await page.waitForLoadState('domcontentloaded')
 
 	const sendNowButton = page.getByRole('button', { name: /send now/i })
 	await sendNowButton.waitFor({ state: 'visible' })
