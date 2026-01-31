@@ -1,8 +1,10 @@
 import crypto from 'crypto'
+import { spawn } from 'node:child_process'
 import { ip as ipAddress } from 'address'
 import chalk from 'chalk'
 import closeWithGrace from 'close-with-grace'
 import compression from 'compression'
+import { execa } from 'execa'
 import express from 'express'
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit'
 import getPort, { portNumbers } from 'get-port'
@@ -15,6 +17,193 @@ const IS_DEV = MODE === 'development'
 const ALLOW_INDEXING = process.env.ALLOW_INDEXING !== 'false'
 const SENTRY_ENABLED = IS_PROD && process.env.SENTRY_DSN
 const BUILD_PATH = '../build/server/index.js'
+
+type ServerUrls = {
+	localUrl: string
+	lanUrl: string | null
+}
+
+type Hotkey = {
+	key: string
+	description: string
+	color: (text: string) => string
+	action: () => void | Promise<void>
+	showInHelp: boolean
+}
+
+const getServerUrls = (port: number): ServerUrls => {
+	const localUrl = `http://localhost:${port}`
+	let lanUrl: string | null = null
+	const localIp = ipAddress() ?? 'Unknown'
+	if (/^10[.]|^172[.](1[6-9]|2[0-9]|3[0-1])[.]|^192[.]168[.]/.test(localIp)) {
+		lanUrl = `http://${localIp}:${port}`
+	}
+	return { localUrl, lanUrl }
+}
+
+const formatServerUrls = ({ localUrl, lanUrl }: ServerUrls) =>
+	`
+${chalk.bold('Local:')}            ${chalk.cyan(localUrl)}
+${lanUrl ? `${chalk.bold('On Your Network:')}  ${chalk.cyan(lanUrl)}` : ''}
+${chalk.bold('Press Ctrl+C to stop')}
+	`.trim()
+
+const renderHotkeys = (hotkeys: Hotkey[]) =>
+	hotkeys
+		.filter((hotkey) => hotkey.showInHelp)
+		.map(
+			(hotkey) =>
+				`${hotkey.color(chalk.bold(`[${hotkey.key}]`))} ${hotkey.description}`,
+		)
+		.join('\n')
+
+const openInBrowser = async (url: string) => {
+	const platform = process.platform
+	if (platform === 'darwin') {
+		await execa('open', [url])
+		return
+	}
+	if (platform === 'win32') {
+		await execa('cmd', ['/c', 'start', '', url])
+		return
+	}
+	await execa('xdg-open', [url])
+}
+
+const setupHotkeys = ({
+	server,
+	urls,
+	printUrls,
+}: {
+	server: ReturnType<typeof app.listen>
+	urls: ServerUrls
+	printUrls: () => void
+}) => {
+	if (!process.stdin.isTTY || process.env.CI) {
+		return null
+	}
+
+	let isRestarting = false
+
+	const stopServer = () =>
+		new Promise<void>((resolve, reject) => {
+			server.close((error) => (error ? reject(error) : resolve()))
+		})
+
+	const restartProcess = async () => {
+		if (isRestarting) return
+		isRestarting = true
+		console.log(chalk.yellow('Restarting server...'))
+		try {
+			await stopServer()
+		} catch (error) {
+			console.error(chalk.red('Failed to close server cleanly.'))
+			console.error(error)
+		}
+		cleanup()
+		const args = process.argv.slice(1)
+		const child = spawn(process.execPath, args, {
+			stdio: 'inherit',
+			env: process.env,
+			cwd: process.cwd(),
+		})
+		child.on('error', (error) => {
+			console.error(chalk.red('Failed to restart server.'))
+			console.error(error)
+		})
+		process.exit(0)
+	}
+
+	const quitProcess = () => {
+		console.log(chalk.red('Shutting down...'))
+		process.kill(process.pid, 'SIGTERM')
+	}
+
+	const hotkeys: Hotkey[] = []
+	const printHotkeyHelp = () => {
+		console.log(`\n${chalk.bold('Hotkeys')}`)
+		console.log(renderHotkeys(hotkeys))
+	}
+
+	hotkeys.push(
+		{
+			key: 'o',
+			description: 'Open app in browser',
+			color: chalk.cyan,
+			action: async () => {
+				console.log(chalk.cyan(`Opening ${urls.localUrl}`))
+				try {
+					await openInBrowser(urls.localUrl)
+				} catch (error) {
+					console.error(chalk.red('Failed to open the browser.'))
+					console.error(error)
+				}
+			},
+			showInHelp: true,
+		},
+		{
+			key: 'r',
+			description: 'Restart app process',
+			color: chalk.yellow,
+			action: restartProcess,
+			showInHelp: true,
+		},
+		{
+			key: 'q',
+			description: 'Quit server',
+			color: chalk.red,
+			action: quitProcess,
+			showInHelp: true,
+		},
+		{
+			key: 'l',
+			description: 'Reprint server URLs',
+			color: chalk.blue,
+			action: printUrls,
+			showInHelp: true,
+		},
+		{
+			key: '?',
+			description: 'Show hotkeys',
+			color: chalk.magenta,
+			action: printHotkeyHelp,
+			showInHelp: true,
+		},
+	)
+
+	const onKeypress = (input: Buffer) => {
+		const rawKey = input.toString('utf8')
+		if (rawKey === '\u0003') {
+			process.kill(process.pid, 'SIGINT')
+			return
+		}
+		if (rawKey === '\r' || rawKey === '\n') {
+			process.stdout.write('\n')
+			return
+		}
+		const normalizedKey =
+			rawKey.length === 1 ? rawKey.toLowerCase() : rawKey
+		const hotkey = hotkeys.find((entry) => entry.key === normalizedKey)
+		if (hotkey) {
+			void hotkey.action()
+		}
+	}
+
+	const cleanup = () => {
+		process.stdin.off('data', onKeypress)
+		if (process.stdin.isTTY && process.stdin.setRawMode) {
+			process.stdin.setRawMode(false)
+		}
+	}
+
+	if (process.stdin.setRawMode) {
+		process.stdin.setRawMode(true)
+	}
+	process.stdin.resume()
+	process.stdin.on('data', onKeypress)
+
+	return { cleanup, hotkeys }
+}
 
 if (SENTRY_ENABLED) {
 	void import('./utils/monitoring.ts').then(({ init }) => init())
@@ -235,6 +424,7 @@ if (!portAvailable && !IS_DEV) {
 	process.exit(1)
 }
 
+let cleanupHotkeys: (() => void) | null = null
 const server = app.listen(portToUse, () => {
 	if (!portAvailable) {
 		console.warn(
@@ -244,26 +434,20 @@ const server = app.listen(portToUse, () => {
 		)
 	}
 	console.log(`🚀  We have liftoff!`)
-	const localUrl = `http://localhost:${portToUse}`
-	let lanUrl: string | null = null
-	const localIp = ipAddress() ?? 'Unknown'
-	// Check if the address is a private ip
-	// https://en.wikipedia.org/wiki/Private_network#Private_IPv4_address_spaces
-	// https://github.com/facebook/create-react-app/blob/d960b9e38c062584ff6cfb1a70e1512509a966e7/packages/react-dev-utils/WebpackDevServerUtils.js#LL48C9-L54C10
-	if (/^10[.]|^172[.](1[6-9]|2[0-9]|3[0-1])[.]|^192[.]168[.]/.test(localIp)) {
-		lanUrl = `http://${localIp}:${portToUse}`
+	const urls = getServerUrls(portToUse)
+	const printUrls = () => console.log(formatServerUrls(urls))
+	printUrls()
+	const hotkeySetup = setupHotkeys({ server, urls, printUrls })
+	if (hotkeySetup) {
+		cleanupHotkeys = hotkeySetup.cleanup
+		console.log(
+			`\n${chalk.bold('Hotkeys')}\n${renderHotkeys(hotkeySetup.hotkeys)}`,
+		)
 	}
-
-	console.log(
-		`
-${chalk.bold('Local:')}            ${chalk.cyan(localUrl)}
-${lanUrl ? `${chalk.bold('On Your Network:')}  ${chalk.cyan(lanUrl)}` : ''}
-${chalk.bold('Press Ctrl+C to stop')}
-		`.trim(),
-	)
 })
 
 closeWithGrace(async () => {
+	cleanupHotkeys?.()
 	await new Promise((resolve, reject) => {
 		server.close((e) => (e ? reject(e) : resolve('ok')))
 	})
