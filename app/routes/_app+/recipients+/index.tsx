@@ -33,24 +33,27 @@ export default function RecipientsIndexRoute() {
 					</Link>
 				</div>
 			) : null}
-			<div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-				<div>
-					<p className="text-muted-foreground text-xs font-semibold tracking-[0.3em] uppercase">
-						Recipients
-					</p>
-					<h1 className="text-foreground text-3xl font-bold sm:text-4xl">
-						Recipients
-					</h1>
-				</div>
+			<div className="flex items-center justify-between gap-4">
+				<h1 className="text-foreground text-3xl font-bold sm:text-4xl">
+					Recipients
+				</h1>
 				<ButtonLink
 					to="new"
-					className="flex w-full items-center justify-center gap-2 bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))] sm:w-auto"
+					size="icon"
+					aria-label="Add recipient"
+					className="h-14 w-14 bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] shadow-sm hover:bg-[hsl(var(--palette-green-700))]"
 				>
-					<Icon name="plus">Add New Recipient</Icon>
+					<Icon name="plus" size="lg" />
 				</ButtonLink>
 			</div>
 
-			<div className="border-border bg-card rounded-[32px] border shadow-sm">
+			<div
+				className={
+					hasRecipients
+						? 'md:border-border md:bg-card md:rounded-[32px] md:border md:shadow-sm'
+						: 'border-border bg-card rounded-[32px] border shadow-sm'
+				}
+			>
 				<div className="border-border text-muted-foreground hidden grid-cols-[minmax(160px,1.2fr)_minmax(180px,1.2fr)_minmax(220px,1.4fr)_minmax(140px,0.8fr)_120px] gap-4 border-b px-8 py-4 text-xs font-semibold tracking-[0.2em] uppercase md:grid">
 					<span>Recipient Name</span>
 					<span>Phone Number</span>
@@ -59,62 +62,69 @@ export default function RecipientsIndexRoute() {
 					<span />
 				</div>
 				{hasRecipients ? (
-					<div className="divide-border divide-y">
+					<div className="space-y-4 md:divide-y md:divide-border md:space-y-0">
 						{recipients.map((recipient) => {
 							const messageCount = recipient._count.messages
 							const messageLabel = messageCount === 1 ? 'message' : 'messages'
-							const scheduleTone = recipient.disabled
-								? 'text-muted-foreground'
-								: recipient.cronError
-									? 'text-foreground-destructive'
-									: 'text-foreground'
+							const messageText = `${messageCount} ${messageLabel}`
+							const messagePreparedText = `${messageText} prepared`
+							const messageTone =
+								messageCount === 0
+									? 'text-[hsl(var(--palette-orange))]'
+									: 'text-muted-foreground'
+							const scheduleTone = recipient.cronError
+								? 'text-foreground-destructive'
+								: 'text-muted-foreground'
 							return (
 								<div
 									key={recipient.id}
-									className="grid gap-4 px-4 py-5 sm:px-6 sm:py-6 md:grid-cols-[minmax(160px,1.2fr)_minmax(180px,1.2fr)_minmax(220px,1.4fr)_minmax(140px,0.8fr)_120px] md:items-center md:gap-4 md:px-8"
+									className="flex flex-col gap-4 rounded-[24px] border border-border bg-card px-5 py-4 shadow-sm md:grid md:grid-cols-[minmax(160px,1.2fr)_minmax(180px,1.2fr)_minmax(220px,1.4fr)_minmax(140px,0.8fr)_120px] md:items-center md:gap-4 md:rounded-none md:border-0 md:bg-transparent md:px-8 md:py-6 md:shadow-none"
 								>
-									<div className="flex flex-col gap-1">
-										<span className="text-muted-foreground text-xs font-semibold tracking-[0.2em] uppercase md:hidden">
-											Recipient Name
-										</span>
+									<div className="flex items-start justify-between gap-4 md:flex-col md:items-start md:gap-1">
 										<Link
 											to={recipient.id}
-											className="text-foreground text-lg font-semibold hover:underline"
+											className="text-foreground text-xl font-semibold hover:underline md:text-lg"
 										>
 											{recipient.name}
 										</Link>
+										<ButtonLink
+											to={recipient.id}
+											variant="outline"
+											size="icon"
+											aria-label={`Edit ${recipient.name}`}
+											className="md:hidden"
+										>
+											<Icon name="pencil-1" size="sm" />
+										</ButtonLink>
 									</div>
-									<div className="flex flex-col gap-1">
-										<span className="text-muted-foreground text-xs font-semibold tracking-[0.2em] uppercase md:hidden">
-											Phone Number
-										</span>
+									<div className="hidden flex-col gap-1 md:flex">
 										<span className="text-muted-foreground text-sm">
 											{recipient.phoneNumber}
 										</span>
 									</div>
-									<div className="flex flex-col gap-1">
-										<span className="text-muted-foreground text-xs font-semibold tracking-[0.2em] uppercase md:hidden">
-											Schedule
+									<div className="flex items-center gap-3 text-sm md:flex-col md:items-start md:gap-1">
+										<span className="bg-muted text-muted-foreground rounded-full p-2 md:hidden">
+											<Icon name="clock" size="sm" />
 										</span>
-										<span className={`text-sm ${scheduleTone}`}>
+										<span className={`text-sm font-medium ${scheduleTone}`}>
 											{recipient.scheduleDisplay}
 										</span>
 									</div>
-									<div className="flex flex-col gap-1">
-										<span className="text-muted-foreground text-xs font-semibold tracking-[0.2em] uppercase md:hidden">
-											Prepared Messages
+									<div className="flex flex-wrap items-center gap-2 text-sm md:flex-col md:items-start md:gap-1">
+										<span className="bg-muted text-muted-foreground rounded-full p-2 md:hidden">
+											<Icon name="message" size="sm" />
 										</span>
-										<span
-											className={`text-sm font-semibold ${
-												messageCount === 0
-													? 'text-[hsl(var(--palette-orange))]'
-													: 'text-foreground'
-											}`}
-										>
-											{messageCount} {messageLabel}
+										<span className={`text-sm font-semibold ${messageTone}`}>
+											<span className="md:hidden">{messagePreparedText}</span>
+											<span className="hidden md:inline">{messageText}</span>
 										</span>
+										{messageCount === 0 ? (
+											<span className="rounded-full bg-[hsl(var(--palette-orange))]/15 p-1 text-[hsl(var(--palette-orange))] md:hidden">
+												<Icon name="exclamation-circle-outline" size="xs" />
+											</span>
+										) : null}
 									</div>
-									<div className="flex md:justify-end">
+									<div className="hidden md:flex md:justify-end">
 										<ButtonLink variant="secondary" size="sm" to={recipient.id}>
 											<Icon name="pencil-1">Manage</Icon>
 										</ButtonLink>
