@@ -4,6 +4,14 @@ import { UniqueEnforcer } from 'enforce-unique'
 import { type PrismaClient } from '#app/utils/prisma-generated.server/client.ts'
 
 const uniqueUsernameEnforcer = new UniqueEnforcer()
+const uniquePhoneEnforcer = new UniqueEnforcer()
+
+export function createPhoneNumber() {
+	return uniquePhoneEnforcer.enforce(() => {
+		const suffix = faker.string.numeric({ length: 7, allowLeadingZeros: true })
+		return `555${suffix}`
+	})
+}
 
 export function createUser() {
 	const firstName = faker.person.firstName()
@@ -26,7 +34,7 @@ export function createUser() {
 	return {
 		username,
 		name: `${firstName} ${lastName}`,
-		phoneNumber: faker.phone.number(),
+		phoneNumber: createPhoneNumber(),
 	}
 }
 
@@ -48,7 +56,7 @@ export function createMessage() {
 
 export function createRecipient() {
 	return {
-		phoneNumber: faker.phone.number(),
+		phoneNumber: createPhoneNumber(),
 		name: faker.person.fullName(),
 		verified: faker.datatype.boolean(),
 		// TODO: make sure this doesn't generate a cron string that's too frequent

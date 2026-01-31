@@ -54,6 +54,7 @@ export default defineConfig({
 		timeout: 120 * 1000,
 		env: {
 			PORT,
+			PLAYWRIGHT_TEST_BASE_URL: `http://localhost:${PORT}`,
 		},
 	},
 })
