@@ -1,32 +1,9 @@
 import { page } from 'vitest/browser'
-import {
-	type ComponentPropsWithoutRef,
-	type ReactElement,
-	type ReactNode,
-} from 'react'
+import { type ComponentProps, type ReactElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
-import { afterEach, expect, test, vi } from 'vitest'
+import { createMemoryRouter, RouterProvider } from 'react-router'
+import { afterEach, expect, test } from 'vitest'
 import { UserProfileView } from '#app/components/user-profile.tsx'
-
-type LinkProps = ComponentPropsWithoutRef<'a'> & {
-	to?: string | { pathname?: string }
-	children?: ReactNode
-}
-
-type FormProps = ComponentPropsWithoutRef<'form'> & {
-	children?: ReactNode
-}
-
-vi.mock('react-router', () => ({
-	Link: ({ to, children, ...props }: LinkProps) => (
-		<a href={typeof to === 'string' ? to : (to?.pathname ?? '')} {...props}>
-			{children}
-		</a>
-	),
-	Form: ({ children, ...props }: FormProps) => (
-		<form {...props}>{children}</form>
-	),
-}))
 
 let root: Root | null = null
 let container: HTMLDivElement | null = null
@@ -36,6 +13,20 @@ const render = (ui: ReactElement) => {
 	document.body.appendChild(container)
 	root = createRoot(container)
 	root.render(ui)
+}
+
+const renderProfile = (props: ComponentProps<typeof UserProfileView>) => {
+	const router = createMemoryRouter(
+		[
+			{
+				path: '/',
+				element: <UserProfileView {...props} />,
+			},
+		],
+		{ initialEntries: ['/'] },
+	)
+
+	render(<RouterProvider router={router} />)
 }
 
 afterEach(() => {
@@ -51,13 +42,12 @@ test('The user profile when not logged in as self', async () => {
 		username: 'harry',
 		name: 'Harry Example',
 	}
-	render(
-		<UserProfileView
-			user={user}
-			userJoinedDisplay="Jan 1, 2024"
-			isLoggedInUser={false}
-		/>,
-	)
+
+	renderProfile({
+		user,
+		userJoinedDisplay: 'Jan 1, 2024',
+		isLoggedInUser: false,
+	})
 
 	await expect
 		.element(page.getByRole('heading', { level: 1, name: user.name }))
@@ -73,13 +63,12 @@ test('The user profile when logged in as self', async () => {
 		username: 'logan',
 		name: 'Logan Example',
 	}
-	render(
-		<UserProfileView
-			user={user}
-			userJoinedDisplay="Jan 1, 2024"
-			isLoggedInUser
-		/>,
-	)
+
+	renderProfile({
+		user,
+		userJoinedDisplay: 'Jan 1, 2024',
+		isLoggedInUser: true,
+	})
 
 	await expect
 		.element(page.getByRole('heading', { level: 1, name: user.name }))
