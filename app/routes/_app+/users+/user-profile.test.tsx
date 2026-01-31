@@ -6,6 +6,7 @@ import {
 } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, expect, test, vi } from 'vitest'
+import { useLoaderData } from 'react-router'
 import { useOptionalUser } from '#app/utils/user.ts'
 import { default as UserProfile } from './user-profile.tsx'
 
@@ -18,7 +19,7 @@ type FormProps = ComponentPropsWithoutRef<'form'> & {
 	children?: ReactNode
 }
 
-const routerMocks = vi.hoisted(() => ({
+vi.mock('react-router', () => ({
 	useLoaderData: vi.fn(),
 	Link: ({ to, children, ...props }: LinkProps) => (
 		<a href={typeof to === 'string' ? to : (to?.pathname ?? '')} {...props}>
@@ -30,23 +31,12 @@ const routerMocks = vi.hoisted(() => ({
 	),
 }))
 
-vi.mock('react-router', async () => {
-	const actual =
-		await vi.importActual<typeof import('react-router')>('react-router')
-	return {
-		...actual,
-		useLoaderData: routerMocks.useLoaderData,
-		Link: routerMocks.Link,
-		Form: routerMocks.Form,
-	}
-})
-
 vi.mock('#app/utils/user.ts', () => ({
 	useOptionalUser: vi.fn(),
 }))
 
 const mockedUseOptionalUser = vi.mocked(useOptionalUser)
-const mockedUseLoaderData = routerMocks.useLoaderData
+const mockedUseLoaderData = vi.mocked(useLoaderData)
 
 let root: Root | null = null
 let container: HTMLDivElement | null = null
