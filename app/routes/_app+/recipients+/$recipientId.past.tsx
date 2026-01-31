@@ -119,7 +119,7 @@ function Pagination({
 	const hasNextPage = currentPage < totalPages
 
 	return (
-		<div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
+		<div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
 			<p className="text-muted-foreground text-sm">
 				{totalMessages === 0
 					? 'No messages found'
@@ -196,7 +196,7 @@ export default function RecipientRoute() {
 				/>
 			</div>
 
-			<ul className={cn('flex flex-col gap-2', { 'opacity-50': isPending })}>
+			<ul className={cn('flex flex-col gap-3 sm:gap-4', { 'opacity-50': isPending })}>
 				{data.pastMessages.length === 0 ? (
 					<li className="text-muted-foreground py-8 text-center">
 						{data.searchQuery
@@ -207,12 +207,14 @@ export default function RecipientRoute() {
 					data.pastMessages.map((m) => (
 						<li
 							key={m.id}
-							className="flex flex-col justify-start gap-2 align-top lg:flex-row"
+							className="border-border bg-card flex flex-col justify-start gap-2 rounded-2xl border px-4 py-3 shadow-sm sm:px-5 sm:py-4 lg:flex-row lg:items-start"
 						>
-							<span className="text-muted-secondary-foreground min-w-36">
+							<span className="text-muted-secondary-foreground min-w-36 text-xs font-semibold tracking-[0.15em] uppercase sm:text-sm sm:tracking-[0.2em]">
 								{m.sentAtDisplay}
 							</span>
-							<span>{m.content}</span>
+							<span className="break-words text-sm sm:text-base">
+								{m.content}
+							</span>
 						</li>
 					))
 				)}

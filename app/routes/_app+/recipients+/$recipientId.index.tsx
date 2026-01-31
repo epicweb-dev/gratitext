@@ -307,10 +307,10 @@ export default function RecipientRoute() {
 					</Link>
 				</div>
 			) : null}
-			<ul className="flex flex-col gap-6">
+			<ul className="flex flex-col gap-4 sm:gap-6">
 				{data.futureMessages.length ? (
 					data.futureMessages.map((m, index) => (
-						<li key={m.id} className="flex flex-col gap-4">
+						<li key={m.id} className="flex flex-col gap-3 sm:gap-4">
 							<MessageForms message={m} index={index} />
 						</li>
 					))
@@ -344,7 +344,7 @@ export default function RecipientRoute() {
 						<StatusButton
 							status={isCreating ? 'pending' : 'idle'}
 							type="submit"
-							className="self-end bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))] sm:self-auto"
+							className="w-full bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))] sm:w-auto"
 						>
 							<Icon name="check">Add to Queue</Icon>
 						</StatusButton>
@@ -391,27 +391,27 @@ function MessageForms({
 		: 'Message'
 
 	return (
-		<div className="flex flex-col gap-4 lg:flex-row">
+		<div className="flex flex-col gap-3 sm:gap-4 lg:flex-row lg:items-start">
 			<div className="flex gap-2 lg:flex-col">
 				<UpdateOrderForm message={message} direction="earlier" />
 				<UpdateOrderForm message={message} direction="later" />
 			</div>
 			<div className="flex-1 space-y-3">
 				<div
-					className={`rounded-[28px] px-6 py-5 text-[hsl(var(--palette-cream))] shadow-sm ${cardTone}`}
+					className={`rounded-[28px] px-4 py-4 text-[hsl(var(--palette-cream))] shadow-sm sm:px-6 sm:py-5 ${cardTone}`}
 				>
-					<div className="flex items-center justify-between gap-2 text-xs font-semibold tracking-[0.2em] text-[hsl(var(--palette-cream))] uppercase">
-						<div className="flex items-center gap-2">
+					<div className="flex flex-col gap-3 text-xs font-semibold tracking-[0.15em] text-[hsl(var(--palette-cream))] uppercase sm:flex-row sm:items-center sm:justify-between sm:tracking-[0.2em]">
+						<div className="flex flex-wrap items-center gap-2">
 							<Icon name={isPrimary ? 'check' : 'clock'} size="sm" />
 							<span>{headerText}</span>
 						</div>
-						<div className="flex items-center gap-2">
+						<div className="flex flex-wrap items-center gap-2 sm:flex-nowrap sm:justify-end">
 							<StatusButton
 								form={updateContentForm.id}
 								status={
 									updateContentFetcher.state !== 'idle' ? 'pending' : 'idle'
 								}
-								className="gap-0 text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-cream))/0.15]"
+								className="h-11 w-11 gap-0 text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-cream))/0.15] sm:h-10 sm:w-10"
 								size="icon"
 								variant="ghost"
 								type="submit"
@@ -491,7 +491,7 @@ function UpdateOrderForm({
 					variant="secondary"
 					size="icon"
 					status={fetcher.state !== 'idle' ? 'pending' : 'idle'}
-					className="text-muted-foreground hover:text-foreground gap-0"
+					className="h-11 w-11 gap-0 text-muted-foreground hover:text-foreground sm:h-10 sm:w-10"
 					type="submit"
 					name="intent"
 					value={updateMessageOrderActionIntent}
@@ -530,7 +530,7 @@ function SendNowForm({ message }: { message: Pick<FutureMessage, 'id'> }) {
 			<StatusButton
 				variant="ghost"
 				size="icon"
-				className="gap-0 text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-cream))/0.15]"
+				className="h-11 w-11 gap-0 text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-cream))/0.15] sm:h-10 sm:w-10"
 				status={fetcher.state !== 'idle' ? 'pending' : 'idle'}
 				type="submit"
 				name="intent"
@@ -558,8 +558,8 @@ function DeleteForm({ message }: { message: Pick<FutureMessage, 'id'> }) {
 	})
 	const dc = useDoubleCheck()
 	const deleteClassName = dc.doubleCheck
-		? 'gap-0 data-[safe-delay=true]:opacity-50'
-		: 'gap-0 text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-cream))/0.15] data-[safe-delay=true]:opacity-50'
+		? 'h-11 w-11 gap-0 data-[safe-delay=true]:opacity-50 sm:h-10 sm:w-10'
+		: 'h-11 w-11 gap-0 text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-cream))/0.15] data-[safe-delay=true]:opacity-50 sm:h-10 sm:w-10'
 
 	return (
 		<fetcher.Form method="POST" {...getFormProps(form)}>

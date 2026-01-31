@@ -38,11 +38,13 @@ export default function RecipientsIndexRoute() {
 					<p className="text-muted-foreground text-xs font-semibold tracking-[0.3em] uppercase">
 						Recipients
 					</p>
-					<h1 className="text-foreground text-4xl font-bold">Recipients</h1>
+					<h1 className="text-foreground text-3xl font-bold sm:text-4xl">
+						Recipients
+					</h1>
 				</div>
 				<ButtonLink
 					to="new"
-					className="flex items-center gap-2 bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))]"
+					className="flex w-full items-center justify-center gap-2 bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))] sm:w-auto"
 				>
 					<Icon name="plus">Add New Recipient</Icon>
 				</ButtonLink>
@@ -69,7 +71,7 @@ export default function RecipientsIndexRoute() {
 							return (
 								<div
 									key={recipient.id}
-									className="grid gap-3 px-6 py-6 md:grid-cols-[minmax(160px,1.2fr)_minmax(180px,1.2fr)_minmax(220px,1.4fr)_minmax(140px,0.8fr)_120px] md:items-center md:gap-4 md:px-8"
+									className="grid gap-4 px-4 py-5 sm:px-6 sm:py-6 md:grid-cols-[minmax(160px,1.2fr)_minmax(180px,1.2fr)_minmax(220px,1.4fr)_minmax(140px,0.8fr)_120px] md:items-center md:gap-4 md:px-8"
 								>
 									<div className="flex flex-col gap-1">
 										<span className="text-muted-foreground text-xs font-semibold tracking-[0.2em] uppercase md:hidden">
@@ -133,7 +135,7 @@ export default function RecipientsIndexRoute() {
 						</div>
 						<ButtonLink
 							to="new"
-							className="flex items-center gap-2 bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))]"
+							className="flex w-full items-center justify-center gap-2 bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))] sm:w-auto"
 						>
 							<Icon name="plus">Add Recipient</Icon>
 						</ButtonLink>
