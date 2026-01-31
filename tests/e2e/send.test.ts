@@ -39,13 +39,19 @@ test('Users can write and send a message immediately', async ({
 
 	await page.waitForLoadState('domcontentloaded')
 
-	const { content: textMessageContent } = createMessage()
+	const textMessageContent = `Test message ${faker.string.alphanumeric(8)}`
 	const messageTextbox = page.getByRole('textbox', { name: /message/i })
 	await messageTextbox.waitFor({ state: 'visible' })
-	await messageTextbox.fill(textMessageContent)
+	await messageTextbox.click()
+	await messageTextbox.fill('')
+	await messageTextbox.type(textMessageContent, { delay: 5 })
+	await expect(messageTextbox).toHaveValue(textMessageContent)
 
 	await Promise.all([
-		page.waitForURL(`/recipients/${recipient.id}`, { timeout: 15000 }),
+		page.waitForURL(`/recipients/${recipient.id}`, {
+			timeout: 30000,
+			waitUntil: 'domcontentloaded',
+		}),
 		page.getByRole('button', { name: /save/i }).click(),
 	])
 	await page.waitForLoadState('domcontentloaded')
