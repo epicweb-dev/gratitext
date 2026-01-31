@@ -115,11 +115,12 @@ export default function RecipientRoute() {
 
 	useEffect(() => {
 		if (!loadMoreData) return
+		if (loadMoreData.searchQuery !== data.searchQuery) return
 		if (loadMoreData.pastMessages.length) {
 			setMessages((prev) => [...prev, ...loadMoreData.pastMessages])
 		}
 		setNextCursor(loadMoreData.nextCursor)
-	}, [loadMoreData])
+	}, [data.searchQuery, loadMoreData])
 
 	useLayoutEffect(() => {
 		const container = scrollContainer
