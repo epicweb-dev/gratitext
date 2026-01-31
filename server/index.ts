@@ -109,7 +109,6 @@ const setupHotkeys = ({
 }) => {
 	const isInteractive =
 		Boolean(process.stdin.isTTY && process.stdout.isTTY) &&
-		process.env.TERM &&
 		process.env.TERM !== 'dumb' &&
 		!process.env.CI
 	if (!isInteractive) {
