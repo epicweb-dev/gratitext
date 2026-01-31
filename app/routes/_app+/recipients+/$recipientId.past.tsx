@@ -100,6 +100,24 @@ export default function RecipientRoute() {
 	const shouldScrollToBottomRef = useRef(true)
 	const isLoadingMore = loadMoreFetcher.state !== 'idle'
 	const messagesForDisplay = useMemo(() => [...messages].reverse(), [messages])
+	const logDebug = useCallback(
+		(
+			message: string,
+			data: Record<string, unknown>,
+			hypothesisId: string,
+			location: string,
+		) => {
+			console.log('recipient-past-scroll-debug:', {
+				id: `log_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+				timestamp: Date.now(),
+				location,
+				message,
+				data,
+				hypothesisId,
+			})
+		},
+		[],
+	)
 
 	useEffect(() => {
 		setMessages(data.pastMessages)
@@ -119,7 +137,16 @@ export default function RecipientRoute() {
 			setMessages((prev) => [...prev, ...loadMoreData.pastMessages])
 		}
 		setNextCursor(loadMoreData.nextCursor)
-	}, [loadMoreData])
+		logDebug(
+			'load-more-received',
+			{
+				addedCount: loadMoreData.pastMessages.length,
+				nextCursor: loadMoreData.nextCursor,
+			},
+			'C',
+			'$recipientId.past.tsx:loadMoreData',
+		)
+	}, [loadMoreData, logDebug])
 
 	useLayoutEffect(() => {
 		const container = scrollContainerRef?.current
@@ -127,20 +154,43 @@ export default function RecipientRoute() {
 		if (shouldScrollToBottomRef.current) {
 			container.scrollTop = container.scrollHeight
 			shouldScrollToBottomRef.current = false
+			logDebug(
+				'scrolled-to-bottom',
+				{
+					scrollTop: container.scrollTop,
+					scrollHeight: container.scrollHeight,
+					clientHeight: container.clientHeight,
+				},
+				'B',
+				'$recipientId.past.tsx:useLayoutEffect',
+			)
 			return
 		}
 		const pending = pendingScrollRef.current
 		if (!pending) return
 		container.scrollTop = pending.top + (container.scrollHeight - pending.height)
 		pendingScrollRef.current = null
-	}, [messages, scrollContainerRef])
+	}, [messages, scrollContainerRef, logDebug])
 
 	const handleScroll = useCallback((event: UIEvent<HTMLDivElement>) => {
 		const container = event.currentTarget
+		if (container.scrollTop > 80) return
+		logDebug(
+			'near-top-scroll',
+			{
+				scrollTop: container.scrollTop,
+				scrollHeight: container.scrollHeight,
+				clientHeight: container.clientHeight,
+				nextCursor,
+				fetcherState: loadMoreFetcher.state,
+				shouldScrollToBottom: shouldScrollToBottomRef.current,
+			},
+			'A',
+			'$recipientId.past.tsx:handleScroll',
+		)
 		if (!nextCursor) return
 		if (shouldScrollToBottomRef.current) return
 		if (loadMoreFetcher.state !== 'idle') return
-		if (container.scrollTop > 80) return
 
 		const params = new URLSearchParams(searchParams)
 		params.set('cursor', nextCursor)
@@ -149,8 +199,14 @@ export default function RecipientRoute() {
 			height: container.scrollHeight,
 			top: container.scrollTop,
 		}
+		logDebug(
+			'load-more-requested',
+			{ queryString },
+			'D',
+			'$recipientId.past.tsx:handleScroll',
+		)
 		loadMoreFetcher.load(queryString ? `?${queryString}` : '.')
-	}, [nextCursor, loadMoreFetcher, searchParams])
+	}, [nextCursor, loadMoreFetcher, searchParams, logDebug])
 
 	const emptyMessage = data.searchQuery
 		? 'No messages match your search.'
