@@ -1,7 +1,6 @@
 import {
 	getFormProps,
 	getInputProps,
-	getSelectProps,
 	useForm,
 } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4'
@@ -22,31 +21,21 @@ import {
 	CheckboxField,
 	ErrorList,
 	Field,
-	SelectField,
 } from '#app/components/forms.tsx'
 import { Spacer } from '#app/components/spacer.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { login, requireAnonymous } from '#app/utils/auth.server.ts'
 import { checkHoneypot } from '#app/utils/honeypot.server.ts'
 import { useIsPending } from '#app/utils/misc.tsx'
-import { PasswordSchema } from '#app/utils/user-validation.ts'
+import { PasswordSchema, UsernameSchema } from '#app/utils/user-validation.ts'
 import { handleNewSession } from './login.server.ts'
 
 const LoginFormSchema = z.object({
-	countryCode: z.string().min(1, 'Country code is required'),
-	phoneNumber: z.string().min(1, 'Phone number is required'),
+	username: UsernameSchema,
 	password: PasswordSchema,
 	redirectTo: z.string().optional(),
 	remember: z.boolean().optional(),
 })
-
-const countryCodes = [
-	{ label: 'United States (+1)', value: '+1' },
-	{ label: 'United Kingdom (+44)', value: '+44' },
-	{ label: 'Czech Republic (+420)', value: '+420' },
-	{ label: 'Canada (+1)', value: '+1' },
-	{ label: 'Australia (+61)', value: '+61' },
-]
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	await requireAnonymous(request)
@@ -63,14 +52,13 @@ export async function action({ request }: ActionFunctionArgs) {
 				if (intent !== null) return { ...data, session: null }
 
 				const session = await login({
-					identifier: data.phoneNumber,
-					countryCode: data.countryCode,
+					identifier: data.username,
 					password: data.password,
 				})
 				if (!session) {
 					ctx.addIssue({
 						code: z.ZodIssueCode.custom,
-						message: 'Invalid phone number or password',
+						message: 'Invalid username or password',
 					})
 					return z.NEVER
 				}
@@ -108,7 +96,6 @@ export default function LoginPage() {
 		constraint: getZodConstraint(LoginFormSchema),
 		defaultValue: {
 			redirectTo,
-			countryCode: countryCodes[0]?.value ?? '+1',
 		},
 		lastResult: actionData?.result,
 		onValidate({ formData }) {
@@ -132,32 +119,15 @@ export default function LoginPage() {
 			<div className="border-border bg-card mt-8 w-full max-w-lg rounded-[32px] border px-6 py-8 shadow-sm">
 				<Form method="POST" {...getFormProps(form)} className="space-y-6">
 					<HoneypotInputs />
-					<div className="grid gap-4 md:grid-cols-[200px_1fr]">
-						<SelectField
-							labelProps={{ children: 'Country Code' }}
-							selectProps={{
-								...getSelectProps(fields.countryCode),
-								children: countryCodes.map((code) => (
-									<option
-										key={`${code.value}-${code.label}`}
-										value={code.value}
-									>
-										{code.label}
-									</option>
-								)),
-							}}
-							errors={fields.countryCode.errors}
-						/>
-						<Field
-							labelProps={{ children: 'Phone Number' }}
-							inputProps={{
-								...getInputProps(fields.phoneNumber, { type: 'text' }),
-								autoFocus: true,
-								autoComplete: 'tel',
-							}}
-							errors={fields.phoneNumber.errors}
-						/>
-					</div>
+					<Field
+						labelProps={{ children: 'Username' }}
+						inputProps={{
+							...getInputProps(fields.username, { type: 'text' }),
+							autoFocus: true,
+							autoComplete: 'username',
+						}}
+						errors={fields.username.errors}
+					/>
 
 					<Field
 						labelProps={{ children: 'Password' }}
