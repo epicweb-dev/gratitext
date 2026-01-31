@@ -3,7 +3,7 @@ import { type ComponentProps, type ReactElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { afterEach, expect, test } from 'vitest'
-import { UserProfileView } from '#app/components/user-profile.tsx'
+import { UserProfileView } from '../../../components/user-profile.tsx'
 
 let root: Root | null = null
 let container: HTMLDivElement | null = null
