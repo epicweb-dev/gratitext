@@ -128,7 +128,8 @@ export default function VerifyRoute() {
 							...getInputProps(fields[codeQueryParam], { type: 'text' }),
 							autoComplete: 'one-time-code',
 							autoFocus: true,
-							containerClassName: 'justify-start gap-3',
+							containerClassName:
+								'flex-wrap justify-center gap-3 sm:flex-nowrap sm:justify-start',
 						}}
 						errors={fields[codeQueryParam].errors}
 						groupClassName="gap-3"
