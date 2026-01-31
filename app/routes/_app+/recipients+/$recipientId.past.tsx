@@ -163,6 +163,7 @@ export default function RecipientRoute() {
 			],
 			pageParams: [null],
 		},
+	initialDataUpdatedAt: Date.now(),
 	})
 
 	const messages = useMemo<Array<MessageItem>>(() => {
