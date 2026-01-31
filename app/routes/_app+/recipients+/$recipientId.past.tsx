@@ -176,7 +176,7 @@ export default function RecipientRoute() {
 	const emptyMessage = data.searchQuery
 		? 'No messages match your search.'
 		: 'No past messages yet.'
-	const loadMoreLabel = nextCursor
+	const loadMoreLabel = nextCursorForScroll
 		? isLoadingMore
 			? 'Loading earlier messages...'
 			: 'Scroll up to load earlier messages.'
