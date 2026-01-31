@@ -4,21 +4,29 @@ import { Button } from '#app/components/ui/button.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { useOptionalUser } from '#app/utils/user.ts'
 
+export type UserProfileUser = {
+	id: string
+	name: string | null
+	username: string
+}
+
 export type UserProfileLoaderData = {
-	user: {
-		id: string
-		name: string | null
-		username: string
-	}
+	user: UserProfileUser
 	userJoinedDisplay: string
 }
 
-export default function UserProfile() {
-	const data = useLoaderData<UserProfileLoaderData>()
-	const user = data.user
+export type UserProfileViewProps = {
+	user: UserProfileUser
+	userJoinedDisplay: string
+	isLoggedInUser: boolean
+}
+
+export function UserProfileView({
+	user,
+	userJoinedDisplay,
+	isLoggedInUser,
+}: UserProfileViewProps) {
 	const userDisplayName = user.name ?? user.username
-	const loggedInUser = useOptionalUser()
-	const isLoggedInUser = data.user.id === loggedInUser?.id
 
 	return (
 		<div className="container mt-36 mb-48 flex flex-col items-center justify-center">
@@ -28,7 +36,7 @@ export default function UserProfile() {
 					<h1 className="text-h2 text-center">{userDisplayName}</h1>
 				</div>
 				<p className="text-muted-foreground mt-2 text-center">
-					Joined {data.userJoinedDisplay}
+					Joined {userJoinedDisplay}
 				</p>
 				{isLoggedInUser ? (
 					<Form action="/logout" method="POST" className="mt-3">
@@ -63,5 +71,19 @@ export default function UserProfile() {
 				</div>
 			</div>
 		</div>
+	)
+}
+
+export default function UserProfile() {
+	const data = useLoaderData<UserProfileLoaderData>()
+	const loggedInUser = useOptionalUser()
+	const isLoggedInUser = data.user.id === loggedInUser?.id
+
+	return (
+		<UserProfileView
+			user={data.user}
+			userJoinedDisplay={data.userJoinedDisplay}
+			isLoggedInUser={isLoggedInUser}
+		/>
 	)
 }

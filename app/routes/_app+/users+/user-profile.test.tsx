@@ -1,16 +1,8 @@
 import { page } from 'vitest/browser'
-import { createRoutesStub } from 'react-router'
 import { type ReactElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
-import { afterEach, expect, test, vi } from 'vitest'
-import { useOptionalUser } from '#app/utils/user.ts'
-import { default as UserProfile } from './user-profile.tsx'
-
-vi.mock('#app/utils/user.ts', () => ({
-	useOptionalUser: vi.fn(),
-}))
-
-const mockedUseOptionalUser = vi.mocked(useOptionalUser)
+import { afterEach, expect, test } from 'vitest'
+import { UserProfileView } from './user-profile.tsx'
 
 let root: Root | null = null
 let container: HTMLDivElement | null = null
@@ -29,39 +21,19 @@ afterEach(() => {
 	container = null
 })
 
-type UserStub = {
-	id: string
-	username: string
-	name: string
-	createdAt: Date
-}
-
-const buildApp = (user: UserStub) => {
-	return createRoutesStub([
-		{
-			id: 'routes/users.$username',
-			path: '/users/:username',
-			Component: UserProfile,
-			loader: async () => ({
-				user,
-				userJoinedDisplay: user.createdAt.toLocaleDateString(),
-			}),
-		},
-	])
-}
-
 test('The user profile when not logged in as self', async () => {
 	const user = {
 		id: 'user_1',
 		username: 'harry',
 		name: 'Harry Example',
-		createdAt: new Date('2024-01-01T00:00:00Z'),
 	}
-	mockedUseOptionalUser.mockReturnValue(null)
-	const App = buildApp(user)
-
-	const routeUrl = `/users/${user.username}`
-	render(<App initialEntries={[routeUrl]} />)
+	render(
+		<UserProfileView
+			user={user}
+			userJoinedDisplay="Jan 1, 2024"
+			isLoggedInUser={false}
+		/>,
+	)
 
 	await expect
 		.element(page.getByRole('heading', { level: 1, name: user.name }))
@@ -76,17 +48,14 @@ test('The user profile when logged in as self', async () => {
 		id: 'user_2',
 		username: 'logan',
 		name: 'Logan Example',
-		createdAt: new Date('2024-01-01T00:00:00Z'),
 	}
-	mockedUseOptionalUser.mockReturnValue({
-		id: user.id,
-		username: user.username,
-		name: user.name,
-	})
-	const App = buildApp(user)
-
-	const routeUrl = `/users/${user.username}`
-	render(<App initialEntries={[routeUrl]} />)
+	render(
+		<UserProfileView
+			user={user}
+			userJoinedDisplay="Jan 1, 2024"
+			isLoggedInUser
+		/>,
+	)
 
 	await expect
 		.element(page.getByRole('heading', { level: 1, name: user.name }))
