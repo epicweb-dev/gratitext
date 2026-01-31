@@ -6,10 +6,13 @@ import { type PrismaClient } from '#app/utils/prisma-generated.server/client.ts'
 const uniqueUsernameEnforcer = new UniqueEnforcer()
 const uniquePhoneEnforcer = new UniqueEnforcer()
 
-export function createPhoneNumber() {
+export function createPhoneNumber({
+	countryCode = '+1',
+	includeCountryCode = true,
+}: { countryCode?: string; includeCountryCode?: boolean } = {}) {
 	return uniquePhoneEnforcer.enforce(() => {
 		const digits = faker.string.numeric({ length: 10, allowLeadingZeros: true })
-		return `+1${digits}`
+		return includeCountryCode ? `${countryCode}${digits}` : digits
 	})
 }
 
