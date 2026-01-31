@@ -130,7 +130,7 @@ const rateLimitDefault = {
 	keyGenerator: (req: express.Request) => {
 		const clientIp =
 			req.get('fly-client-ip') ?? req.ip ?? req.socket.remoteAddress
-		if (!clientIp) {
+		if (typeof clientIp !== 'string') {
 			return 'unknown'
 		}
 		return ipKeyGenerator(clientIp)
