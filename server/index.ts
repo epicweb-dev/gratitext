@@ -70,6 +70,34 @@ const openInBrowser = async (url: string) => {
 	await execa('xdg-open', [url])
 }
 
+const copyToClipboard = async (text: string) => {
+	const platform = process.platform
+	if (platform === 'darwin') {
+		await execa('pbcopy', { input: text })
+		return
+	}
+	if (platform === 'win32') {
+		await execa('cmd', ['/c', 'clip'], { input: text })
+		return
+	}
+
+	const linuxCandidates: Array<{ command: string; args: string[] }> = [
+		{ command: 'wl-copy', args: [] },
+		{ command: 'xclip', args: ['-selection', 'clipboard'] },
+		{ command: 'xsel', args: ['--clipboard', '--input'] },
+	]
+	let lastError: unknown = null
+	for (const candidate of linuxCandidates) {
+		try {
+			await execa(candidate.command, candidate.args, { input: text })
+			return
+		} catch (error) {
+			lastError = error
+		}
+	}
+	throw lastError ?? new Error('No clipboard utility found')
+}
+
 const setupHotkeys = ({
 	server,
 	urls,
@@ -79,8 +107,12 @@ const setupHotkeys = ({
 	urls: ServerUrls
 	printUrls: () => void
 }) => {
-	const allowNonTtyHotkeys = process.env.ENABLE_HOTKEYS === 'true'
-	if ((!process.stdin.isTTY && !allowNonTtyHotkeys) || process.env.CI) {
+	const isInteractive =
+		Boolean(process.stdin.isTTY && process.stdout.isTTY) &&
+		process.env.TERM &&
+		process.env.TERM !== 'dumb' &&
+		!process.env.CI
+	if (!isInteractive) {
 		return null
 	}
 
@@ -137,6 +169,21 @@ const setupHotkeys = ({
 					await openInBrowser(urls.localUrl)
 				} catch (error) {
 					console.error(chalk.red('Failed to open the browser.'))
+					console.error(error)
+				}
+			},
+			showInHelp: true,
+		},
+		{
+			key: 'c',
+			description: 'Copy local URL to clipboard',
+			color: chalk.green,
+			action: async () => {
+				try {
+					await copyToClipboard(urls.localUrl)
+					console.log(chalk.green(`Copied ${urls.localUrl}`))
+				} catch (error) {
+					console.error(chalk.red('Failed to copy URL to clipboard.'))
 					console.error(error)
 				}
 			},
