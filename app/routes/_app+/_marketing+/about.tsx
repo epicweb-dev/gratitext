@@ -142,9 +142,9 @@ export default function AboutRoute() {
 						Contact us at{' '}
 						<a
 							className="font-semibold underline"
-							href="mailto:support@gratitude.app"
+							href="mailto:support@gratitext.app"
 						>
-							support@gratitude.app
+							support@gratitext.app
 						</a>
 					</p>
 				</div>
