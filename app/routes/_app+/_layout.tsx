@@ -70,7 +70,7 @@ export default function Layout() {
 	const requestInfo = useRequestInfo()
 	return (
 		<div className="flex h-screen flex-col justify-between">
-			<header className="container py-4 md:py-6">
+			<header className="container py-5 md:py-6">
 				<nav className="flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8">
 					<Logo />
 					<div className="flex items-center gap-10">
@@ -161,7 +161,7 @@ function Logo() {
 		<Link
 			to="/"
 			className={cn(
-				'font-serif text-lg font-semibold lowercase tracking-tight text-foreground md:text-xl',
+				'font-serif text-lg font-semibold lowercase leading-none tracking-tight text-foreground md:text-xl',
 			)}
 		>
 			gratitetext
@@ -262,7 +262,7 @@ function MobileMenu() {
 					/>
 					<div
 						id="mobile-menu-panel"
-						className="relative mx-4 mt-4 w-full max-w-[420px] rounded-[32px] bg-card px-6 pb-6 pt-5 shadow-[0_20px_45px_rgba(0,0,0,0.18)]"
+						className="relative mx-4 mt-5 w-full max-w-[420px] rounded-[32px] bg-card px-6 pb-6 pt-6 shadow-[0_20px_45px_rgba(0,0,0,0.18)]"
 					>
 						<div className="flex items-center justify-between">
 							<Logo />
