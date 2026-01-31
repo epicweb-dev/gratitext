@@ -16,6 +16,9 @@ function formatPhoneNumber(
 	countryCode = defaultCountryCode,
 ) {
 	const digitsOnly = phoneNumber.replace(/\D/g, '')
+	if (phoneNumber.trim().startsWith('+')) {
+		return `+${digitsOnly}`.replace(/\s+/g, '')
+	}
 	return `${countryCode}${digitsOnly}`.replace(/\s+/g, '')
 }
 

@@ -8,8 +8,8 @@ const uniquePhoneEnforcer = new UniqueEnforcer()
 
 export function createPhoneNumber() {
 	return uniquePhoneEnforcer.enforce(() => {
-		const suffix = faker.string.numeric({ length: 7, allowLeadingZeros: true })
-		return `555${suffix}`
+		const digits = faker.string.numeric({ length: 10, allowLeadingZeros: true })
+		return `+1${digits}`
 	})
 }
 
