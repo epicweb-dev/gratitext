@@ -43,8 +43,7 @@ test('Users can write and send a message immediately', async ({
 	const messageTextbox = page.getByRole('textbox', { name: /message/i })
 	await messageTextbox.waitFor({ state: 'visible' })
 	await messageTextbox.click()
-	await messageTextbox.fill('')
-	await messageTextbox.type(textMessageContent, { delay: 5 })
+	await messageTextbox.fill(textMessageContent)
 	await expect(messageTextbox).toHaveValue(textMessageContent)
 
 	await Promise.all([
