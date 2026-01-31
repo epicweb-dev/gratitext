@@ -1,4 +1,4 @@
-import { parseWithZod } from '@conform-to/zod'
+import { parseWithZod } from '@conform-to/zod/v4'
 import { invariant, invariantResponse } from '@epic-web/invariant'
 import { data as json, redirect, type ActionFunctionArgs } from 'react-router'
 import { requireUserId } from '#app/utils/auth.server.ts'

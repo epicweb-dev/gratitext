@@ -4,7 +4,7 @@ import {
 	getSelectProps,
 	useForm,
 } from '@conform-to/react'
-import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4'
 import { useState } from 'react'
 import { Form, useActionData, useFetcher } from 'react-router'
 import { z } from 'zod'
@@ -33,18 +33,15 @@ export const RecipientEditorSchema = z.object({
 	scheduleCron: z
 		.string()
 		.min(1, 'Cron string is required')
-		.refine(
-			(cronString) => {
-				const validation = validateCronString(cronString)
-				return validation.valid
-			},
-			(cronString) => {
-				const validation = validateCronString(cronString)
-				return {
+		.superRefine((cronString, ctx) => {
+			const validation = validateCronString(cronString)
+			if (!validation.valid) {
+				ctx.addIssue({
+					code: z.ZodIssueCode.custom,
 					message: validation.error || 'Invalid cron string',
-				}
-			},
-		),
+				})
+			}
+		}),
 	timeZone: z.string(),
 	disabled: z.coerce.boolean().optional().default(false),
 })
@@ -86,7 +83,14 @@ export function RecipientEditor({
 			return parseWithZod(formData, { schema: RecipientEditorSchema })
 		},
 		defaultValue: recipient
-			? { ...recipient, disabled: recipient.disabled ?? false }
+			? {
+					id: recipient.id,
+					name: recipient.name,
+					phoneNumber: recipient.phoneNumber,
+					scheduleCron: recipient.scheduleCron,
+					timeZone: recipient.timeZone,
+					disabled: recipient.disabled ? 'on' : undefined,
+				}
 			: undefined,
 		shouldRevalidate: 'onBlur',
 	})

@@ -1,5 +1,5 @@
 import { useForm, getFormProps } from '@conform-to/react'
-import { parseWithZod } from '@conform-to/zod'
+import { parseWithZod } from '@conform-to/zod/v4'
 import { invariantResponse } from '@epic-web/invariant'
 import {
 	data as json,
