@@ -135,8 +135,8 @@ export default function VerifyRoute() {
 						showSeparator={false}
 						slotClassName="h-14 w-14 rounded-full bg-white text-lg font-semibold shadow-none dark:bg-[hsl(var(--palette-navy))]"
 					/>
-					<div className="text-body-sm text-muted-foreground">
-						<span>No text after 5 minutes? </span>
+					<div className="text-body-sm text-muted-foreground flex flex-wrap items-center gap-1">
+						<span>No text after 5 minutes?</span>
 						<Link
 							to={type ? resendRoutes[type] : '.'}
 							className="text-foreground font-semibold hover:text-foreground/90"
