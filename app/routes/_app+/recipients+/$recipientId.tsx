@@ -96,20 +96,31 @@ export default function RecipientRoute() {
 	return (
 		<div className="grid gap-8 lg:grid-cols-[320px_1fr] lg:gap-10">
 			<aside className="space-y-6">
-				<Link
-					to="/recipients"
-					className="text-muted-foreground hover:text-foreground inline-flex items-center gap-2 text-xs font-semibold tracking-[0.2em] uppercase transition"
-				>
-					<Icon name="arrow-left" size="sm" />
-					All Recipients
-				</Link>
-				<div className="flex flex-wrap items-start justify-between gap-4">
+				<div className="flex items-center justify-between">
+					<Link
+						to="/recipients"
+						className="text-foreground hover:text-foreground inline-flex items-center gap-2 text-base font-semibold transition sm:text-xs sm:font-semibold sm:tracking-[0.2em] sm:uppercase sm:text-muted-foreground"
+						ref={firstLinkRef}
+					>
+						<Icon name="arrow-left" size="sm" />
+						<span className="sm:hidden">{data.recipient.name}</span>
+						<span className="hidden sm:inline">All Recipients</span>
+					</Link>
+					<ButtonLink
+						variant="secondary"
+						size="pill"
+						to="edit"
+						className="gap-2 sm:hidden"
+					>
+						<Icon name="settings">Settings</Icon>
+					</ButtonLink>
+				</div>
+				<div className="hidden flex-wrap items-start justify-between gap-4 sm:flex">
 					<div>
 						<h2 className="text-foreground text-2xl font-bold sm:text-3xl">
 							{data.recipient.name}
 						</h2>
 						<div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-2 text-xs font-semibold tracking-[0.2em] uppercase">
-							<span>{data.recipient.phoneNumber}</span>
 							{data.optedOut ? (
 								<span className="bg-destructive/10 text-foreground-destructive rounded-full px-3 py-1">
 									Opted out
@@ -126,11 +137,11 @@ export default function RecipientRoute() {
 							)}
 						</div>
 					</div>
-					<ButtonLink variant="secondary" to="edit" className="gap-2">
+					<ButtonLink variant="secondary" size="pill" to="edit" className="gap-2">
 						<Icon name="settings">Settings</Icon>
 					</ButtonLink>
 				</div>
-				<div className="space-y-3">
+				<div className="hidden space-y-3 sm:block">
 					<div className="border-border bg-card flex items-center gap-3 rounded-2xl border px-4 py-3 shadow-sm">
 						<span className="bg-muted text-muted-foreground rounded-xl p-2">
 							<Icon name="phone" size="sm" />
@@ -160,8 +171,8 @@ export default function RecipientRoute() {
 					</SimpleTooltip>
 				</div>
 			</aside>
-			<section className="border-border bg-muted min-w-0 rounded-[32px] border px-4 py-6 shadow-sm sm:px-6 sm:py-8">
-				<nav className="mb-6 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+			<section className="min-w-0 rounded-none border-0 bg-transparent px-0 py-4 sm:rounded-[32px] sm:border sm:border-border sm:bg-muted sm:px-6 sm:py-8 sm:shadow-sm">
+				<nav className="mb-6 hidden grid-cols-2 gap-2 sm:grid sm:grid-cols-2 sm:gap-2 lg:flex lg:flex-wrap">
 					<Link
 						to="."
 						preventScrollReset
@@ -169,7 +180,6 @@ export default function RecipientRoute() {
 							'border-border text-muted-foreground hover:bg-card hover:text-foreground flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold tracking-[0.15em] uppercase transition sm:w-auto sm:justify-start sm:tracking-[0.2em]',
 							currentPath === '.' && 'bg-card text-foreground shadow-sm',
 						)}
-						ref={firstLinkRef}
 					>
 						<Icon name="clock" size="sm">
 							Upcoming
