@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const UsernameSchema = z
-	.string({ required_error: 'Username is required' })
+	.string({ error: 'Username is required' })
 	.min(3, { message: 'Username is too short' })
 	.max(20, { message: 'Username is too long' })
 	.regex(/^[a-zA-Z0-9_]+$/, {
@@ -11,16 +11,16 @@ export const UsernameSchema = z
 	.transform((value) => value.trim().toLowerCase())
 
 export const PasswordSchema = z
-	.string({ required_error: 'Password is required' })
+	.string({ error: 'Password is required' })
 	.min(6, { message: 'Password is too short' })
 	.max(100, { message: 'Password is too long' })
 export const NameSchema = z
-	.string({ required_error: 'Name is required' })
+	.string({ error: 'Name is required' })
 	.min(3, { message: 'Name is too short' })
 	.max(40, { message: 'Name is too long' })
 
 export const PhoneNumberSchema = z
-	.string({ required_error: 'Phone number is required' })
+	.string({ error: 'Phone number is required' })
 	.min(3, { message: 'Phone number is too short' })
 	.max(30, { message: 'Phone number is too long' })
 	.transform((value) => value.trim())
