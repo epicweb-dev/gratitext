@@ -1,8 +1,32 @@
 import { page } from 'vitest/browser'
-import { type ReactElement } from 'react'
+import {
+	type ComponentPropsWithoutRef,
+	type ReactElement,
+	type ReactNode,
+} from 'react'
 import { createRoot, type Root } from 'react-dom/client'
-import { afterEach, expect, test } from 'vitest'
+import { afterEach, expect, test, vi } from 'vitest'
 import { UserProfileView } from './user-profile.tsx'
+
+type LinkProps = ComponentPropsWithoutRef<'a'> & {
+	to?: string | { pathname?: string }
+	children?: ReactNode
+}
+
+type FormProps = ComponentPropsWithoutRef<'form'> & {
+	children?: ReactNode
+}
+
+vi.mock('react-router', () => ({
+	Link: ({ to, children, ...props }: LinkProps) => (
+		<a href={typeof to === 'string' ? to : (to?.pathname ?? '')} {...props}>
+			{children}
+		</a>
+	),
+	Form: ({ children, ...props }: FormProps) => (
+		<form {...props}>{children}</form>
+	),
+}))
 
 let root: Root | null = null
 let container: HTMLDivElement | null = null
