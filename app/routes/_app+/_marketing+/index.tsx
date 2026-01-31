@@ -46,7 +46,7 @@ export default function Index() {
 							alt="Smiling person holding flowers and a phone"
 							width={2560}
 							height={1707}
-							className="border-border aspect-[3/2] w-full rounded-[40px] border object-cover shadow-lg"
+							className="border-border aspect-square w-full rounded-[40px] border object-cover shadow-lg"
 						/>
 						<p className="text-muted-secondary-foreground mt-2 text-xs">
 							Photo by{' '}
