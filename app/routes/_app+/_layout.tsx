@@ -21,7 +21,6 @@ import {
 	DropdownMenuTrigger,
 } from '#app/components/ui/dropdown-menu.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
-import { Popover, PopoverContent, PopoverTrigger } from '#app/components/ui/popover.tsx'
 import { ThemeSwitch, useTheme } from '#app/routes/resources+/theme-switch.tsx'
 import { getUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
@@ -242,78 +241,86 @@ function MobileMenu() {
 	const themeIcon = theme === 'dark' ? 'sun' : 'moon'
 
 	return (
-		<Popover open={open} onOpenChange={setOpen}>
-			<PopoverTrigger asChild>
-				<button
-					type="button"
-					className="flex h-10 w-10 items-center justify-center rounded-full text-foreground transition hover:bg-muted"
-					aria-label="Open menu"
-				>
-					<Icon name="menu" size="lg" aria-hidden="true" />
-				</button>
-			</PopoverTrigger>
-			<PopoverContent
-				align="end"
-				sideOffset={12}
-				className="w-[min(100vw-32px,420px)] border-0 bg-transparent p-0 shadow-none"
+		<>
+			<button
+				type="button"
+				className="flex h-10 w-10 items-center justify-center rounded-full text-foreground transition hover:bg-muted"
+				aria-label="Open menu"
+				aria-expanded={open}
+				aria-controls="mobile-menu-panel"
+				onClick={() => setOpen(true)}
 			>
-				<div className="rounded-[32px] bg-card px-6 pb-6 pt-5 shadow-[0_20px_45px_rgba(0,0,0,0.18)]">
-					<div className="flex items-center justify-between">
-						<Logo />
-						<button
-							type="button"
-							className="flex h-10 w-10 items-center justify-center rounded-full text-foreground transition hover:bg-muted"
-							onClick={() => setOpen(false)}
-							aria-label="Close menu"
-						>
-							<Icon name="close" size="lg" aria-hidden="true" />
-						</button>
-					</div>
-					<Button
-						asChild
-						size="lg"
-						className="mt-6 w-full bg-[hsl(var(--palette-orange))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-chestnut))]"
+				<Icon name="menu" size="lg" aria-hidden="true" />
+			</button>
+			{open ? (
+				<div className="fixed inset-0 z-50 flex justify-center">
+					<button
+						type="button"
+						className="absolute inset-0 h-full w-full bg-black/20"
+						onClick={() => setOpen(false)}
+						aria-label="Close menu"
+					/>
+					<div
+						id="mobile-menu-panel"
+						className="relative mx-4 mt-4 w-full max-w-[420px] rounded-[32px] bg-card px-6 pb-6 pt-5 shadow-[0_20px_45px_rgba(0,0,0,0.18)]"
 					>
-						<Link to="/login" onClick={() => setOpen(false)}>
-							<Icon name="star" size="sm" aria-hidden="true">
-								Start 14-day FREE Trial
-							</Icon>
-						</Link>
-					</Button>
-					<div className="mt-4 grid gap-3 text-body-sm font-semibold text-foreground">
-						<Link
-							to="/login"
-							onClick={() => setOpen(false)}
-							className="flex items-center gap-3"
-						>
-							<Icon
-								name="log in"
-								size="sm"
-								className="text-[hsl(var(--palette-cloud))]"
-								aria-hidden="true"
-							/>
-							Log In
-						</Link>
-						<div className="h-px bg-border" />
-						<fetcher.Form method="POST" action="/resources/theme-switch">
-							<input type="hidden" name="theme" value={nextTheme} />
+						<div className="flex items-center justify-between">
+							<Logo />
 							<button
-								type="submit"
+								type="button"
+								className="flex h-10 w-10 items-center justify-center rounded-full text-foreground transition hover:bg-muted"
 								onClick={() => setOpen(false)}
-								className="flex w-full items-center gap-3"
+								aria-label="Close menu"
+							>
+								<Icon name="close" size="lg" aria-hidden="true" />
+							</button>
+						</div>
+						<Button
+							asChild
+							size="lg"
+							className="mt-6 w-full bg-[hsl(var(--palette-orange))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-chestnut))]"
+						>
+							<Link to="/login" onClick={() => setOpen(false)}>
+								<Icon name="star" size="sm" aria-hidden="true">
+									Start 14-day FREE Trial
+								</Icon>
+							</Link>
+						</Button>
+						<div className="mt-4 grid gap-3 text-body-sm font-semibold text-foreground">
+							<Link
+								to="/login"
+								onClick={() => setOpen(false)}
+								className="flex items-center gap-3"
 							>
 								<Icon
-									name={themeIcon}
+									name="log in"
 									size="sm"
 									className="text-[hsl(var(--palette-cloud))]"
 									aria-hidden="true"
 								/>
-								{themeLabel}
-							</button>
-						</fetcher.Form>
+								Log In
+							</Link>
+							<div className="h-px bg-border" />
+							<fetcher.Form method="POST" action="/resources/theme-switch">
+								<input type="hidden" name="theme" value={nextTheme} />
+								<button
+									type="submit"
+									onClick={() => setOpen(false)}
+									className="flex w-full items-center gap-3"
+								>
+									<Icon
+										name={themeIcon}
+										size="sm"
+										className="text-[hsl(var(--palette-cloud))]"
+										aria-hidden="true"
+									/>
+									{themeLabel}
+								</button>
+							</fetcher.Form>
+						</div>
 					</div>
 				</div>
-			</PopoverContent>
-		</Popover>
+			) : null}
+		</>
 	)
 }
