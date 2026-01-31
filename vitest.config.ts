@@ -10,9 +10,9 @@ export default defineConfig({
 	test: {
 		projects: [
 			{
-				name: 'node',
 				extends: true,
 				test: {
+					name: 'node',
 					include: ['./app/**/*.test.ts'],
 					setupFiles: ['./tests/setup/setup-test-env.ts'],
 					globalSetup: ['./tests/setup/global-setup.ts'],
@@ -20,9 +20,9 @@ export default defineConfig({
 				},
 			},
 			{
-				name: 'browser',
 				extends: true,
 				test: {
+					name: 'browser',
 					include: ['./app/**/*.test.tsx'],
 					setupFiles: ['./tests/setup/setup-browser-env.ts'],
 					restoreMocks: true,
