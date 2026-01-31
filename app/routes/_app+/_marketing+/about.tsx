@@ -59,13 +59,14 @@ export default function AboutRoute() {
 					<Icon name="arrow-left" size="sm" />
 					Back Home
 				</Link>
-				<div className="mt-6 max-w-2xl space-y-4">
+				<div className="mx-auto mt-6 max-w-2xl space-y-4 text-center">
 					<h1 className="text-h3 text-foreground leading-tight md:text-h2">
 						Create and Nurture Lasting Bonds With Your Loved Ones
 					</h1>
 					<p className="text-body-sm text-muted-foreground">
-						This page serves as a preview of different paragraph and text
-						styles for any scenario you might need.
+						GratiText helps you express gratitude with thoughtful messages to
+						the people who matter most. Learn why gratitude matters and how
+						the app makes it easier to build the habit.
 					</p>
 				</div>
 			</section>
