@@ -216,22 +216,8 @@ if (IS_DEV) {
 	// Everything else (like favicon.ico) is cached for an hour. You may want to be
 	// more aggressive with this caching.
 	app.use(express.static('build/client', { maxAge: '1h' }))
-	const build = await import(BUILD_PATH)
-	if (build && typeof build === 'object' && 'app' in build) {
-		app.use(build.app as express.Express)
-	} else {
-		app.all(
-			/.*/,
-			createRequestHandler({
-				mode: MODE,
-				build,
-				getLoadContext: (_req, res) => ({
-					cspNonce: res.locals.cspNonce,
-					serverBuild: build,
-				}),
-			}),
-		)
-	}
+	const buildModule = await import(BUILD_PATH)
+	app.use(buildModule.app)
 }
 
 const desiredPort = Number(process.env.PORT || 3000)
