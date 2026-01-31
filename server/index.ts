@@ -140,11 +140,14 @@ const setupHotkeys = ({
 			env: process.env,
 			cwd: process.cwd(),
 		})
-		child.on('error', (error) => {
+		child.once('error', (error) => {
 			console.error(chalk.red('Failed to restart server.'))
 			console.error(error)
+			process.exit(1)
 		})
-		process.exit(0)
+		child.once('spawn', () => {
+			process.exit(0)
+		})
 	}
 
 	const quitProcess = () => {
