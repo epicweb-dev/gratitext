@@ -9,6 +9,7 @@ node_modules
 
 /prisma/sqlite.db
 /prisma/sqlite.db-journal
+/prisma/data.db
 /app/utils/prisma-generated.server
 /tests/prisma
 

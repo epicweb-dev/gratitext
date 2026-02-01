@@ -1,30 +1,32 @@
 import { invariantResponse } from '@epic-web/invariant'
 import {
-	Link,
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
+import {
 	data as json,
 	type LoaderFunctionArgs,
 	type MetaFunction,
+	useFetcher,
 	useLoaderData,
 	useSearchParams,
 } from 'react-router'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { SearchBar } from '#app/components/search-bar.tsx'
-import { Button } from '#app/components/ui/button.tsx'
-import { Icon } from '#app/components/ui/icon.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
-import { cn, useDelayedIsPending } from '#app/utils/misc.tsx'
 
-const MESSAGES_PER_PAGE = 100
+const MESSAGES_PER_PAGE = 30
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
 	const userId = await requireUserId(request)
 	const url = new URL(request.url)
 	const searchQuery = url.searchParams.get('search') ?? ''
-	const page = Math.max(
-		1,
-		parseInt(url.searchParams.get('page') ?? '1', 10) || 1,
-	)
+	const cursor = url.searchParams.get('cursor')
 
 	const recipient = await prisma.recipient.findUnique({
 		where: { id: params.recipientId, userId },
@@ -43,32 +45,24 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 		...(searchQuery ? { content: { contains: searchQuery } } : {}),
 	}
 
-	// Get total count for pagination
-	const totalMessages = await prisma.message.count({
-		where: messageWhere,
-	})
-
-	const totalPages = Math.max(1, Math.ceil(totalMessages / MESSAGES_PER_PAGE))
-	const currentPage = Math.min(page, totalPages)
-
-	// Get paginated messages
+	// Get paginated messages (cursor-based)
 	const messages = await prisma.message.findMany({
 		where: messageWhere,
 		select: { id: true, content: true, sentAt: true },
-		orderBy: { sentAt: 'desc' },
-		skip: (currentPage - 1) * MESSAGES_PER_PAGE,
-		take: MESSAGES_PER_PAGE,
+		orderBy: [{ sentAt: 'desc' }, { id: 'desc' }],
+		...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+		take: MESSAGES_PER_PAGE + 1,
 	})
+	const hasMore = messages.length > MESSAGES_PER_PAGE
+	const pageMessages = hasMore ? messages.slice(0, MESSAGES_PER_PAGE) : messages
+	const nextCursor = hasMore ? pageMessages[pageMessages.length - 1]?.id : null
 
 	return json({
 		recipient,
+		recipientId: params.recipientId,
 		searchQuery,
-		pagination: {
-			currentPage,
-			totalPages,
-			totalMessages,
-		},
-		pastMessages: messages.map((m) => ({
+		nextCursor,
+		pastMessages: pageMessages.map((m) => ({
 			id: m.id,
 			sentAtDisplay: m.sentAt!.toLocaleDateString('en-US', {
 				weekday: 'short',
@@ -78,6 +72,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 				hour: 'numeric',
 				minute: 'numeric',
 			}),
+			sentAtIso: m.sentAt!.toISOString(),
 			content: m.content,
 		})),
 	})
@@ -91,143 +86,139 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 	]
 }
 
-function Pagination({
-	currentPage,
-	totalPages,
-	totalMessages,
-	searchQuery,
-}: {
-	currentPage: number
-	totalPages: number
-	totalMessages: number
-	searchQuery: string
-}) {
-	const [searchParams] = useSearchParams()
-
-	const buildPageUrl = (page: number) => {
-		const params = new URLSearchParams(searchParams)
-		if (page === 1) {
-			params.delete('page')
-		} else {
-			params.set('page', page.toString())
-		}
-		const queryString = params.toString()
-		return queryString ? `?${queryString}` : '.'
-	}
-
-	const hasPrevPage = currentPage > 1
-	const hasNextPage = currentPage < totalPages
-
-	return (
-		<div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-			<p className="text-muted-foreground text-sm">
-				{totalMessages === 0
-					? 'No messages found'
-					: `Showing ${(currentPage - 1) * MESSAGES_PER_PAGE + 1}-${Math.min(currentPage * MESSAGES_PER_PAGE, totalMessages)} of ${totalMessages.toLocaleString()} message${totalMessages === 1 ? '' : 's'}`}
-				{searchQuery ? (
-					<>
-						{' '}
-						matching "<strong>{searchQuery}</strong>"
-					</>
-				) : null}
-			</p>
-			{totalPages > 1 ? (
-				<div className="flex items-center gap-2">
-					<Button
-						variant="outline"
-						size="sm"
-						asChild={hasPrevPage}
-						disabled={!hasPrevPage}
-					>
-						{hasPrevPage ? (
-							<Link to={buildPageUrl(currentPage - 1)} preventScrollReset>
-								<Icon name="arrow-left" size="sm" />
-								Previous
-							</Link>
-						) : (
-							<span>
-								<Icon name="arrow-left" size="sm" />
-								Previous
-							</span>
-						)}
-					</Button>
-					<span className="px-2 text-sm">
-						Page {currentPage} of {totalPages}
-					</span>
-					<Button
-						variant="outline"
-						size="sm"
-						asChild={hasNextPage}
-						disabled={!hasNextPage}
-					>
-						{hasNextPage ? (
-							<Link to={buildPageUrl(currentPage + 1)} preventScrollReset>
-								Next
-								<Icon name="arrow-right" size="sm" />
-							</Link>
-						) : (
-							<span>
-								Next
-								<Icon name="arrow-right" size="sm" />
-							</span>
-						)}
-					</Button>
-				</div>
-			) : null}
-		</div>
-	)
-}
+type LoaderData = Awaited<ReturnType<typeof loader>>['data']
 
 export default function RecipientRoute() {
 	const data = useLoaderData<typeof loader>()
-	const isPending = useDelayedIsPending({
-		formMethod: 'GET',
-	})
+	const [searchParams] = useSearchParams()
+	const loadMoreFetcher = useFetcher<LoaderData>()
+	const loadMoreData = loadMoreFetcher.data ?? null
+	const [messages, setMessages] = useState(data.pastMessages)
+	const [nextCursor, setNextCursor] = useState(data.nextCursor)
+	const isCurrentThread =
+		loadMoreData?.searchQuery === data.searchQuery &&
+		loadMoreData?.recipientId === data.recipientId
+	const nextCursorForScroll = isCurrentThread
+		? (loadMoreData?.nextCursor ?? null)
+		: nextCursor
+	const nextCursorRef = useRef(nextCursorForScroll)
+	const [scrollContainer, setScrollContainer] = useState<HTMLDivElement | null>(
+		null,
+	)
+	const pendingScrollRef = useRef<{ height: number; top: number } | null>(null)
+	const shouldScrollToBottomRef = useRef(true)
+	const isLoadingMore = loadMoreFetcher.state !== 'idle'
+	const messagesForDisplay = useMemo(() => [...messages].reverse(), [messages])
+	nextCursorRef.current = nextCursorForScroll
+
+	useEffect(() => {
+		setMessages(data.pastMessages)
+		setNextCursor(data.nextCursor)
+		pendingScrollRef.current = null
+		shouldScrollToBottomRef.current = true
+	}, [data.pastMessages, data.nextCursor, data.searchQuery, data.recipientId])
+
+	useEffect(() => {
+		if (!loadMoreData) return
+		if (loadMoreData.searchQuery !== data.searchQuery) return
+		if (loadMoreData.recipientId !== data.recipientId) return
+		if (loadMoreData.pastMessages.length) {
+			setMessages((prev) => [...prev, ...loadMoreData.pastMessages])
+		}
+		setNextCursor(loadMoreData.nextCursor)
+	}, [data.recipientId, data.searchQuery, loadMoreData])
+
+	useLayoutEffect(() => {
+		const container = scrollContainer
+		if (!container) return
+		if (shouldScrollToBottomRef.current) {
+			container.scrollTop = container.scrollHeight
+			shouldScrollToBottomRef.current = false
+			return
+		}
+		const pending = pendingScrollRef.current
+		if (!pending) return
+		container.scrollTop =
+			pending.top + (container.scrollHeight - pending.height)
+		pendingScrollRef.current = null
+	}, [messages, scrollContainer])
+
+	const handleScroll = useCallback(
+		(container: HTMLDivElement) => {
+			if (container.scrollTop > 120) return
+			const cursor = nextCursorRef.current
+			if (!cursor) return
+			if (shouldScrollToBottomRef.current) return
+			if (loadMoreFetcher.state !== 'idle') return
+
+			const params = new URLSearchParams(searchParams)
+			params.set('cursor', cursor)
+			const queryString = params.toString()
+			pendingScrollRef.current = {
+				height: container.scrollHeight,
+				top: container.scrollTop,
+			}
+			void loadMoreFetcher.load(queryString ? `?${queryString}` : '.')
+		},
+		[loadMoreFetcher, searchParams],
+	)
+
+	useEffect(() => {
+		const container = scrollContainer
+		if (!container) return
+		const onScroll = () => handleScroll(container)
+		container.addEventListener('scroll', onScroll, { passive: true })
+		return () => {
+			container.removeEventListener('scroll', onScroll)
+		}
+	}, [handleScroll, scrollContainer])
+
+	const emptyMessage = data.searchQuery
+		? 'No messages match your search.'
+		: 'No past messages yet.'
+	const loadMoreLabel = nextCursorForScroll
+		? isLoadingMore
+			? 'Loading earlier messages...'
+			: 'Scroll up to load earlier messages.'
+		: 'Beginning of thread.'
 
 	return (
 		<div className="flex flex-col gap-6">
-			<div className="flex flex-col gap-4">
-				<SearchBar status="idle" autoSubmit />
-				<Pagination
-					currentPage={data.pagination.currentPage}
-					totalPages={data.pagination.totalPages}
-					totalMessages={data.pagination.totalMessages}
-					searchQuery={data.searchQuery}
-				/>
-			</div>
+			<SearchBar status="idle" autoSubmit />
 
-			<ul className={cn('flex flex-col gap-3 sm:gap-4', { 'opacity-50': isPending })}>
-				{data.pastMessages.length === 0 ? (
-					<li className="text-muted-foreground py-8 text-center">
-						{data.searchQuery
-							? 'No messages match your search.'
-							: 'No past messages yet.'}
-					</li>
+			<div className="border-border bg-card rounded-3xl border px-4 py-5 shadow-sm sm:px-6 sm:py-6">
+				{messagesForDisplay.length === 0 ? (
+					<p className="text-muted-foreground py-10 text-center text-sm">
+						{emptyMessage}
+					</p>
 				) : (
-					data.pastMessages.map((m) => (
-						<li
-							key={m.id}
-							className="border-border bg-card flex flex-col justify-start gap-2 rounded-2xl border px-4 py-3 shadow-sm sm:px-5 sm:py-4 lg:flex-row lg:items-start"
-						>
-							<span className="text-muted-secondary-foreground min-w-36 text-xs font-semibold tracking-[0.15em] uppercase sm:text-sm sm:tracking-[0.2em]">
-								{m.sentAtDisplay}
-							</span>
-							<span className="break-words text-sm sm:text-base">
-								{m.content}
-							</span>
-						</li>
-					))
+					<div
+						ref={setScrollContainer}
+						className="border-border/60 bg-muted max-h-[65vh] overflow-y-auto rounded-[24px] border px-4 py-5 sm:px-5 sm:py-6"
+					>
+						<div className="flex flex-col gap-4">
+							<div className="text-muted-foreground flex flex-col items-center gap-2 text-xs font-semibold tracking-[0.2em] uppercase">
+								<span aria-live="polite">{loadMoreLabel}</span>
+							</div>
+							<ul className="flex flex-col gap-4 sm:gap-5">
+								{messagesForDisplay.map((m) => (
+									<li key={m.id} className="flex flex-col items-end gap-1">
+										<div className="max-w-[75%] rounded-[24px] bg-[hsl(var(--palette-green-500))] px-4 py-3 text-sm leading-relaxed text-[hsl(var(--palette-cream))] shadow-sm sm:max-w-[65%] sm:px-5 sm:py-4">
+											<p className="whitespace-pre-wrap">{m.content}</p>
+										</div>
+										<time
+											dateTime={m.sentAtIso}
+											className="text-muted-foreground text-[0.7rem] font-semibold tracking-[0.2em] uppercase"
+										>
+											{m.sentAtDisplay}
+										</time>
+									</li>
+								))}
+							</ul>
+						</div>
+					</div>
 				)}
-			</ul>
-
-			{data.pastMessages.length > 0 && data.pagination.totalPages > 1 ? (
-				<Pagination
-					currentPage={data.pagination.currentPage}
-					totalPages={data.pagination.totalPages}
-					totalMessages={data.pagination.totalMessages}
-					searchQuery={data.searchQuery}
-				/>
-			) : null}
+			</div>
 		</div>
 	)
 }
