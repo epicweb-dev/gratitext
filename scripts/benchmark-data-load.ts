@@ -80,7 +80,7 @@ function createPassword(password: string) {
 }
 
 async function cleanupDb() {
-	const tables = await prisma.$queryRaw<{ name: string }[]>(
+	const tables = await prisma.$queryRawUnsafe<{ name: string }[]>(
 		`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_prisma_migrations';`,
 	)
 
@@ -260,7 +260,7 @@ async function seedLargeData(options: SeedOptions) {
 
 	if (options.reset) {
 		console.time('reset-db')
-		await cleanupDb(prisma)
+		await cleanupDb()
 		console.timeEnd('reset-db')
 	}
 
