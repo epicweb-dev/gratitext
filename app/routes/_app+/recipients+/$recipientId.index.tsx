@@ -217,11 +217,6 @@ async function sendMessageAction({ formData, userId }: MessageActionArgs) {
 		})
 	}
 
-	await prisma.message.update({
-		where: { id: data.id },
-		data: { sentAt: new Date() },
-	})
-
 	return json(
 		{ result: submission.reply() },
 		{

@@ -7,8 +7,13 @@ export const prisma = remember('prisma', () => {
 	// NOTE: if you change anything in this function you'll need to restart
 	// the dev server to see your changes.
 
-	// Feel free to change this log threshold to something that makes sense for you
-	const logThreshold = 20
+	const envLogThreshold = Number(process.env.PRISMA_QUERY_LOG_THRESHOLD_MS)
+	const logThreshold =
+		Number.isFinite(envLogThreshold) && envLogThreshold >= 0
+			? envLogThreshold
+			: process.env.NODE_ENV === 'production'
+				? 200
+				: 20
 	const url = process.env.DATABASE_URL
 	if (!url) {
 		throw new Error(
