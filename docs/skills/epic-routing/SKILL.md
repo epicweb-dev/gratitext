@@ -200,19 +200,10 @@ Resource routes don't render UI; they only return data or perform actions.
 
 ```typescript
 // app/routes/resources/healthcheck.tsx
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader(_args: Route.LoaderArgs) {
 	// Check application health
-	const host =
-		request.headers.get('X-Forwarded-Host') ?? request.headers.get('host')
-
 	try {
-		await Promise.all([
-			prisma.user.count(), // Check DB
-			fetch(`${new URL(request.url).protocol}${host}`, {
-				method: 'HEAD',
-				headers: { 'X-Healthcheck': 'true' },
-			}),
-		])
+		await prisma.$queryRaw`SELECT 1` // Check DB connectivity
 		return new Response('OK')
 	} catch (error) {
 		return new Response('ERROR', { status: 500 })

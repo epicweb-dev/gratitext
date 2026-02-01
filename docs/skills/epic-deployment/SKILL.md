@@ -116,18 +116,9 @@ tls_skip_verify = false
 
 ```typescript
 // app/routes/resources/healthcheck.tsx
-export async function loader({ request }: Route.LoaderArgs) {
-	const host =
-		request.headers.get('X-Forwarded-Host') ?? request.headers.get('host')
-
+export async function loader(_args: Route.LoaderArgs) {
 	try {
-		await Promise.all([
-			prisma.user.count(), // Verify DB
-			fetch(`${new URL(request.url).protocol}${host}`, {
-				method: 'HEAD',
-				headers: { 'X-Healthcheck': 'true' },
-			}),
-		])
+		await prisma.$queryRaw`SELECT 1` // Verify DB connectivity
 		return new Response('OK')
 	} catch (error) {
 		console.log('healthcheck ❌', { error })
