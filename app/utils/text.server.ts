@@ -92,11 +92,19 @@ export async function sendTextToRecipient({
 		message: message.content,
 	})
 	if (result.status === 'success') {
-		await prisma.message.update({
-			select: { id: true },
-			where: { id: messageId },
-			data: { sentAt: new Date(), twilioId: result.data.sid },
-		})
+		const sentAt = new Date()
+		await prisma.$transaction([
+			prisma.message.update({
+				select: { id: true },
+				where: { id: messageId },
+				data: { sentAt, twilioId: result.data.sid },
+			}),
+			prisma.recipient.update({
+				select: { id: true },
+				where: { id: recipientId },
+				data: { lastSentAt: sentAt },
+			}),
+		])
 	}
 	return result
 }

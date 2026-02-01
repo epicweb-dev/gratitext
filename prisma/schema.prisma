@@ -115,6 +115,7 @@ model Recipient {
   scheduleCron   String
   timeZone       String
   lastRemindedAt DateTime?
+  lastSentAt     DateTime?
   disabled       Boolean   @default(false)
 
   createdAt DateTime @default(now())

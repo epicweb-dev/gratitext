@@ -59,7 +59,7 @@ export async function sendNextTexts() {
 			scheduleCron: true,
 			timeZone: true,
 			lastRemindedAt: true,
-			messages: { orderBy: { sentAt: 'desc' }, take: 1 },
+			lastSentAt: true,
 			user: {
 				select: { phoneNumber: true, name: true },
 			},
@@ -68,13 +68,12 @@ export async function sendNextTexts() {
 
 	const messagesToSend = recipients
 		.map((recipient) => {
-			const { scheduleCron, messages, lastRemindedAt } = recipient
-			const lastMessage = messages[0]
+			const { scheduleCron, lastRemindedAt, lastSentAt } = recipient
 			try {
 				const interval = parseCronExpression(scheduleCron, {
 					tz: recipient.timeZone,
 				})
-				const lastSent = new Date(lastMessage?.sentAt ?? 0)
+				const lastSent = new Date(lastSentAt?.getTime() ?? 0)
 				const prev = interval.prev().toDate()
 				const next = interval.next().toDate()
 				const nextIsSoon = next.getTime() - Date.now() < 1000 * 60 * 30
