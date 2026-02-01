@@ -1,4 +1,3 @@
-import { invariantResponse } from '@epic-web/invariant'
 import { useEffect, useRef } from 'react'
 import {
 	Link,
@@ -27,9 +26,10 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 	const userId = await requireUserId(request)
 	const hints = getHints(request)
 	const recipient = await prisma.recipient.findUnique({
-		where: { id: params.recipientId, userId },
+		where: { id: params.recipientId },
 		select: {
 			id: true,
+			userId: true,
 			name: true,
 			phoneNumber: true,
 			scheduleCron: true,
@@ -38,11 +38,15 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 		},
 	})
 
-	invariantResponse(recipient, 'Not found', { status: 404 })
+	if (!recipient || recipient.userId !== userId) {
+		throw new Response('Not found', { status: 404 })
+	}
 	const optedOut = await prisma.optOut.findUnique({
 		where: { phoneNumber: recipient.phoneNumber },
 		select: { id: true },
 	})
+
+	const { userId: _userId, ...recipientData } = recipient
 
 	let formattedNextSendTime: string
 	let cronError: string | null = null
@@ -63,7 +67,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 
 	return json({
 		optedOut: Boolean(optedOut),
-		recipient,
+		recipient: recipientData,
 		formattedNextSendTime,
 		cronError,
 	})
@@ -99,7 +103,7 @@ export default function RecipientRoute() {
 				<div className="flex items-center justify-between">
 					<Link
 						to="/recipients"
-						className="text-foreground hover:text-foreground inline-flex items-center gap-2 text-base font-semibold transition sm:text-xs sm:font-semibold sm:tracking-[0.2em] sm:uppercase sm:text-muted-foreground"
+						className="text-foreground hover:text-foreground sm:text-muted-foreground inline-flex items-center gap-2 text-base font-semibold transition sm:text-xs sm:font-semibold sm:tracking-[0.2em] sm:uppercase"
 						ref={firstLinkRef}
 					>
 						<Icon name="arrow-left" size="sm" />
@@ -137,7 +141,12 @@ export default function RecipientRoute() {
 							)}
 						</div>
 					</div>
-					<ButtonLink variant="secondary" size="pill" to="edit" className="gap-2">
+					<ButtonLink
+						variant="secondary"
+						size="pill"
+						to="edit"
+						className="gap-2"
+					>
 						<Icon name="settings">Settings</Icon>
 					</ButtonLink>
 				</div>
@@ -171,7 +180,7 @@ export default function RecipientRoute() {
 					</SimpleTooltip>
 				</div>
 			</aside>
-			<section className="min-w-0 rounded-none border-0 bg-transparent px-0 py-4 sm:rounded-[32px] sm:border sm:border-border sm:bg-muted sm:px-6 sm:py-8 sm:shadow-sm">
+			<section className="sm:border-border sm:bg-muted min-w-0 rounded-none border-0 bg-transparent px-0 py-4 sm:rounded-[32px] sm:border sm:px-6 sm:py-8 sm:shadow-sm">
 				<nav className="mb-6 hidden grid-cols-2 gap-2 sm:grid sm:grid-cols-2 sm:gap-2 lg:flex lg:flex-wrap">
 					<Link
 						to="."

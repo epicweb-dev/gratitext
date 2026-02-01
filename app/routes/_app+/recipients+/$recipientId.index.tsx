@@ -41,10 +41,11 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 	const userId = await requireUserId(request)
 	const hints = getHints(request)
 	const recipient = await prisma.recipient.findUnique({
-		where: { id: params.recipientId, userId },
+		where: { id: params.recipientId },
 		select: {
 			scheduleCron: true,
 			timeZone: true,
+			userId: true,
 			phoneNumber: true,
 			messages: {
 				select: { id: true, content: true, sentAt: true, order: true },
@@ -54,13 +55,15 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 		},
 	})
 
-	invariantResponse(recipient, 'Not found', { status: 404 })
+	if (!recipient || recipient.userId !== userId) {
+		throw new Response('Not found', { status: 404 })
+	}
 
 	const optOut = await prisma.optOut.findUnique({
 		where: { phoneNumber: recipient.phoneNumber },
 	})
 
-	const { messages, ...recipientProps } = recipient
+	const { userId: _userId, messages, ...recipientProps } = recipient
 
 	return json({
 		optedOut: Boolean(optOut),
@@ -488,7 +491,7 @@ function MessageForms({
 								</DropdownMenuTrigger>
 								<DropdownMenuContent
 									align="end"
-									className="w-48 rounded-2xl border-border/70 bg-card p-2 shadow-lg"
+									className="border-border/70 bg-card w-48 rounded-2xl p-2 shadow-lg"
 								>
 									<DropdownMenuItem
 										className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold"

@@ -45,6 +45,7 @@ const sessionRenewalMap = new WeakMap<
 	Request,
 	{ sessionId: string; expirationDate: Date }
 >()
+const userIdByRequest = new WeakMap<Request, Promise<string | null>>()
 
 /**
  * Get session renewal info for a request if it exists
@@ -54,81 +55,106 @@ export function getSessionRenewal(request: Request) {
 }
 
 export async function getUserId(request: Request) {
-	const authSession = await authSessionStorage.getSession(
-		request.headers.get('cookie'),
-	)
-	const sessionId = authSession.get(sessionKey)
-	if (!sessionId) return null
-
-	const session = await prisma.session.findUnique({
-		select: {
-			id: true,
-			expirationDate: true,
-			createdAt: true,
-			user: { select: { id: true } },
-		},
-		where: { id: sessionId, expirationDate: { gt: new Date() } },
-	})
-
-	if (!session?.user) {
-		throw redirect('/', {
-			headers: {
-				'set-cookie': await authSessionStorage.destroySession(authSession),
-			},
-		})
+	const cachedUserId = userIdByRequest.get(request)
+	if (cachedUserId) {
+		return cachedUserId
 	}
 
-	// Check if session needs renewal (within 7 days of expiration)
-	const sevenDaysFromNow = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7)
-	const needsRenewal = session.expirationDate < sevenDaysFromNow
+	const userIdPromise = (async () => {
+		const authSession = await authSessionStorage.getSession(
+			request.headers.get('cookie'),
+		)
+		const sessionId = authSession.get(sessionKey)
+		if (!sessionId) return null
 
-	// Check if session has reached absolute max lifetime
-	const absoluteMaxExpiration = new Date(
-		session.createdAt.getTime() + SESSION_ABSOLUTE_MAX_LIFETIME,
-	)
-	const hasReachedMaxLifetime = new Date() >= absoluteMaxExpiration
-
-	if (hasReachedMaxLifetime) {
-		// Session has reached absolute max lifetime, force logout
-		// Use deleteMany to handle concurrent deletions gracefully
-		void prisma.session.deleteMany({ where: { id: sessionId } }).catch(() => {})
-		throw redirect('/', {
-			headers: {
-				'set-cookie': await authSessionStorage.destroySession(authSession),
+		const session = await prisma.session.findUnique({
+			select: {
+				id: true,
+				expirationDate: true,
+				createdAt: true,
+				userId: true,
 			},
-		})
-	}
-
-	if (needsRenewal) {
-		// Create new session with rotated ID and extended expiration
-		// Pass the original creation time to enforce absolute maximum lifetime
-		const newSession = await prisma.session.create({
-			data: {
-				expirationDate: getSessionExpirationDate({
-					isRenewal: true,
-					originalCreatedAt: session.createdAt,
-				}),
-				userId: session.user.id,
-				// Preserve the original creation time to enforce absolute maximum lifetime
-				createdAt: session.createdAt,
-			},
+			where: { id: sessionId },
 		})
 
-		// Update the session in the cookie
-		authSession.set(sessionKey, newSession.id)
+		if (!session) {
+			throw redirect('/', {
+				headers: {
+					'set-cookie': await authSessionStorage.destroySession(authSession),
+				},
+			})
+		}
 
-		// Delete the old session
-		// Use deleteMany to handle concurrent deletions gracefully
-		void prisma.session.deleteMany({ where: { id: sessionId } }).catch(() => {})
+		if (session.expirationDate <= new Date()) {
+			void prisma.session
+				.deleteMany({ where: { id: sessionId } })
+				.catch(() => {})
+			throw redirect('/', {
+				headers: {
+					'set-cookie': await authSessionStorage.destroySession(authSession),
+				},
+			})
+		}
 
-		// Store the new session info in WeakMap for entry.server.tsx to handle
-		sessionRenewalMap.set(request, {
-			sessionId: newSession.id,
-			expirationDate: newSession.expirationDate,
-		})
-	}
+		// Check if session needs renewal (within 7 days of expiration)
+		const sevenDaysFromNow = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7)
+		const needsRenewal = session.expirationDate < sevenDaysFromNow
 
-	return session.user.id
+		// Check if session has reached absolute max lifetime
+		const absoluteMaxExpiration = new Date(
+			session.createdAt.getTime() + SESSION_ABSOLUTE_MAX_LIFETIME,
+		)
+		const hasReachedMaxLifetime = new Date() >= absoluteMaxExpiration
+
+		if (hasReachedMaxLifetime) {
+			// Session has reached absolute max lifetime, force logout
+			// Use deleteMany to handle concurrent deletions gracefully
+			void prisma.session
+				.deleteMany({ where: { id: sessionId } })
+				.catch(() => {})
+			throw redirect('/', {
+				headers: {
+					'set-cookie': await authSessionStorage.destroySession(authSession),
+				},
+			})
+		}
+
+		if (needsRenewal) {
+			// Create new session with rotated ID and extended expiration
+			// Pass the original creation time to enforce absolute maximum lifetime
+			const newSession = await prisma.session.create({
+				data: {
+					expirationDate: getSessionExpirationDate({
+						isRenewal: true,
+						originalCreatedAt: session.createdAt,
+					}),
+					userId: session.userId,
+					// Preserve the original creation time to enforce absolute maximum lifetime
+					createdAt: session.createdAt,
+				},
+			})
+
+			// Update the session in the cookie
+			authSession.set(sessionKey, newSession.id)
+
+			// Delete the old session
+			// Use deleteMany to handle concurrent deletions gracefully
+			void prisma.session
+				.deleteMany({ where: { id: sessionId } })
+				.catch(() => {})
+
+			// Store the new session info in WeakMap for entry.server.tsx to handle
+			sessionRenewalMap.set(request, {
+				sessionId: newSession.id,
+				expirationDate: newSession.expirationDate,
+			})
+		}
+
+		return session.userId
+	})()
+
+	userIdByRequest.set(request, userIdPromise)
+	return userIdPromise
 }
 
 export async function requireUserId(

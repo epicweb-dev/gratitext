@@ -1,0 +1,7 @@
+# Full gate before push
+
+- Run formatting (`npm run format`).
+- Run type checking (`npm run typecheck`).
+- Run linting (`npm run lint`).
+- Run tests (`npm run test`, plus any relevant e2e suites).
+- Only push after all checks pass.

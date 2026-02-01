@@ -80,7 +80,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 								select: {
 									name: true,
 									permissions: {
-										select: { entity: true, action: true, access: true },
+										select: {
+											action: true,
+											entity: true,
+											access: true,
+										},
 									},
 								},
 							},
