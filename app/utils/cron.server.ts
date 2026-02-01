@@ -53,7 +53,26 @@ export async function init() {
 export async function sendNextTexts() {
 	const rawRecipients = await prisma.$queryRawTyped(getRecipientsForCron())
 
-	const recipients = rawRecipients.map((recipient: getrecipientsforcron.Result) => ({
+	type RawRecipient = getrecipientsforcron.Result
+	type ReadyRecipient = RawRecipient & {
+		id: string
+		name: string
+		scheduleCron: string
+		timeZone: string
+		userPhoneNumber: string
+	}
+
+	const recipients = rawRecipients
+		.filter((recipient): recipient is ReadyRecipient =>
+			Boolean(
+				recipient.id &&
+					recipient.name &&
+					recipient.scheduleCron &&
+					recipient.timeZone &&
+					recipient.userPhoneNumber,
+			),
+		)
+		.map((recipient) => ({
 		id: recipient.id,
 		name: recipient.name,
 		scheduleCron: recipient.scheduleCron,
