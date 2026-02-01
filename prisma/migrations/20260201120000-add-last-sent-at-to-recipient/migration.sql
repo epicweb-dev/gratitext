@@ -1,2 +1,0 @@
--- No-op migration.
--- The lastSentAt column was removed before deploy after benchmarking.
