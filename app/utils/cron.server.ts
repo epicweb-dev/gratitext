@@ -9,10 +9,6 @@ import {
 	clearIntervalAsync,
 	setIntervalAsync,
 } from 'set-interval-async/dynamic'
-import {
-	getrecipientsforcron as getRecipientsForCron,
-	type getrecipientsforcron as getRecipientsForCronQuery,
-} from '#app/utils/prisma-generated.server/sql/getrecipientsforcron'
 import { prisma } from './db.server.ts'
 import { sendText, sendTextToRecipient } from './text.server.ts'
 
@@ -26,7 +22,10 @@ export class CronParseError extends Error {
 	}
 }
 
-function parseCronExpression(cronString: string, options?: { tz?: string }) {
+function parseCronExpression(
+	cronString: string,
+	options?: { tz?: string; currentDate?: Date },
+) {
 	try {
 		return CronExpressionParser.parse(cronString, options)
 	} catch (error) {
@@ -34,6 +33,20 @@ function parseCronExpression(cronString: string, options?: { tz?: string }) {
 			error instanceof Error ? error.message : 'Invalid cron string'
 		throw new CronParseError(errorMessage, cronString)
 	}
+}
+
+export function getScheduleWindow(
+	scheduleCron: string,
+	timeZone: string,
+	currentDate: Date = new Date(),
+) {
+	const interval = parseCronExpression(scheduleCron, {
+		tz: timeZone,
+		currentDate,
+	})
+	const prevScheduledAt = interval.prev().toDate()
+	const nextScheduledAt = interval.next().toDate()
+	return { prevScheduledAt, nextScheduledAt }
 }
 
 const cronIntervalRef = remember<{
@@ -51,79 +64,98 @@ export async function init() {
 }
 
 export async function sendNextTexts() {
-	const rawRecipients = await prisma.$queryRawTyped(getRecipientsForCron())
+	const now = new Date()
+	const reminderWindowMs = 1000 * 60 * 30
+	const reminderCutoff = new Date(now.getTime() + reminderWindowMs)
 
-	type RawRecipient = getRecipientsForCronQuery.Result
-	type ReadyRecipient = RawRecipient & {
-		id: string
-		name: string
-		scheduleCron: string
-		timeZone: string
-		userPhoneNumber: string
-	}
-
-	const recipients = rawRecipients
-		.filter((recipient): recipient is ReadyRecipient =>
-			Boolean(
-				recipient.id &&
-					recipient.name &&
-					recipient.scheduleCron &&
-					recipient.timeZone &&
-					recipient.userPhoneNumber,
-			),
-		)
-		.map((recipient) => ({
-			id: recipient.id,
-			name: recipient.name,
-			scheduleCron: recipient.scheduleCron,
-			timeZone: recipient.timeZone,
-			lastRemindedAt: recipient.lastRemindedAt,
-			lastSentAt: recipient.lastSentAt,
+	const recipients = await prisma.recipient.findMany({
+		where: {
+			verified: true,
+			disabled: false,
+			user: { stripeId: { not: null } },
+			OR: [
+				{ nextScheduledAt: { lte: reminderCutoff } },
+				{ nextScheduledAt: null },
+			],
+		},
+		select: {
+			id: true,
+			name: true,
+			scheduleCron: true,
+			timeZone: true,
+			prevScheduledAt: true,
+			nextScheduledAt: true,
+			lastRemindedAt: true,
+			lastSentAt: true,
 			user: {
-				phoneNumber: recipient.userPhoneNumber,
-				name: recipient.userName,
+				select: {
+					phoneNumber: true,
+					name: true,
+				},
 			},
-		}))
+		},
+	})
 
-	const messagesToSend = recipients
-		.map((recipient) => {
-			const { scheduleCron, lastRemindedAt, lastSentAt } = recipient
-			try {
-				const interval = parseCronExpression(scheduleCron, {
-					tz: recipient.timeZone,
-				})
-				const lastSent = new Date(lastSentAt ?? 0)
-				const prev = interval.prev().toDate()
-				const next = interval.next().toDate()
-				const nextIsSoon = next.getTime() - Date.now() < 1000 * 60 * 30
-				const due = lastSent < prev
-				const remind =
-					nextIsSoon &&
-					new Date(lastRemindedAt ?? 0).getTime() < prev.getTime()
-
-				return {
-					recipient,
-					due,
-					remind,
-					prev,
-				}
-			} catch (error) {
-				console.error(
-					`Invalid cron string "${scheduleCron}" for recipient ${recipient.id}:`,
-					error instanceof Error ? error.message : error,
-				)
-				return null
-			}
-		})
-		.filter(
-			(r): r is NonNullable<typeof r> => r !== null && (r.due || r.remind),
-		)
-
-	if (!messagesToSend.length) return
+	if (!recipients.length) return
 
 	let dueSentCount = 0
 	let reminderSentCount = 0
-	for (const { recipient, due, remind, prev } of messagesToSend) {
+	for (const recipient of recipients) {
+		let scheduleWindow: { prevScheduledAt: Date; nextScheduledAt: Date } | null =
+			null
+		if (
+			recipient.prevScheduledAt &&
+			recipient.nextScheduledAt &&
+			recipient.nextScheduledAt > now
+		) {
+			scheduleWindow = {
+				prevScheduledAt: recipient.prevScheduledAt,
+				nextScheduledAt: recipient.nextScheduledAt,
+			}
+		} else {
+			try {
+				scheduleWindow = getScheduleWindow(
+					recipient.scheduleCron,
+					recipient.timeZone,
+					now,
+				)
+			} catch (error) {
+				console.error(
+					`Invalid cron string "${recipient.scheduleCron}" for recipient ${recipient.id}:`,
+					error instanceof Error ? error.message : error,
+				)
+				continue
+			}
+		}
+
+		const { prevScheduledAt, nextScheduledAt } = scheduleWindow
+		const shouldUpdateSchedule =
+			!recipient.prevScheduledAt ||
+			!recipient.nextScheduledAt ||
+			recipient.prevScheduledAt.getTime() !== prevScheduledAt.getTime() ||
+			recipient.nextScheduledAt.getTime() !== nextScheduledAt.getTime()
+
+		if (shouldUpdateSchedule) {
+			await prisma.recipient.update({
+				where: { id: recipient.id },
+				data: {
+					prevScheduledAt,
+					nextScheduledAt,
+				},
+			})
+		}
+
+		const lastSent = new Date(recipient.lastSentAt ?? 0)
+		const nextIsSoon =
+			nextScheduledAt.getTime() - now.getTime() < reminderWindowMs
+		const due = lastSent < prevScheduledAt
+		const remind =
+			nextIsSoon &&
+			new Date(recipient.lastRemindedAt ?? 0).getTime() <
+				prevScheduledAt.getTime()
+
+		if (!due && !remind) continue
+
 		const nextMessage = await prisma.message.findFirst({
 			select: { id: true, updatedAt: true },
 			where: { recipientId: recipient.id, sentAt: null },
@@ -145,10 +177,10 @@ export async function sendNextTexts() {
 
 		// if the message was last updated after the previous time to send then it's
 		// overdue and we don't send it automatically
-		const overDueTimeMs = Date.now() - prev.getTime()
+		const overDueTimeMs = now.getTime() - prevScheduledAt.getTime()
 		const tooLongOverdue = overDueTimeMs > 1000 * 60 * 10
 		const nextMessageWasReady = nextMessage
-			? nextMessage.updatedAt < prev
+			? nextMessage.updatedAt < prevScheduledAt
 			: false
 
 		if (nextMessage && due && nextMessageWasReady && !tooLongOverdue) {

@@ -2,6 +2,7 @@ import { parseWithZod } from '@conform-to/zod/v4'
 import { invariant, invariantResponse } from '@epic-web/invariant'
 import { data as json, redirect, type ActionFunctionArgs } from 'react-router'
 import { requireUserId } from '#app/utils/auth.server.ts'
+import { getScheduleWindow } from '#app/utils/cron.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { sendText } from '#app/utils/text.server.js'
 import { redirectWithToast } from '#app/utils/toast.server.js'
@@ -153,6 +154,24 @@ export async function usertRecipientAction({
 		disabled,
 	} = submission.value
 
+	let scheduleData: { prevScheduledAt: Date; nextScheduledAt: Date } | null =
+		null
+	try {
+		scheduleData = getScheduleWindow(scheduleCron, timeZone)
+	} catch {
+		scheduleData = null
+	}
+
+	const scheduleFields = scheduleData
+		? {
+				prevScheduledAt: scheduleData.prevScheduledAt,
+				nextScheduledAt: scheduleData.nextScheduledAt,
+			}
+		: {
+				prevScheduledAt: null,
+				nextScheduledAt: null,
+			}
+
 	const user = await prisma.user.findUnique({
 		where: { id: userId },
 		select: { name: true, username: true, phoneNumber: true },
@@ -174,6 +193,7 @@ export async function usertRecipientAction({
 				scheduleCron,
 				timeZone,
 				disabled: disabled ?? false,
+				...scheduleFields,
 			},
 		})
 		return redirect(`/recipients/${updatedRecipient.id}`)
@@ -188,6 +208,7 @@ export async function usertRecipientAction({
 				timeZone,
 				verified: false,
 				disabled: disabled ?? false,
+				...scheduleFields,
 			},
 		})
 

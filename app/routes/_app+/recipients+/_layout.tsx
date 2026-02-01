@@ -6,7 +6,7 @@ import {
 } from 'react-router'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { requireUserId } from '#app/utils/auth.server.js'
-import { CronParseError, getNextScheduledTime } from '#app/utils/cron.server.ts'
+import { CronParseError, getScheduleWindow } from '#app/utils/cron.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { getCustomerProducts } from '#app/utils/stripe.server.ts'
 
@@ -40,26 +40,59 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			scheduleCron: true,
 			timeZone: true,
 			disabled: true,
+			prevScheduledAt: true,
+			nextScheduledAt: true,
 			_count: { select: { messages: { where: { sentAt: null } } } },
 		},
 		where: { userId },
 	})
 
-	// Calculate next scheduled time for each recipient and sort
+	const now = new Date()
+	const scheduleUpdates: Array<{
+		id: string
+		prevScheduledAt: Date
+		nextScheduledAt: Date
+	}> = []
+
+	// Ensure we have a schedule window for sorting/display
 	const sortedRecipients = recipients
 		.map((recipient) => {
+			let nextScheduledAt = recipient.nextScheduledAt
+			let prevScheduledAt = recipient.prevScheduledAt
 			try {
-				return {
-					...recipient,
-					nextScheduledAt: getNextScheduledTime(
+				if (!nextScheduledAt || !prevScheduledAt || nextScheduledAt <= now) {
+					const scheduleWindow = getScheduleWindow(
 						recipient.scheduleCron,
 						recipient.timeZone,
-					),
+						now,
+					)
+					nextScheduledAt = scheduleWindow.nextScheduledAt
+					prevScheduledAt = scheduleWindow.prevScheduledAt
+					const needsUpdate =
+						!recipient.nextScheduledAt ||
+						!recipient.prevScheduledAt ||
+						recipient.nextScheduledAt.getTime() !==
+							nextScheduledAt.getTime() ||
+						recipient.prevScheduledAt.getTime() !==
+							prevScheduledAt.getTime()
+					if (needsUpdate) {
+						scheduleUpdates.push({
+							id: recipient.id,
+							prevScheduledAt,
+							nextScheduledAt,
+						})
+					}
+				}
+				return {
+					...recipient,
+					prevScheduledAt,
+					nextScheduledAt,
 					cronError: null as string | null,
 				}
 			} catch (error) {
 				return {
 					...recipient,
+					prevScheduledAt,
 					nextScheduledAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365), // Far future date for sorting
 					cronError:
 						error instanceof CronParseError ? error.message : 'Invalid cron',
@@ -74,6 +107,20 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			// Then sort by next scheduled time
 			return a.nextScheduledAt.getTime() - b.nextScheduledAt.getTime()
 		})
+
+	if (scheduleUpdates.length) {
+		await prisma.$transaction(
+			scheduleUpdates.map((update) =>
+				prisma.recipient.update({
+					where: { id: update.id },
+					data: {
+						prevScheduledAt: update.prevScheduledAt,
+						nextScheduledAt: update.nextScheduledAt,
+					},
+				}),
+			),
+		)
+	}
 
 	const recipientsWithDisplay = sortedRecipients.map((recipient) => {
 		const scheduleDisplay = recipient.disabled

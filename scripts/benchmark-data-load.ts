@@ -3,6 +3,7 @@ import { performance } from 'node:perf_hooks'
 import { parseArgs } from 'node:util'
 import { faker } from '@faker-js/faker'
 import { createId } from '@paralleldrive/cuid2'
+import { getScheduleWindow } from '#app/utils/cron.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import {
 	cleanupDb,
@@ -120,7 +121,8 @@ async function ensurePermissions() {
 	const entities = ['user', 'recipient', 'message']
 	const actions = ['create', 'read', 'update', 'delete']
 	const accesses = ['own', 'any'] as const
-	const data = []
+	const data: Array<{ entity: string; action: string; access: 'own' | 'any' }> =
+		[]
 
 	for (const entity of entities) {
 		for (const action of actions) {
@@ -252,10 +254,15 @@ async function seedLargeData(options: SeedOptions) {
 					Math.random() > 0.5
 						? new Date(Date.now() - 1000 * 60 * 60 * 24 * 30)
 						: null
-				const scheduleCron =
+				const scheduleCron: string =
 					cronSchedules[index % cronSchedules.length] ?? fallbackSchedule
-				const timeZone =
+				const timeZone: string =
 					timeZones[index % timeZones.length] ?? fallbackTimeZone
+				const scheduleWindow = getScheduleWindow(
+					scheduleCron,
+					timeZone,
+					new Date(),
+				)
 				return {
 					id: createId(),
 					userId: user.id,
@@ -265,6 +272,8 @@ async function seedLargeData(options: SeedOptions) {
 					disabled: false,
 					scheduleCron,
 					timeZone,
+					prevScheduledAt: scheduleWindow.prevScheduledAt,
+					nextScheduledAt: scheduleWindow.nextScheduledAt,
 					lastRemindedAt,
 				}
 			},
@@ -277,6 +286,7 @@ async function seedLargeData(options: SeedOptions) {
 			if (!recipientId) {
 				throw new Error('Recipient id missing during message creation')
 			}
+			let lastSentAt: Date | null = null
 			const sentCount = Math.floor(
 				options.messagesPerRecipient * options.sentRatio,
 			)
@@ -285,6 +295,9 @@ async function seedLargeData(options: SeedOptions) {
 				const sentAt = isSent
 					? faker.date.recent({ days: 90 })
 					: null
+				if (sentAt && (!lastSentAt || sentAt > lastSentAt)) {
+					lastSentAt = sentAt
+				}
 
 				messageBatch.push({
 					id: createId(),
@@ -299,6 +312,12 @@ async function seedLargeData(options: SeedOptions) {
 					await prisma.message.createMany({ data: messageBatch })
 					messageBatch.length = 0
 				}
+			}
+			if (lastSentAt) {
+				await prisma.recipient.update({
+					where: { id: recipientId },
+					data: { lastSentAt },
+				})
 			}
 		}
 

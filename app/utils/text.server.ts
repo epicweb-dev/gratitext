@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { getScheduleWindow } from './cron.server.ts'
 import { prisma } from './db.server.ts'
 import { getCustomerProducts } from './stripe.server.ts'
 
@@ -43,6 +44,8 @@ export async function sendTextToRecipient({
 		select: {
 			phoneNumber: true,
 			verified: true,
+			scheduleCron: true,
+			timeZone: true,
 			user: { select: { id: true, stripeId: true } },
 		},
 	})
@@ -92,10 +95,35 @@ export async function sendTextToRecipient({
 		message: message.content,
 	})
 	if (result.status === 'success') {
+		const sentAt = new Date()
+		let scheduleData: { prevScheduledAt: Date; nextScheduledAt: Date } | null =
+			null
+		try {
+			scheduleData = getScheduleWindow(
+				recipient.scheduleCron,
+				recipient.timeZone,
+				sentAt,
+			)
+		} catch {
+			scheduleData = null
+		}
+
 		await prisma.message.update({
 			select: { id: true },
 			where: { id: messageId },
-			data: { sentAt: new Date(), twilioId: result.data.sid },
+			data: { sentAt, twilioId: result.data.sid },
+		})
+		await prisma.recipient.update({
+			where: { id: recipientId },
+			data: {
+				lastSentAt: sentAt,
+				...(scheduleData
+					? {
+							prevScheduledAt: scheduleData.prevScheduledAt,
+							nextScheduledAt: scheduleData.nextScheduledAt,
+						}
+					: {}),
+			},
 		})
 	}
 	return result

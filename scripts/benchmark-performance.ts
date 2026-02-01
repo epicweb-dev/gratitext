@@ -1,13 +1,8 @@
 import 'dotenv/config'
 import { performance } from 'node:perf_hooks'
 import { parseArgs } from 'node:util'
-import { CronExpressionParser } from 'cron-parser'
-import {
-	getrecipientsforcron as getRecipientsForCron,
-	type getrecipientsforcron as getRecipientsForCronQuery,
-} from '#app/utils/prisma-generated.server/sql/getrecipientsforcron'
 import { prisma } from '#app/utils/db.server.ts'
-import { CronParseError } from '#app/utils/cron.server.ts'
+import { CronParseError, getScheduleWindow } from '#app/utils/cron.server.ts'
 
 const MESSAGES_PER_PAGE = 100
 
@@ -37,12 +32,14 @@ function summarize(values: number[]): Summary {
 		}
 	}
 	const mid = Math.floor(sorted.length / 2)
-	const lower = sorted[mid - 1] ?? sorted[0]
-	const upper = sorted[mid] ?? sorted[sorted.length - 1]
+	const first = sorted[0]!
+	const last = sorted[sorted.length - 1]!
+	const lower = sorted[mid - 1] ?? first
+	const upper = sorted[mid] ?? last
 	const median = sorted.length % 2 === 0 ? (lower + upper) / 2 : upper
 	return {
-		min: sorted[0],
-		max: sorted[sorted.length - 1],
+		min: first,
+		max: last,
 		avg,
 		median,
 	}
@@ -66,16 +63,6 @@ function formatScheduleDisplay(date: Date, timeZone: string) {
 	const dayPeriod = getPart('dayPeriod') ?? ''
 	const timeZoneName = getPart('timeZoneName') ?? ''
 	return `Every ${weekday} at ${hour}:${minute} ${dayPeriod} ${timeZoneName}`.trim()
-}
-
-function parseCronExpression(cronString: string, timeZone: string) {
-	try {
-		return CronExpressionParser.parse(cronString, { tz: timeZone })
-	} catch (error) {
-		const errorMessage =
-			error instanceof Error ? error.message : 'Invalid cron string'
-		throw new CronParseError(errorMessage, cronString)
-	}
 }
 
 function parseOptions() {
@@ -115,6 +102,7 @@ async function benchmarkRecipientsList(iterations: number): Promise<BenchResult>
 	let lastCount = 0
 
 	for (let i = 0; i < iterations; i++) {
+		const now = new Date()
 		const queryStart = performance.now()
 		const recipients = await prisma.recipient.findMany({
 			select: {
@@ -124,6 +112,8 @@ async function benchmarkRecipientsList(iterations: number): Promise<BenchResult>
 				scheduleCron: true,
 				timeZone: true,
 				disabled: true,
+				prevScheduledAt: true,
+				nextScheduledAt: true,
 				_count: { select: { messages: { where: { sentAt: null } } } },
 			},
 		})
@@ -134,12 +124,23 @@ async function benchmarkRecipientsList(iterations: number): Promise<BenchResult>
 		const sortedRecipients = recipients
 			.map((recipient) => {
 				try {
+					const scheduleWindow =
+						recipient.nextScheduledAt &&
+						recipient.prevScheduledAt &&
+						recipient.nextScheduledAt > now
+							? {
+									nextScheduledAt: recipient.nextScheduledAt,
+									prevScheduledAt: recipient.prevScheduledAt,
+								}
+							: getScheduleWindow(
+									recipient.scheduleCron,
+									recipient.timeZone,
+									now,
+								)
 					return {
 						...recipient,
-						nextScheduledAt: parseCronExpression(
-							recipient.scheduleCron,
-							recipient.timeZone,
-						).next().toDate(),
+						nextScheduledAt: scheduleWindow.nextScheduledAt,
+						prevScheduledAt: scheduleWindow.prevScheduledAt,
 						cronError: null as string | null,
 					}
 				} catch (error) {
@@ -263,48 +264,61 @@ async function benchmarkCron(iterations: number): Promise<BenchResult> {
 	let totals = { recipients: 0, due: 0, remind: 0, errors: 0 }
 
 	for (let i = 0; i < iterations; i++) {
+		const now = new Date()
+		const reminderWindowMs = 1000 * 60 * 30
+		const reminderCutoff = new Date(now.getTime() + reminderWindowMs)
 		const queryStart = performance.now()
-		const rawRecipients = await prisma.$queryRawTyped(getRecipientsForCron())
+		const rawRecipients = await prisma.recipient.findMany({
+			where: {
+				verified: true,
+				disabled: false,
+				user: { stripeId: { not: null } },
+				OR: [
+					{ nextScheduledAt: { lte: reminderCutoff } },
+					{ nextScheduledAt: null },
+				],
+			},
+			select: {
+				id: true,
+				name: true,
+				scheduleCron: true,
+				timeZone: true,
+				lastRemindedAt: true,
+				lastSentAt: true,
+				prevScheduledAt: true,
+				nextScheduledAt: true,
+			},
+		})
 		const queryMs = performance.now() - queryStart
-
-		type RawRecipient = getRecipientsForCronQuery.Result
-		type ReadyRecipient = RawRecipient & {
-			id: string
-			name: string
-			scheduleCron: string
-			timeZone: string
-			userPhoneNumber: string
-		}
 
 		const computeStart = performance.now()
 		let due = 0
 		let remind = 0
 		let errors = 0
-		const recipients = rawRecipients.filter(
-			(recipient): recipient is ReadyRecipient =>
-				Boolean(
-					recipient.id &&
-						recipient.name &&
-						recipient.scheduleCron &&
-						recipient.timeZone &&
-						recipient.userPhoneNumber,
-				),
-		)
-
-		for (const recipient of recipients) {
+		for (const recipient of rawRecipients) {
 			try {
-				const interval = parseCronExpression(
-					recipient.scheduleCron,
-					recipient.timeZone,
-				)
+				const scheduleWindow =
+					recipient.nextScheduledAt &&
+					recipient.prevScheduledAt &&
+					recipient.nextScheduledAt > now
+						? {
+								nextScheduledAt: recipient.nextScheduledAt,
+								prevScheduledAt: recipient.prevScheduledAt,
+							}
+						: getScheduleWindow(
+								recipient.scheduleCron,
+								recipient.timeZone,
+								now,
+							)
 				const lastSent = new Date(recipient.lastSentAt ?? 0)
-				const prev = interval.prev().toDate()
-				const next = interval.next().toDate()
-				const nextIsSoon = next.getTime() - Date.now() < 1000 * 60 * 30
-				const isDue = lastSent < prev
+				const nextIsSoon =
+					scheduleWindow.nextScheduledAt.getTime() - now.getTime() <
+					reminderWindowMs
+				const isDue = lastSent < scheduleWindow.prevScheduledAt
 				const shouldRemind =
 					nextIsSoon &&
-					new Date(recipient.lastRemindedAt ?? 0).getTime() < prev.getTime()
+					new Date(recipient.lastRemindedAt ?? 0).getTime() <
+						scheduleWindow.prevScheduledAt.getTime()
 
 				if (isDue) due += 1
 				if (shouldRemind) remind += 1
@@ -318,7 +332,7 @@ async function benchmarkCron(iterations: number): Promise<BenchResult> {
 		querySamples.push(queryMs)
 		computeSamples.push(computeMs)
 		totals = {
-			recipients: recipients.length,
+			recipients: rawRecipients.length,
 			due,
 			remind,
 			errors,
