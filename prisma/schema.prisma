@@ -24,6 +24,8 @@ model User {
   roles      Role[]
   sessions   Session[]
   recipients Recipient[]
+
+  @@index([stripeId])
 }
 
 model Password {
@@ -125,6 +127,7 @@ model Recipient {
 
   // non-unique foreign key
   @@index([userId])
+  @@index([verified, disabled])
 }
 
 model Message {
@@ -142,6 +145,7 @@ model Message {
 
   // non-unique foreign key
   @@index([recipientId])
+  @@index([recipientId, sentAt, order])
 }
 
 model SourceNumber {

@@ -2,22 +2,10 @@
 import { type LoaderFunctionArgs } from 'react-router'
 import { prisma } from '#app/utils/db.server.ts'
 
-export async function loader({ request }: LoaderFunctionArgs) {
-	const host =
-		request.headers.get('X-Forwarded-Host') ?? request.headers.get('host')
-
+export async function loader(_args: LoaderFunctionArgs) {
 	try {
-		// if we can connect to the database and make a simple query
-		// and make a HEAD request to ourselves, then we're good.
-		await Promise.all([
-			prisma.user.count(),
-			fetch(`${new URL(request.url).protocol}${host}`, {
-				method: 'HEAD',
-				headers: { 'X-Healthcheck': 'true' },
-			}).then((r) => {
-				if (!r.ok) return Promise.reject(r)
-			}),
-		])
+		// If we can connect and run a trivial query, then we're good.
+		await prisma.$queryRaw`SELECT 1`
 		return new Response('OK')
 	} catch (error: unknown) {
 		console.log('healthcheck ❌', { error })
