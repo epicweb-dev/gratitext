@@ -73,17 +73,17 @@ export async function sendNextTexts() {
 			),
 		)
 		.map((recipient) => ({
-		id: recipient.id,
-		name: recipient.name,
-		scheduleCron: recipient.scheduleCron,
-		timeZone: recipient.timeZone,
-		lastRemindedAt: recipient.lastRemindedAt,
-		lastSentAt: recipient.lastSentAt,
-		user: {
-			phoneNumber: recipient.userPhoneNumber,
-			name: recipient.userName,
-		},
-	}))
+			id: recipient.id,
+			name: recipient.name,
+			scheduleCron: recipient.scheduleCron,
+			timeZone: recipient.timeZone,
+			lastRemindedAt: recipient.lastRemindedAt,
+			lastSentAt: recipient.lastSentAt,
+			user: {
+				phoneNumber: recipient.userPhoneNumber,
+				name: recipient.userName,
+			},
+		}))
 
 	const messagesToSend = recipients
 		.map((recipient) => {
