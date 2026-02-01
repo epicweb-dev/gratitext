@@ -1,6 +1,6 @@
 import { invariantResponse } from '@epic-web/invariant'
 import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import {
 	data as json,
 	type LoaderFunctionArgs,
@@ -15,6 +15,9 @@ import { formatMessage } from '#app/utils/message-format.ts'
 import { cn, useDelayedIsPending } from '#app/utils/misc.tsx'
 
 const MESSAGES_PER_PAGE = 30
+
+const useIsomorphicLayoutEffect =
+	typeof document === 'undefined' ? useEffect : useLayoutEffect
 
 type MessageCursor = {
 	sentAt: string
@@ -128,6 +131,10 @@ export default function RecipientRoute() {
 	const topSentinelRef = useRef<HTMLDivElement | null>(null)
 	const bottomRef = useRef<HTMLDivElement | null>(null)
 	const hasAutoScrolledRef = useRef(false)
+	const pendingScrollAdjustmentRef = useRef<{
+		scrollHeight: number
+		scrollTop: number
+	} | null>(null)
 
 	const messagesQuery = useInfiniteQuery<
 		MessagesPage,
@@ -163,7 +170,7 @@ export default function RecipientRoute() {
 			],
 			pageParams: [null],
 		},
-	initialDataUpdatedAt: Date.now(),
+		initialDataUpdatedAt: Date.now(),
 	})
 
 	const messages = useMemo<Array<MessageItem>>(() => {
@@ -176,6 +183,7 @@ export default function RecipientRoute() {
 
 	useEffect(() => {
 		hasAutoScrolledRef.current = false
+		pendingScrollAdjustmentRef.current = null
 	}, [data.recipientId, data.searchQuery])
 
 	useEffect(() => {
@@ -183,6 +191,23 @@ export default function RecipientRoute() {
 		bottomRef.current?.scrollIntoView({ block: 'end' })
 		hasAutoScrolledRef.current = true
 	}, [messages.length, data.recipientId, data.searchQuery])
+
+	useIsomorphicLayoutEffect(() => {
+		const pendingScroll = pendingScrollAdjustmentRef.current
+		if (!pendingScroll || messagesQuery.isFetchingNextPage) return
+		const scrollElement = document.scrollingElement
+		if (!scrollElement) {
+			pendingScrollAdjustmentRef.current = null
+			return
+		}
+		const nextScrollTop =
+			pendingScroll.scrollTop +
+			(scrollElement.scrollHeight - pendingScroll.scrollHeight)
+		if (nextScrollTop !== scrollElement.scrollTop) {
+			scrollElement.scrollTop = nextScrollTop
+		}
+		pendingScrollAdjustmentRef.current = null
+	}, [messages.length, messagesQuery.isFetchingNextPage])
 
 	useEffect(() => {
 		const node = topSentinelRef.current
@@ -195,6 +220,13 @@ export default function RecipientRoute() {
 					messagesQuery.hasNextPage &&
 					!messagesQuery.isFetchingNextPage
 				) {
+					const scrollElement = document.scrollingElement
+					if (scrollElement) {
+						pendingScrollAdjustmentRef.current = {
+							scrollHeight: scrollElement.scrollHeight,
+							scrollTop: scrollElement.scrollTop,
+						}
+					}
 					void messagesQuery.fetchNextPage()
 				}
 			},
