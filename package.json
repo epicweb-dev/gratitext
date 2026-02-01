@@ -28,6 +28,9 @@
     "test:e2e:run": "cross-env CI=true playwright test",
     "test:e2e:install": "npx playwright install --with-deps chromium",
     "typecheck": "react-router typegen && tsc",
+    "benchmark:data": "tsx ./scripts/benchmark-data-load.ts",
+    "benchmark:perf": "tsx ./scripts/benchmark-performance.ts",
+    "backfill:recipient-schedules": "tsx ./scripts/backfill-recipient-schedules.ts",
     "validate": "run-p \"test -- --run\" lint typecheck test:e2e:run"
   },
   "prettier": "@epic-web/config/prettier",

@@ -8,26 +8,26 @@ export const meta: MetaFunction = () => [{ title: 'GratiText' }]
 export default function Index() {
 	const user = useOptionalUser()
 	return (
-		<main className="bg-background pb-20 pt-6 md:pt-10">
+		<main className="bg-background pt-6 pb-20 md:pt-10">
 			<section className="container grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
 				<div className="order-1 flex justify-center lg:order-2">
 					<div className="relative w-full max-w-xs sm:max-w-sm">
-						<div className="absolute left-1/2 top-1/2 h-[260px] w-[260px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[hsl(var(--palette-baby-blue))] sm:h-[320px] sm:w-[320px]" />
+						<div className="absolute top-1/2 left-1/2 h-[260px] w-[260px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[hsl(var(--palette-baby-blue))] sm:h-[320px] sm:w-[320px]" />
 						<Icon
 							name="star"
 							size="lg"
 							aria-hidden="true"
-							className="absolute left-2 top-2 text-[hsl(var(--palette-orange))]"
+							className="absolute top-2 left-2 text-[hsl(var(--palette-orange))]"
 						/>
 						<Icon
 							name="star"
 							size="md"
 							aria-hidden="true"
-							className="absolute left-12 top-16 text-[hsl(var(--palette-orange))]"
+							className="absolute top-16 left-12 text-[hsl(var(--palette-orange))]"
 						/>
-						<div className="absolute left-4 top-24 h-6 w-10 rounded-full bg-[hsl(var(--palette-orange))]" />
-						<div className="absolute left-6 bottom-6 h-12 w-12 rounded-[22px] bg-[hsl(var(--palette-orange))]" />
-						<div className="absolute -right-2 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] shadow-lg">
+						<div className="absolute top-24 left-4 h-6 w-10 rounded-full bg-[hsl(var(--palette-orange))]" />
+						<div className="absolute bottom-6 left-6 h-12 w-12 rounded-[22px] bg-[hsl(var(--palette-orange))]" />
+						<div className="absolute top-1/2 -right-2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] shadow-lg">
 							<Icon name="message" size="sm" aria-hidden="true" />
 						</div>
 						<img
@@ -56,12 +56,12 @@ export default function Index() {
 					</div>
 				</div>
 				<div className="order-2 space-y-5 text-center lg:order-1 lg:text-left">
-					<h1 className="text-foreground font-serif text-4xl font-semibold leading-tight md:text-5xl lg:text-6xl">
+					<h1 className="text-foreground font-serif text-4xl leading-tight font-semibold md:text-5xl lg:text-6xl">
 						Thoughtful Connections Made Simple
 					</h1>
 					<p className="text-body-md text-muted-foreground mx-auto max-w-xl lg:mx-0">
-						Strengthen your relationships with regular personalized messages
-						of love and gratitude.
+						Strengthen your relationships with regular personalized messages of
+						love and gratitude.
 					</p>
 					<div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start">
 						<Button

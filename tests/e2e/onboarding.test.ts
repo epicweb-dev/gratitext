@@ -277,9 +277,7 @@ test('reset password with a link', async ({ page, insertNewUser }) => {
 	await page.getByLabel(/^password$/i).fill(originalPassword)
 	await page.getByRole('button', { name: /log in/i }).click()
 
-	await expect(
-		page.getByText(/invalid username or password/i),
-	).toBeVisible()
+	await expect(page.getByText(/invalid username or password/i)).toBeVisible()
 
 	await loginUsernameInput.fill(user.username)
 	await page.getByLabel(/^password$/i).fill(newPassword)

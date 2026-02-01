@@ -115,7 +115,10 @@ model Recipient {
   verified       Boolean
   scheduleCron   String
   timeZone       String
+  prevScheduledAt DateTime?
+  nextScheduledAt DateTime?
   lastRemindedAt DateTime?
+  lastSentAt     DateTime?
   disabled       Boolean   @default(false)
 
   createdAt DateTime @default(now())
@@ -129,6 +132,8 @@ model Recipient {
   // non-unique foreign key
   @@index([userId])
   @@index([verified, disabled])
+  @@index([nextScheduledAt])
+  @@index([userId, nextScheduledAt])
 }
 
 model Message {

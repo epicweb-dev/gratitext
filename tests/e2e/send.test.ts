@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker'
+import { getScheduleWindow } from '#app/utils/cron.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { deleteText, waitForText } from '#tests/mocks/utils.ts'
 import {
@@ -118,11 +119,18 @@ test('Scheduled messages go out on schedule', async ({ page, login }) => {
 	})
 
 	await prisma.$transaction(async ($prisma) => {
+		const scheduleWindow = getScheduleWindow(
+			'* * * * *',
+			recipientData.timeZone,
+			new Date(),
+		)
 		await $prisma.recipient.update({
 			select: { id: true },
 			where: { id: recipient.id },
 			data: {
 				scheduleCron: '* * * * *',
+				prevScheduledAt: scheduleWindow.prevScheduledAt,
+				nextScheduledAt: scheduleWindow.nextScheduledAt,
 			},
 		})
 		await $prisma.message.update({

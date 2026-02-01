@@ -44,7 +44,7 @@ export default function RecipientsIndexRoute() {
 					aria-label="Add recipient"
 					className="h-14 w-14 bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] shadow-sm hover:bg-[hsl(var(--palette-green-700))]"
 				>
-					<span aria-hidden="true" className="text-3xl font-bold leading-none">
+					<span aria-hidden="true" className="text-3xl leading-none font-bold">
 						+
 					</span>
 				</ButtonLink>
@@ -65,7 +65,7 @@ export default function RecipientsIndexRoute() {
 					<span />
 				</div>
 				{hasRecipients ? (
-					<div className="space-y-4 md:divide-y md:divide-border md:space-y-0">
+					<div className="md:divide-border space-y-4 md:space-y-0 md:divide-y">
 						{recipients.map((recipient) => {
 							const messageCount = recipient._count.messages
 							const messageLabel = messageCount === 1 ? 'message' : 'messages'
@@ -83,7 +83,7 @@ export default function RecipientsIndexRoute() {
 							return (
 								<div
 									key={recipient.id}
-									className="flex flex-col gap-4 rounded-[24px] border border-border bg-card px-5 py-4 shadow-sm md:grid md:grid-cols-[minmax(160px,1.2fr)_minmax(180px,1.2fr)_minmax(220px,1.4fr)_minmax(140px,0.8fr)_120px] md:items-center md:gap-4 md:rounded-none md:border-0 md:bg-transparent md:px-8 md:py-6 md:shadow-none"
+									className="border-border bg-card flex flex-col gap-4 rounded-[24px] border px-5 py-4 shadow-sm md:grid md:grid-cols-[minmax(160px,1.2fr)_minmax(180px,1.2fr)_minmax(220px,1.4fr)_minmax(140px,0.8fr)_120px] md:items-center md:gap-4 md:rounded-none md:border-0 md:bg-transparent md:px-8 md:py-6 md:shadow-none"
 								>
 									<div className="flex items-start justify-between gap-4 md:flex-col md:items-start md:gap-1">
 										<Link

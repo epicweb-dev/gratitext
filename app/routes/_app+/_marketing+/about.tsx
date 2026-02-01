@@ -60,13 +60,13 @@ export default function AboutRoute() {
 					Back Home
 				</Link>
 				<div className="mx-auto mt-6 max-w-2xl space-y-4 text-center">
-					<h1 className="text-h3 text-foreground leading-tight md:text-h2">
+					<h1 className="text-h3 text-foreground md:text-h2 leading-tight">
 						Create and Nurture Lasting Bonds With Your Loved Ones
 					</h1>
 					<p className="text-body-sm text-muted-foreground">
 						GratiText helps you express gratitude with thoughtful messages to
-						the people who matter most. Learn why gratitude matters and how
-						the app makes it easier to build the habit.
+						the people who matter most. Learn why gratitude matters and how the
+						app makes it easier to build the habit.
 					</p>
 				</div>
 			</section>
@@ -81,10 +81,10 @@ export default function AboutRoute() {
 						for both the individual and those around them. Here are some key
 						reasons why it is beneficial:
 					</p>
-					<ol className="space-y-5 text-body-sm text-muted-foreground">
+					<ol className="text-body-sm text-muted-foreground space-y-5">
 						{gratitudeBenefits.map((benefit, index) => (
 							<li key={benefit.title} className="leading-relaxed">
-								<span className="font-semibold text-foreground">
+								<span className="text-foreground font-semibold">
 									{index + 1}. {benefit.title}:{' '}
 								</span>
 								{benefit.description}
@@ -99,15 +99,15 @@ export default function AboutRoute() {
 					<h2 id="gratitude-faq" className="text-h4 md:text-h3">
 						Frequently Asked Questions
 					</h2>
-					<div className="rounded-[28px] border border-border bg-muted p-4 shadow-sm sm:p-6">
+					<div className="border-border bg-muted rounded-[28px] border p-4 shadow-sm sm:p-6">
 						<div className="space-y-4">
 							{faqItems.map((item) => (
 								<details
 									key={item.question}
 									open={item.defaultOpen}
-									className="rounded-2xl border border-border bg-card px-5 py-4 shadow-sm"
+									className="border-border bg-card rounded-2xl border px-5 py-4 shadow-sm"
 								>
-									<summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-body-sm font-semibold text-foreground">
+									<summary className="text-body-sm text-foreground flex cursor-pointer list-none items-center justify-between gap-4 font-semibold">
 										<span>{item.question}</span>
 										<Icon
 											name="chevron-down"
@@ -115,7 +115,7 @@ export default function AboutRoute() {
 											className="text-muted-foreground"
 										/>
 									</summary>
-									<div className="mt-3 space-y-3 text-body-xs text-muted-foreground">
+									<div className="text-body-xs text-muted-foreground mt-3 space-y-3">
 										<p className="leading-relaxed">{item.answer}</p>
 										{item.details ? (
 											<ol className="list-decimal space-y-2 pl-4">

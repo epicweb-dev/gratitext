@@ -11,7 +11,9 @@ function getSqlitePath(url) {
 	const rawPath = url.slice('file:'.length).split('?')[0]
 	if (!rawPath) return null
 	const decoded = decodeURIComponent(rawPath)
-	return path.isAbsolute(decoded) ? decoded : path.resolve(process.cwd(), decoded)
+	return path.isAbsolute(decoded)
+		? decoded
+		: path.resolve(process.cwd(), decoded)
 }
 
 async function isInitialized(dbPath) {
