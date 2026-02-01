@@ -88,7 +88,10 @@ async function run() {
 				}
 			}
 
-			if (shouldUpdateLastSent && lastSentAt !== recipient.lastSentAt) {
+			if (
+				shouldUpdateLastSent &&
+				lastSentAt?.getTime() !== recipient.lastSentAt?.getTime()
+			) {
 				data.lastSentAt = lastSentAt
 			}
 
