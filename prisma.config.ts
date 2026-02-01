@@ -8,7 +8,7 @@ export default defineConfig({
 		seed: 'tsx prisma/seed.ts',
 	},
 	typedSql: {
-		path: 'prisma/sql-generated',
+		path: 'prisma/sql',
 	},
 	datasource: {
 		url: process.env.DATABASE_URL || 'file:./prisma/sqlite.db',

@@ -42,7 +42,6 @@ ADD prisma /myapp/prisma
 ADD prisma.config.ts /myapp/prisma.config.ts
 ADD scripts /myapp/scripts
 RUN node scripts/ensure-prisma-db.js && \
-	node scripts/prepare-typed-sql.js && \
 	npx prisma@7 generate --sql
 
 ADD . .

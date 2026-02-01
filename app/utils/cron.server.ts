@@ -9,7 +9,10 @@ import {
 	clearIntervalAsync,
 	setIntervalAsync,
 } from 'set-interval-async/dynamic'
-import { getRecipientsForCron } from '#app/utils/prisma-generated.server/sql/getRecipientsForCron'
+import {
+	getrecipientsforcron as getRecipientsForCron,
+	type getrecipientsforcron as getRecipientsForCronQuery,
+} from '#app/utils/prisma-generated.server/sql/getrecipientsforcron'
 import { prisma } from './db.server.ts'
 import { sendText, sendTextToRecipient } from './text.server.ts'
 
@@ -50,7 +53,7 @@ export async function init() {
 export async function sendNextTexts() {
 	const rawRecipients = await prisma.$queryRawTyped(getRecipientsForCron())
 
-	type RawRecipient = getRecipientsForCron.Result
+	type RawRecipient = getRecipientsForCronQuery.Result
 	type ReadyRecipient = RawRecipient & {
 		id: string
 		name: string
