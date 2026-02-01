@@ -162,32 +162,6 @@ async function main() {
 		await prisma.message.createMany({ data: messageBatch })
 	}
 
-	await prisma.$executeRaw`
-		UPDATE "Recipient"
-		SET "lastSentAt" = (
-			SELECT MAX("sentAt")
-			FROM "Message"
-			WHERE "Message"."recipientId" = "Recipient"."id"
-				AND "Message"."sentAt" IS NOT NULL
-		)
-	`
-
-	const denormQuery = () =>
-		prisma.recipient.findMany({
-			where: {
-				verified: true,
-				disabled: false,
-				user: { stripeId: { not: null } },
-			},
-			select: {
-				id: true,
-				scheduleCron: true,
-				timeZone: true,
-				lastRemindedAt: true,
-				lastSentAt: true,
-			},
-		})
-
 	const relationQuery = () =>
 		prisma.recipient.findMany({
 			where: {
@@ -233,7 +207,6 @@ async function main() {
 		`
 
 	const results = await Promise.all([
-		runBenchmark('denormalized lastSentAt', denormQuery),
 		runBenchmark('relation take 1', relationQuery),
 		runBenchmark('aggregate MAX(sentAt)', aggregateQuery),
 	])

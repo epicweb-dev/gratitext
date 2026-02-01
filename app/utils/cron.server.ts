@@ -46,25 +46,59 @@ export async function init() {
 	)
 }
 
+type RecipientQueryRow = {
+	id: string
+	name: string
+	scheduleCron: string
+	timeZone: string
+	lastRemindedAt: Date | null
+	lastSentAt: Date | null
+	userPhoneNumber: string
+	userName: string | null
+}
+
 export async function sendNextTexts() {
-	const recipients = await prisma.recipient.findMany({
-		where: {
-			verified: true,
-			disabled: false,
-			user: { stripeId: { not: null } },
+	const rawRecipients = await prisma.$queryRaw<RecipientQueryRow[]>`
+		SELECT
+			"Recipient"."id" AS "id",
+			"Recipient"."name" AS "name",
+			"Recipient"."scheduleCron" AS "scheduleCron",
+			"Recipient"."timeZone" AS "timeZone",
+			"Recipient"."lastRemindedAt" AS "lastRemindedAt",
+			MAX("Message"."sentAt") AS "lastSentAt",
+			"User"."phoneNumber" AS "userPhoneNumber",
+			"User"."name" AS "userName"
+		FROM "Recipient"
+		JOIN "User"
+			ON "User"."id" = "Recipient"."userId"
+		LEFT JOIN "Message"
+			ON "Message"."recipientId" = "Recipient"."id"
+			AND "Message"."sentAt" IS NOT NULL
+		WHERE "Recipient"."verified" = 1
+			AND "Recipient"."disabled" = 0
+			AND "User"."stripeId" IS NOT NULL
+		GROUP BY
+			"Recipient"."id",
+			"Recipient"."name",
+			"Recipient"."scheduleCron",
+			"Recipient"."timeZone",
+			"Recipient"."lastRemindedAt",
+			"User"."phoneNumber",
+			"User"."name"
+	`
+
+	const recipients = rawRecipients.map((recipient) => ({
+		id: recipient.id,
+		name: recipient.name,
+		scheduleCron: recipient.scheduleCron,
+		timeZone: recipient.timeZone,
+		lastRemindedAt: recipient.lastRemindedAt,
+		lastSentAt: recipient.lastSentAt,
+		user: {
+			phoneNumber: recipient.userPhoneNumber,
+			name: recipient.userName,
 		},
-		select: {
-			id: true,
-			name: true,
-			scheduleCron: true,
-			timeZone: true,
-			lastRemindedAt: true,
-			lastSentAt: true,
-			user: {
-				select: { phoneNumber: true, name: true },
-			},
-		},
-	})
+	}))
 
 	const messagesToSend = recipients
 		.map((recipient) => {
