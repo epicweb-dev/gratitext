@@ -165,16 +165,18 @@ export async function sendNextTexts() {
 		})
 
 		if (!nextMessage && remind) {
-			await sendText({
+			const reminderResult = await sendText({
 				to: recipient.user.phoneNumber,
 				// TODO: don't hardcode the domain somehow...
 				message: `Hello ${recipient.user.name}, you forgot to set up a message for ${recipient.name} and the sending time is coming up.\n\nAdd a thoughtful personal message here: https://www.gratitext.app/recipients/${recipient.id}`,
 			})
-			await prisma.recipient.update({
-				where: { id: recipient.id },
-				data: { lastRemindedAt: new Date() },
-			})
-			reminderSentCount++
+			if (reminderResult.status === 'success') {
+				await prisma.recipient.update({
+					where: { id: recipient.id },
+					data: { lastRemindedAt: new Date() },
+				})
+				reminderSentCount++
+			}
 		}
 
 		// if the message was last updated after the previous time to send then it's
