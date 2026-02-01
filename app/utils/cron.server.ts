@@ -101,8 +101,10 @@ export async function sendNextTexts() {
 	let dueSentCount = 0
 	let reminderSentCount = 0
 	for (const recipient of recipients) {
-		let scheduleWindow: { prevScheduledAt: Date; nextScheduledAt: Date } | null =
-			null
+		let scheduleWindow: {
+			prevScheduledAt: Date
+			nextScheduledAt: Date
+		} | null = null
 		if (
 			recipient.prevScheduledAt &&
 			recipient.nextScheduledAt &&

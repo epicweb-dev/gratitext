@@ -70,11 +70,9 @@ export default function VerifyRoute() {
 		onboarding: checkPhoneNumber,
 		'reset-password': checkPhoneNumber,
 		'change-phone-number': checkPhoneNumber,
-		'validate-recipient': (
-			buildHeading(
-				'Check Your Texts',
-				"We've texted you a code to verify the phone number you gave us. Please inform your recipient of what you're up to and ask your recipient to provide you with that code.",
-			)
+		'validate-recipient': buildHeading(
+			'Check Your Texts',
+			"We've texted you a code to verify the phone number you gave us. Please inform your recipient of what you're up to and ask your recipient to provide you with that code.",
 		),
 		'2fa': buildHeading(
 			'Check Your 2FA App',
@@ -106,8 +104,8 @@ export default function VerifyRoute() {
 	})
 
 	return (
-		<main className="container flex flex-col items-center justify-start pb-24 pt-12 sm:pt-16">
-			<div className="text-center max-w-lg">
+		<main className="container flex flex-col items-center justify-start pt-12 pb-24 sm:pt-16">
+			<div className="max-w-lg text-center">
 				{type ? headings[type] : 'Invalid Verification Type'}
 			</div>
 
@@ -140,7 +138,7 @@ export default function VerifyRoute() {
 						<span>No text after 5 minutes?</span>
 						<Link
 							to={type ? resendRoutes[type] : '.'}
-							className="text-foreground font-semibold hover:text-foreground/90"
+							className="text-foreground hover:text-foreground/90 font-semibold"
 						>
 							Resend the Code
 						</Link>

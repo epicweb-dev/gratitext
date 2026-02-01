@@ -1,8 +1,8 @@
 import 'dotenv/config'
 import { performance } from 'node:perf_hooks'
 import { parseArgs } from 'node:util'
-import { prisma } from '#app/utils/db.server.ts'
 import { CronParseError, getScheduleWindow } from '#app/utils/cron.server.ts'
+import { prisma } from '#app/utils/db.server.ts'
 
 const MESSAGES_PER_PAGE = 100
 
@@ -75,7 +75,9 @@ function parseOptions() {
 		allowPositionals: true,
 	})
 
-	const iterations = Number(values.iterations ?? process.env.BENCH_ITERATIONS ?? 3)
+	const iterations = Number(
+		values.iterations ?? process.env.BENCH_ITERATIONS ?? 3,
+	)
 	const warmup = values.warmup ?? true
 	const recipientId = values['recipient-id'] ?? process.env.BENCH_RECIPIENT_ID
 
@@ -95,7 +97,9 @@ async function getCounts() {
 	return { users, recipients, messages }
 }
 
-async function benchmarkRecipientsList(iterations: number): Promise<BenchResult> {
+async function benchmarkRecipientsList(
+	iterations: number,
+): Promise<BenchResult> {
 	const querySamples: number[] = []
 	const computeSamples: number[] = []
 	const cronErrors: number[] = []
@@ -305,11 +309,7 @@ async function benchmarkCron(iterations: number): Promise<BenchResult> {
 								nextScheduledAt: recipient.nextScheduledAt,
 								prevScheduledAt: recipient.prevScheduledAt,
 							}
-						: getScheduleWindow(
-								recipient.scheduleCron,
-								recipient.timeZone,
-								now,
-							)
+						: getScheduleWindow(recipient.scheduleCron, recipient.timeZone, now)
 				const lastSent = new Date(recipient.lastSentAt ?? 0)
 				const nextIsSoon =
 					scheduleWindow.nextScheduledAt.getTime() - now.getTime() <
@@ -322,7 +322,7 @@ async function benchmarkCron(iterations: number): Promise<BenchResult> {
 
 				if (isDue) due += 1
 				if (shouldRemind) remind += 1
-			} catch (error) {
+			} catch {
 				errors += 1
 			}
 		}

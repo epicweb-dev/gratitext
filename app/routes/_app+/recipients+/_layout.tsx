@@ -71,10 +71,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 					const needsUpdate =
 						!recipient.nextScheduledAt ||
 						!recipient.prevScheduledAt ||
-						recipient.nextScheduledAt.getTime() !==
-							nextScheduledAt.getTime() ||
-						recipient.prevScheduledAt.getTime() !==
-							prevScheduledAt.getTime()
+						recipient.nextScheduledAt.getTime() !== nextScheduledAt.getTime() ||
+						recipient.prevScheduledAt.getTime() !== prevScheduledAt.getTime()
 					if (needsUpdate) {
 						scheduleUpdates.push({
 							id: recipient.id,

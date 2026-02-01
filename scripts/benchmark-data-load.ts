@@ -1,16 +1,11 @@
 import 'dotenv/config'
 import { performance } from 'node:perf_hooks'
 import { parseArgs } from 'node:util'
+import bcrypt from 'bcryptjs'
 import { faker } from '@faker-js/faker'
 import { createId } from '@paralleldrive/cuid2'
 import { getScheduleWindow } from '#app/utils/cron.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
-import {
-	cleanupDb,
-	createPassword,
-	createPhoneNumber,
-	createUser,
-} from '#tests/db-utils.ts'
 import { type Prisma } from '#app/utils/prisma-generated.server/client.ts'
 
 type SeedOptions = {
@@ -47,6 +42,59 @@ const timeZones = [
 	'America/Chicago',
 	'Europe/London',
 ]
+
+const usedUsernames = new Set<string>()
+const usedPhoneNumbers = new Set<string>()
+
+function createPhoneNumber() {
+	let phoneNumber = ''
+	do {
+		const digits = faker.string.numeric({ length: 10, allowLeadingZeros: true })
+		phoneNumber = `+1${digits}`
+	} while (usedPhoneNumbers.has(phoneNumber))
+	usedPhoneNumbers.add(phoneNumber)
+	return phoneNumber
+}
+
+function createUser() {
+	let username = ''
+	do {
+		username = `user_${createId()}`
+			.slice(0, 20)
+			.toLowerCase()
+			.replace(/[^a-z0-9_]/g, '_')
+	} while (usedUsernames.has(username))
+	usedUsernames.add(username)
+
+	return {
+		username,
+		name: faker.person.fullName(),
+		phoneNumber: createPhoneNumber(),
+	}
+}
+
+function createPassword(password: string) {
+	return {
+		hash: bcrypt.hashSync(password, 10),
+	}
+}
+
+async function cleanupDb() {
+	const tables = await prisma.$queryRaw<{ name: string }[]>(
+		`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_prisma_migrations';`,
+	)
+
+	try {
+		await prisma.$executeRawUnsafe(`PRAGMA foreign_keys = OFF`)
+		await prisma.$transaction(
+			tables.map(({ name }) =>
+				prisma.$executeRawUnsafe(`DELETE from "${name}"`),
+			),
+		)
+	} finally {
+		await prisma.$executeRawUnsafe(`PRAGMA foreign_keys = ON`)
+	}
+}
 
 function parseNumber(value: unknown, fallback: number, name: string) {
 	if (value === undefined || value === null || value === '') return fallback
@@ -290,11 +338,13 @@ async function seedLargeData(options: SeedOptions) {
 			const sentCount = Math.floor(
 				options.messagesPerRecipient * options.sentRatio,
 			)
-			for (let messageIndex = 0; messageIndex < options.messagesPerRecipient; messageIndex++) {
+			for (
+				let messageIndex = 0;
+				messageIndex < options.messagesPerRecipient;
+				messageIndex++
+			) {
 				const isSent = messageIndex < sentCount
-				const sentAt = isSent
-					? faker.date.recent({ days: 90 })
-					: null
+				const sentAt = isSent ? faker.date.recent({ days: 90 }) : null
 				if (sentAt && (!lastSentAt || sentAt > lastSentAt)) {
 					lastSentAt = sentAt
 				}

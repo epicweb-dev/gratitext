@@ -1,6 +1,6 @@
 import 'dotenv/config'
-import { parseArgs } from 'node:util'
 import { performance } from 'node:perf_hooks'
+import { parseArgs } from 'node:util'
 import { getScheduleWindow } from '#app/utils/cron.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 
@@ -65,8 +65,7 @@ async function run() {
 				!options.onlyMissing ||
 				!recipient.prevScheduledAt ||
 				!recipient.nextScheduledAt
-			const shouldUpdateLastSent =
-				!options.onlyMissing || !recipient.lastSentAt
+			const shouldUpdateLastSent = !options.onlyMissing || !recipient.lastSentAt
 
 			const data: {
 				prevScheduledAt?: Date | null
