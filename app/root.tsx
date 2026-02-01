@@ -76,6 +76,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
 							name: true,
 							username: true,
 							stripeId: true,
+							roles: {
+								select: {
+									name: true,
+									permissions: {
+										select: {
+											action: true,
+											entity: true,
+											access: true,
+										},
+									},
+								},
+							},
 						},
 						where: { id: userId },
 					}),
