@@ -68,9 +68,10 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
 	const recipient = recipientId
 		? await prisma.recipient.findUnique({
-				where: { id: recipientId, userId },
+				where: { id: recipientId },
 				select: {
 					id: true,
+					userId: true,
 					name: true,
 					phoneNumber: true,
 					verified: true,
@@ -78,20 +79,45 @@ export async function action({ request, params }: ActionFunctionArgs) {
 				},
 			})
 		: null
+	const ownedRecipient =
+		recipient && recipient.userId === userId
+			? {
+					id: recipient.id,
+					name: recipient.name,
+					phoneNumber: recipient.phoneNumber,
+					verified: recipient.verified,
+					disabled: recipient.disabled,
+				}
+			: null
 
 	const formData = await request.formData()
 
 	switch (formData.get('intent')) {
 		case deleteRecipientActionIntent: {
-			invariantResponse(recipient, 'Recipient not found', { status: 404 })
-			return deleteRecipientAction({ formData, userId, request, recipient })
+			invariantResponse(ownedRecipient, 'Recipient not found', { status: 404 })
+			return deleteRecipientAction({
+				formData,
+				userId,
+				request,
+				recipient: ownedRecipient,
+			})
 		}
 		case upsertRecipientActionIntent: {
-			return usertRecipientAction({ formData, userId, request, recipient })
+			return usertRecipientAction({
+				formData,
+				userId,
+				request,
+				recipient: ownedRecipient,
+			})
 		}
 		case sendVerificationActionIntent: {
-			invariantResponse(recipient, 'Recipient not found', { status: 404 })
-			return sendVerificationAction({ formData, userId, request, recipient })
+			invariantResponse(ownedRecipient, 'Recipient not found', { status: 404 })
+			return sendVerificationAction({
+				formData,
+				userId,
+				request,
+				recipient: ownedRecipient,
+			})
 		}
 		default: {
 			throw new Response('Invalid intent', { status: 400 })
@@ -190,12 +216,14 @@ export async function deleteRecipientAction({
 
 	const { recipientId } = submission.value
 
-	const recipient = await prisma.recipient.findFirst({
-		select: { id: true, userId: true, user: { select: { username: true } } },
-		where: { id: recipientId, userId },
+	const recipient = await prisma.recipient.findUnique({
+		select: { id: true, userId: true },
+		where: { id: recipientId },
 	})
 
-	invariantResponse(recipient, 'Not found', { status: 404 })
+	if (!recipient || recipient.userId !== userId) {
+		throw new Response('Not found', { status: 404 })
+	}
 
 	await prisma.recipient.delete({ where: { id: recipient.id } })
 

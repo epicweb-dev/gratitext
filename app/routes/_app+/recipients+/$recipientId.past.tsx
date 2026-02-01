@@ -1,4 +1,3 @@
-import { invariantResponse } from '@epic-web/invariant'
 import {
 	Link,
 	data as json,
@@ -27,14 +26,19 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 	)
 
 	const recipient = await prisma.recipient.findUnique({
-		where: { id: params.recipientId, userId },
+		where: { id: params.recipientId },
 		select: {
 			name: true,
+			userId: true,
 			phoneNumber: true,
 		},
 	})
 
-	invariantResponse(recipient, 'Not found', { status: 404 })
+	if (!recipient || recipient.userId !== userId) {
+		throw new Response('Not found', { status: 404 })
+	}
+
+	const { userId: _userId, ...recipientData } = recipient
 
 	// Build the where clause for messages
 	const messageWhere = {
@@ -61,7 +65,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 	})
 
 	return json({
-		recipient,
+		recipient: recipientData,
 		searchQuery,
 		pagination: {
 			currentPage,
@@ -196,7 +200,11 @@ export default function RecipientRoute() {
 				/>
 			</div>
 
-			<ul className={cn('flex flex-col gap-3 sm:gap-4', { 'opacity-50': isPending })}>
+			<ul
+				className={cn('flex flex-col gap-3 sm:gap-4', {
+					'opacity-50': isPending,
+				})}
+			>
 				{data.pastMessages.length === 0 ? (
 					<li className="text-muted-foreground py-8 text-center">
 						{data.searchQuery
@@ -212,7 +220,7 @@ export default function RecipientRoute() {
 							<span className="text-muted-secondary-foreground min-w-36 text-xs font-semibold tracking-[0.15em] uppercase sm:text-sm sm:tracking-[0.2em]">
 								{m.sentAtDisplay}
 							</span>
-							<span className="break-words text-sm sm:text-base">
+							<span className="text-sm break-words sm:text-base">
 								{m.content}
 							</span>
 						</li>

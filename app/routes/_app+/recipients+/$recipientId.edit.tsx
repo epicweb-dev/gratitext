@@ -1,4 +1,3 @@
-import { invariantResponse } from '@epic-web/invariant'
 import {
 	data as json,
 	type LoaderFunctionArgs,
@@ -14,7 +13,7 @@ export { action } from './__editor.server.tsx'
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
 	const userId = await requireUserId(request)
-	const recipient = await prisma.recipient.findFirst({
+	const recipient = await prisma.recipient.findUnique({
 		select: {
 			id: true,
 			name: true,
@@ -23,17 +22,21 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 			timeZone: true,
 			verified: true,
 			disabled: true,
+			userId: true,
 		},
 		where: {
 			id: params.recipientId,
-			userId,
 		},
 	})
-	invariantResponse(recipient, 'Not found', { status: 404 })
+	if (!recipient || recipient.userId !== userId) {
+		throw new Response('Not found', { status: 404 })
+	}
 
 	const supportedTimeZones = Intl.supportedValuesOf('timeZone')
 
-	return json({ recipient, supportedTimeZones })
+	const { userId: _userId, ...recipientData } = recipient
+
+	return json({ recipient: recipientData, supportedTimeZones })
 }
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {

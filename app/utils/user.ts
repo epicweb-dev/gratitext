@@ -32,6 +32,21 @@ export type PermissionString =
 	| `${Action}:${Entity}`
 	| `${Action}:${Entity}:${Access}`
 
+type Permission = {
+	entity: Entity
+	action: Action
+	access: Access
+}
+
+type Role = {
+	name: string
+	permissions: Permission[]
+}
+
+type UserWithRoles = {
+	roles: Role[]
+}
+
 export function parsePermissionString(permissionString: PermissionString) {
 	const [action, entity, access] = permissionString.split(':') as [
 		Action,
@@ -46,7 +61,7 @@ export function parsePermissionString(permissionString: PermissionString) {
 }
 
 export function userHasPermission(
-	user: Pick<ReturnType<typeof useUser>, 'roles'> | null | undefined,
+	user: UserWithRoles | null | undefined,
 	permission: PermissionString,
 ) {
 	if (!user) return false
@@ -61,10 +76,7 @@ export function userHasPermission(
 	)
 }
 
-export function userHasRole(
-	user: Pick<ReturnType<typeof useUser>, 'roles'> | null,
-	role: string,
-) {
+export function userHasRole(user: UserWithRoles | null, role: string) {
 	if (!user) return false
 	return user.roles.some((r) => r.name === role)
 }
