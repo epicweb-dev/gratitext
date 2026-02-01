@@ -40,7 +40,10 @@ COPY --from=deps /myapp/node_modules /myapp/node_modules
 
 ADD prisma /myapp/prisma
 ADD prisma.config.ts /myapp/prisma.config.ts
-RUN npx prisma@7 generate
+ADD scripts /myapp/scripts
+RUN node scripts/ensure-prisma-db.mjs && \
+	node scripts/prepare-typed-sql.mjs && \
+	npx prisma@7 generate --sql
 
 ADD . .
 
