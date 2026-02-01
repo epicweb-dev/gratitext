@@ -57,7 +57,7 @@ script_checks = [ ]
   method = "get"
   path = "/resources/healthcheck"
   protocol = "http"
-  timeout = "2s"
+  timeout = "5s"
   tls_skip_verify = false
   headers = { }
 

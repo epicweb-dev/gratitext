@@ -9,6 +9,10 @@ import {
 	clearIntervalAsync,
 	setIntervalAsync,
 } from 'set-interval-async/dynamic'
+import {
+	getrecipientsforcron as getRecipientsForCron,
+	type getrecipientsforcron as getRecipientsForCronQuery,
+} from '#app/utils/prisma-generated.server/sql/getrecipientsforcron'
 import { prisma } from './db.server.ts'
 import { sendText, sendTextToRecipient } from './text.server.ts'
 
@@ -47,40 +51,55 @@ export async function init() {
 }
 
 export async function sendNextTexts() {
-	const recipients = await prisma.recipient.findMany({
-		where: {
-			verified: true,
-			disabled: false,
-			user: { stripeId: { not: null } },
-		},
-		select: {
-			id: true,
-			name: true,
-			scheduleCron: true,
-			timeZone: true,
-			lastRemindedAt: true,
-			messages: { orderBy: { sentAt: 'desc' }, take: 1 },
+	const rawRecipients = await prisma.$queryRawTyped(getRecipientsForCron())
+
+	type RawRecipient = getRecipientsForCronQuery.Result
+	type ReadyRecipient = RawRecipient & {
+		id: string
+		name: string
+		scheduleCron: string
+		timeZone: string
+		userPhoneNumber: string
+	}
+
+	const recipients = rawRecipients
+		.filter((recipient): recipient is ReadyRecipient =>
+			Boolean(
+				recipient.id &&
+					recipient.name &&
+					recipient.scheduleCron &&
+					recipient.timeZone &&
+					recipient.userPhoneNumber,
+			),
+		)
+		.map((recipient) => ({
+			id: recipient.id,
+			name: recipient.name,
+			scheduleCron: recipient.scheduleCron,
+			timeZone: recipient.timeZone,
+			lastRemindedAt: recipient.lastRemindedAt,
+			lastSentAt: recipient.lastSentAt,
 			user: {
-				select: { phoneNumber: true, name: true },
+				phoneNumber: recipient.userPhoneNumber,
+				name: recipient.userName,
 			},
-		},
-	})
+		}))
 
 	const messagesToSend = recipients
 		.map((recipient) => {
-			const { scheduleCron, messages, lastRemindedAt } = recipient
-			const lastMessage = messages[0]
+			const { scheduleCron, lastRemindedAt, lastSentAt } = recipient
 			try {
 				const interval = parseCronExpression(scheduleCron, {
 					tz: recipient.timeZone,
 				})
-				const lastSent = new Date(lastMessage?.sentAt ?? 0)
+				const lastSent = new Date(lastSentAt ?? 0)
 				const prev = interval.prev().toDate()
 				const next = interval.next().toDate()
 				const nextIsSoon = next.getTime() - Date.now() < 1000 * 60 * 30
 				const due = lastSent < prev
 				const remind =
-					nextIsSoon && (lastRemindedAt?.getTime() ?? 0) < prev.getTime()
+					nextIsSoon &&
+					new Date(lastRemindedAt ?? 0).getTime() < prev.getTime()
 
 				return {
 					recipient,

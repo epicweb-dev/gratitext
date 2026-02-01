@@ -15,6 +15,7 @@ FROM base as deps
 WORKDIR /myapp
 
 ADD package.json package-lock.json .npmrc ./
+ADD scripts /myapp/scripts
 ADD prisma /myapp/prisma
 ADD prisma.config.ts /myapp/prisma.config.ts
 RUN npm install --include=dev
@@ -40,7 +41,9 @@ COPY --from=deps /myapp/node_modules /myapp/node_modules
 
 ADD prisma /myapp/prisma
 ADD prisma.config.ts /myapp/prisma.config.ts
-RUN npx prisma@7 generate
+ADD scripts /myapp/scripts
+RUN node scripts/ensure-prisma-db.js && \
+	npx prisma@7 generate --sql
 
 ADD . .
 

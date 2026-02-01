@@ -7,6 +7,9 @@ export default defineConfig({
 		path: 'prisma/migrations',
 		seed: 'tsx prisma/seed.ts',
 	},
+	typedSql: {
+		path: 'prisma/sql',
+	},
 	datasource: {
 		url: process.env.DATABASE_URL || 'file:./prisma/sqlite.db',
 	},
