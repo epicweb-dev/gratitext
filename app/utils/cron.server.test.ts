@@ -3,10 +3,6 @@ import { test, expect } from 'vitest'
 import { createMessage, createRecipient, createUser } from '#tests/db-utils.ts'
 import { getScheduleWindow, sendNextTexts } from './cron.server.ts'
 import { prisma } from './db.server.ts'
-import {
-	NEXT_SCHEDULE_SENTINEL_DATE,
-	PREV_SCHEDULE_SENTINEL_DATE,
-} from './schedule-constants.server.ts'
 
 test('does not send any texts if there are none to be sent', async () => {
 	await prisma.sourceNumber.create({
@@ -93,18 +89,12 @@ test(`does not send a text if it is too overdue`, async () => {
 		data: { phoneNumber: faker.phone.number() },
 	})
 
-	// Use a cron that's monthly - too overdue to send
+	// Use a cron that's monthly, but force an overdue window within the reminder cutoff
 	const scheduleCron = '* * 1 * *'
 	const timeZone = 'America/Denver'
-	let scheduleData: { prevScheduledAt: Date; nextScheduledAt: Date }
-	try {
-		scheduleData = getScheduleWindow(scheduleCron, timeZone)
-	} catch {
-		scheduleData = {
-			prevScheduledAt: PREV_SCHEDULE_SENTINEL_DATE,
-			nextScheduledAt: NEXT_SCHEDULE_SENTINEL_DATE,
-		}
-	}
+	const now = new Date()
+	const prevScheduledAt = new Date(now.getTime() - 1000 * 60 * 60)
+	const nextScheduledAt = new Date(now.getTime() + 1000 * 60 * 5)
 
 	await prisma.user.create({
 		data: {
@@ -117,10 +107,15 @@ test(`does not send a text if it is too overdue`, async () => {
 						verified: true,
 						scheduleCron,
 						timeZone,
-						prevScheduledAt: scheduleData.prevScheduledAt,
-						nextScheduledAt: scheduleData.nextScheduledAt,
+						prevScheduledAt,
+						nextScheduledAt,
 						messages: {
-							create: { ...createMessage(), sentAt: null },
+							create: {
+								...createMessage(),
+								createdAt: new Date(prevScheduledAt.getTime() - 1000 * 60 * 2),
+								updatedAt: new Date(prevScheduledAt.getTime() - 1000 * 60),
+								sentAt: null,
+							},
 						},
 					},
 				],
