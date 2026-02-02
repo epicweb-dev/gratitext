@@ -74,7 +74,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 				Array<{ recipientId: string; unsentCount: number | bigint }>
 			>(Prisma.sql`
 				SELECT "recipientId", COUNT(*) AS "unsentCount"
-				FROM "Message"
+				FROM "Message" INDEXED BY "message_unsent_by_recipient"
 				WHERE "sentAt" IS NULL
 				AND "recipientId" IN (${Prisma.join(recipientIds)})
 				GROUP BY "recipientId"
