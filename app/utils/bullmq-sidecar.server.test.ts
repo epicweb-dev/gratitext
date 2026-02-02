@@ -11,17 +11,23 @@ import {
 
 describe('getSidecarIntervalMs', () => {
 	test('returns default for invalid values', () => {
-		const env: NodeJS.ProcessEnv = { CRON_SIDECAR_INTERVAL_MS: 'nope' }
+		const env = {
+			CRON_SIDECAR_INTERVAL_MS: 'nope',
+		} as NodeJS.ProcessEnv
 		expect(getSidecarIntervalMs(env)).toBe(DEFAULT_SIDECAR_INTERVAL_MS)
 	})
 
 	test('enforces minimum interval', () => {
-		const env: NodeJS.ProcessEnv = { CRON_SIDECAR_INTERVAL_MS: '250' }
+		const env = {
+			CRON_SIDECAR_INTERVAL_MS: '250',
+		} as NodeJS.ProcessEnv
 		expect(getSidecarIntervalMs(env)).toBe(MIN_SIDECAR_INTERVAL_MS)
 	})
 
 	test('returns configured interval when valid', () => {
-		const env: NodeJS.ProcessEnv = { CRON_SIDECAR_INTERVAL_MS: '2500' }
+		const env = {
+			CRON_SIDECAR_INTERVAL_MS: '2500',
+		} as NodeJS.ProcessEnv
 		expect(getSidecarIntervalMs(env)).toBe(2500)
 	})
 })
