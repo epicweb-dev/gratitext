@@ -273,7 +273,6 @@ export async function seedMissingRecipientJobs({
 	batchSize = JOB_SEED_BATCH_SIZE,
 	reschedule = true,
 }: { batchSize?: number; reschedule?: boolean } = {}) {
-	let lastId: string | undefined
 	let seededCount = 0
 	while (true) {
 		const recipients = await prisma.recipient.findMany({
@@ -288,19 +287,12 @@ export async function seedMissingRecipientJobs({
 			},
 			orderBy: { id: 'asc' },
 			take: batchSize,
-			...(lastId
-				? {
-						cursor: { id: lastId },
-						skip: 1,
-					}
-				: {}),
 		})
 		if (!recipients.length) break
 		for (const recipient of recipients) {
 			await upsertRecipientJobFromData(recipient, { reschedule: false })
 			seededCount++
 		}
-		lastId = recipients[recipients.length - 1]?.id
 	}
 	if (seededCount && reschedule) await requestJobReschedule()
 	return seededCount
