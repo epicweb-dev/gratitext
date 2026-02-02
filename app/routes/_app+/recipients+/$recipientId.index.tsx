@@ -48,13 +48,66 @@ type FutureMessage = LoaderData['futureMessages'][number]
 
 const PAST_MESSAGES_PER_PAGE = 30
 
-function getDateRange(value: string) {
+function getDateRange(value: string, timeZone: string) {
 	if (!value) return null
-	const start = new Date(`${value}T00:00:00`)
-	if (Number.isNaN(start.getTime())) return null
-	const end = new Date(start)
-	end.setDate(start.getDate() + 1)
-	return { start, end }
+	const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+	if (!match) return null
+	const year = Number(match[1])
+	const month = Number(match[2])
+	const day = Number(match[3])
+	if (!year || !month || !day) return null
+	try {
+		const start = getDateInTimeZone(year, month, day, timeZone)
+		if (Number.isNaN(start.getTime())) return null
+		const nextDay = new Date(Date.UTC(year, month - 1, day + 1))
+		const end = getDateInTimeZone(
+			nextDay.getUTCFullYear(),
+			nextDay.getUTCMonth() + 1,
+			nextDay.getUTCDate(),
+			timeZone,
+		)
+		if (Number.isNaN(end.getTime())) return null
+		return { start, end }
+	} catch {
+		return null
+	}
+}
+
+function getDateInTimeZone(
+	year: number,
+	month: number,
+	day: number,
+	timeZone: string,
+) {
+	const utcDate = new Date(Date.UTC(year, month - 1, day))
+	const offset = getTimeZoneOffset(utcDate, timeZone)
+	return new Date(utcDate.getTime() - offset)
+}
+
+function getTimeZoneOffset(date: Date, timeZone: string) {
+	const formatter = new Intl.DateTimeFormat('en-US', {
+		timeZone,
+		year: 'numeric',
+		month: '2-digit',
+		day: '2-digit',
+		hour: '2-digit',
+		minute: '2-digit',
+		second: '2-digit',
+		hourCycle: 'h23',
+	})
+	const parts = formatter.formatToParts(date)
+	const values = Object.fromEntries(
+		parts.map(({ type, value }) => [type, value]),
+	)
+	const asUTC = Date.UTC(
+		Number(values.year),
+		Number(values.month) - 1,
+		Number(values.day),
+		Number(values.hour),
+		Number(values.minute),
+		Number(values.second),
+	)
+	return asUTC - date.getTime()
 }
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
@@ -64,7 +117,6 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 	const searchQuery = url.searchParams.get('search') ?? ''
 	const dateFilter = url.searchParams.get('date') ?? ''
 	const cursor = url.searchParams.get('cursor')
-	const dateRange = getDateRange(dateFilter)
 	const recipient = await prisma.recipient.findUnique({
 		where: { id: params.recipientId },
 		select: {
@@ -88,6 +140,10 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 		where: { phoneNumber: recipient.phoneNumber },
 	})
 
+	const dateRange = getDateRange(
+		dateFilter,
+		hints.timeZone ?? recipient.timeZone,
+	)
 	const sentAtFilter = dateRange
 		? { gte: dateRange.start, lt: dateRange.end }
 		: { not: null }
@@ -371,8 +427,9 @@ export default function RecipientRoute() {
 	const loadMoreData = loadMoreFetcher.data ?? null
 	const [pastMessages, setPastMessages] = useState(data.pastMessages)
 	const [pastNextCursor, setPastNextCursor] = useState(data.nextCursor)
-	const [scrollContainer, setScrollContainer] =
-		useState<HTMLDivElement | null>(null)
+	const [scrollContainer, setScrollContainer] = useState<HTMLDivElement | null>(
+		null,
+	)
 	const pendingScrollRef = useRef<{ height: number; top: number } | null>(null)
 	const shouldScrollToBottomRef = useRef(true)
 	const isLoadingMore = loadMoreFetcher.state !== 'idle'
@@ -438,7 +495,8 @@ export default function RecipientRoute() {
 		}
 		const pending = pendingScrollRef.current
 		if (!pending) return
-		container.scrollTop = pending.top + (container.scrollHeight - pending.height)
+		container.scrollTop =
+			pending.top + (container.scrollHeight - pending.height)
 		pendingScrollRef.current = null
 	}, [pastMessages, scrollContainer])
 
@@ -510,13 +568,13 @@ export default function RecipientRoute() {
 							className="border-border/60 bg-muted max-h-[65vh] overflow-y-auto rounded-[24px] border px-4 py-5 sm:px-5 sm:py-6"
 						>
 							<div className="flex flex-col gap-4">
-								<div className="text-muted-foreground flex flex-col items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em]">
+								<div className="text-muted-foreground flex flex-col items-center gap-2 text-xs font-semibold tracking-[0.2em] uppercase">
 									<span aria-live="polite">{loadMoreLabel}</span>
 								</div>
 								<ul className="flex flex-col gap-4 sm:gap-5">
 									{pastMessagesForDisplay.map((m) => (
 										<li key={m.id} className="flex flex-col items-end gap-1">
-											<div className="bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] max-w-[75%] rounded-[24px] px-4 py-3 text-sm leading-relaxed shadow-sm sm:max-w-[65%] sm:px-5 sm:py-4">
+											<div className="max-w-[75%] rounded-[24px] bg-[hsl(var(--palette-green-500))] px-4 py-3 text-sm leading-relaxed text-[hsl(var(--palette-cream))] shadow-sm sm:max-w-[65%] sm:px-5 sm:py-4">
 												<p className="whitespace-pre-wrap">{m.content}</p>
 											</div>
 											<time
