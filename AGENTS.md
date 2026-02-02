@@ -11,7 +11,17 @@ regular schedule.
 
 ### Setup script
 
-Run `npm run setup` to:
+Start with:
+
+```
+git clone https://github.com/kentcdodds/gratitext.git
+cd gratitext
+cp .env.example .env
+npm install
+npm run setup
+```
+
+The `npm run setup` script does the following:
 
 - Build the app
 - Ensure the Prisma DB is present
