@@ -4,6 +4,10 @@ import { data as json, redirect, type ActionFunctionArgs } from 'react-router'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { getScheduleWindow } from '#app/utils/cron.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
+import {
+	NEXT_SCHEDULE_SENTINEL_DATE,
+	PREV_SCHEDULE_SENTINEL_DATE,
+} from '#app/utils/schedule-constants.server.ts'
 import { sendText } from '#app/utils/text.server.js'
 import { redirectWithToast } from '#app/utils/toast.server.js'
 import {
@@ -154,23 +158,21 @@ export async function usertRecipientAction({
 		disabled,
 	} = submission.value
 
-	let scheduleData: { prevScheduledAt: Date; nextScheduledAt: Date } | null =
-		null
+	let scheduleData: { prevScheduledAt: Date; nextScheduledAt: Date }
 	try {
 		scheduleData = getScheduleWindow(scheduleCron, timeZone)
 	} catch {
-		scheduleData = null
+		// Use sentinel dates when schedule can't be computed
+		scheduleData = {
+			prevScheduledAt: PREV_SCHEDULE_SENTINEL_DATE,
+			nextScheduledAt: NEXT_SCHEDULE_SENTINEL_DATE,
+		}
 	}
 
-	const scheduleFields = scheduleData
-		? {
-				prevScheduledAt: scheduleData.prevScheduledAt,
-				nextScheduledAt: scheduleData.nextScheduledAt,
-			}
-		: {
-				prevScheduledAt: null,
-				nextScheduledAt: null,
-			}
+	const scheduleFields = {
+		prevScheduledAt: scheduleData.prevScheduledAt,
+		nextScheduledAt: scheduleData.nextScheduledAt,
+	}
 
 	const user = await prisma.user.findUnique({
 		where: { id: userId },

@@ -10,6 +10,11 @@ import {
 	setIntervalAsync,
 } from 'set-interval-async/dynamic'
 import { prisma } from './db.server.ts'
+import { getrecipientsforcron } from './prisma-generated.server/sql.ts'
+import {
+	NEXT_SCHEDULE_SENTINEL_DATE,
+	PREV_SCHEDULE_SENTINEL_DATE,
+} from './schedule-constants.server.ts'
 import { sendText, sendTextToRecipient } from './text.server.ts'
 
 export class CronParseError extends Error {
@@ -68,47 +73,40 @@ export async function sendNextTexts() {
 	const reminderWindowMs = 1000 * 60 * 30
 	const reminderCutoff = new Date(now.getTime() + reminderWindowMs)
 
-	const recipients = await prisma.recipient.findMany({
-		where: {
-			verified: true,
-			disabled: false,
-			user: { stripeId: { not: null } },
-			OR: [
-				{ nextScheduledAt: { lte: reminderCutoff } },
-				{ nextScheduledAt: null },
-			],
-		},
-		select: {
-			id: true,
-			name: true,
-			scheduleCron: true,
-			timeZone: true,
-			prevScheduledAt: true,
-			nextScheduledAt: true,
-			lastRemindedAt: true,
-			lastSentAt: true,
-			user: {
-				select: {
-					phoneNumber: true,
-					name: true,
-				},
-			},
-		},
-	})
+	// Optimized TypedSQL query that:
+	// 1. Uses INNER JOIN (we filter by User.stripeId, so LEFT JOIN is unnecessary)
+	// 2. Uses the composite index on (verified, disabled, nextScheduledAt, userId)
+	// 3. Handles both regular scheduled recipients and those with sentinel dates
+	// Note: NEXT_SCHEDULE_SENTINEL_DATE (9999-12-31) will always be > reminderCutoff,
+	// so recipients with invalid schedules won't be included
+	const recipients = await prisma.$queryRawTyped(
+		getrecipientsforcron(reminderCutoff),
+	)
 
-	if (!recipients.length) return
+	// Transform the raw result to match the expected format
+	const formattedRecipients = recipients.map((r) => ({
+		...r,
+		user: {
+			phoneNumber: r.userPhoneNumber,
+			name: r.userName,
+		},
+	}))
+
+	if (!formattedRecipients.length) return
 
 	let dueSentCount = 0
 	let reminderSentCount = 0
-	for (const recipient of recipients) {
+	for (const recipient of formattedRecipients) {
 		let scheduleWindow: {
 			prevScheduledAt: Date
 			nextScheduledAt: Date
-		} | null = null
+		}
 		if (
 			recipient.prevScheduledAt &&
 			recipient.nextScheduledAt &&
-			recipient.nextScheduledAt > now
+			recipient.nextScheduledAt > now &&
+			recipient.nextScheduledAt.getTime() !==
+				NEXT_SCHEDULE_SENTINEL_DATE.getTime()
 		) {
 			scheduleWindow = {
 				prevScheduledAt: recipient.prevScheduledAt,
@@ -126,6 +124,14 @@ export async function sendNextTexts() {
 					`Invalid cron string "${recipient.scheduleCron}" for recipient ${recipient.id}:`,
 					error instanceof Error ? error.message : error,
 				)
+				// Update with sentinel dates to prevent repeated processing
+				await prisma.recipient.update({
+					where: { id: recipient.id },
+					data: {
+						prevScheduledAt: PREV_SCHEDULE_SENTINEL_DATE,
+						nextScheduledAt: NEXT_SCHEDULE_SENTINEL_DATE,
+					},
+				})
 				continue
 			}
 		}

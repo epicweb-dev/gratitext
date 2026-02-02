@@ -1,7 +1,12 @@
 import { faker } from '@faker-js/faker'
 import bcrypt from 'bcryptjs'
 import { UniqueEnforcer } from 'enforce-unique'
+import { getScheduleWindow } from '#app/utils/cron.server.ts'
 import { type PrismaClient } from '#app/utils/prisma-generated.server/client.ts'
+import {
+	NEXT_SCHEDULE_SENTINEL_DATE,
+	PREV_SCHEDULE_SENTINEL_DATE,
+} from '#app/utils/schedule-constants.server.ts'
 
 const uniqueUsernameEnforcer = new UniqueEnforcer()
 const uniquePhoneEnforcer = new UniqueEnforcer()
@@ -58,13 +63,28 @@ export function createMessage() {
 }
 
 export function createRecipient() {
+	const scheduleCron = faker.system.cron()
+	const timeZone = 'America/Denver'
+
+	// Compute schedule window, using sentinel date if cron is invalid
+	let scheduleData: { prevScheduledAt: Date; nextScheduledAt: Date }
+	try {
+		scheduleData = getScheduleWindow(scheduleCron, timeZone)
+	} catch {
+		scheduleData = {
+			prevScheduledAt: PREV_SCHEDULE_SENTINEL_DATE,
+			nextScheduledAt: NEXT_SCHEDULE_SENTINEL_DATE,
+		}
+	}
+
 	return {
 		phoneNumber: createPhoneNumber(),
 		name: faker.person.fullName(),
 		verified: faker.datatype.boolean(),
-		// TODO: make sure this doesn't generate a cron string that's too frequent
-		scheduleCron: faker.system.cron(),
-		timeZone: 'America/Denver',
+		scheduleCron,
+		timeZone,
+		prevScheduledAt: scheduleData.prevScheduledAt,
+		nextScheduledAt: scheduleData.nextScheduledAt,
 	}
 }
 

@@ -3,6 +3,8 @@ import { performance } from 'node:perf_hooks'
 import { parseArgs } from 'node:util'
 import { CronParseError, getScheduleWindow } from '#app/utils/cron.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
+import { getrecipientsforcron } from '#app/utils/prisma-generated.server/sql.ts'
+import { NEXT_SCHEDULE_SENTINEL_DATE } from '#app/utils/schedule-constants.server.ts'
 
 const MESSAGES_PER_PAGE = 100
 
@@ -128,10 +130,14 @@ async function benchmarkRecipientsList(
 		const sortedRecipients = recipients
 			.map((recipient) => {
 				try {
+					const isSentinel =
+						recipient.nextScheduledAt?.getTime() ===
+						NEXT_SCHEDULE_SENTINEL_DATE.getTime()
 					const scheduleWindow =
 						recipient.nextScheduledAt &&
 						recipient.prevScheduledAt &&
-						recipient.nextScheduledAt > now
+						recipient.nextScheduledAt > now &&
+						!isSentinel
 							? {
 									nextScheduledAt: recipient.nextScheduledAt,
 									prevScheduledAt: recipient.prevScheduledAt,
@@ -272,27 +278,11 @@ async function benchmarkCron(iterations: number): Promise<BenchResult> {
 		const reminderWindowMs = 1000 * 60 * 30
 		const reminderCutoff = new Date(now.getTime() + reminderWindowMs)
 		const queryStart = performance.now()
-		const rawRecipients = await prisma.recipient.findMany({
-			where: {
-				verified: true,
-				disabled: false,
-				user: { stripeId: { not: null } },
-				OR: [
-					{ nextScheduledAt: { lte: reminderCutoff } },
-					{ nextScheduledAt: null },
-				],
-			},
-			select: {
-				id: true,
-				name: true,
-				scheduleCron: true,
-				timeZone: true,
-				lastRemindedAt: true,
-				lastSentAt: true,
-				prevScheduledAt: true,
-				nextScheduledAt: true,
-			},
-		})
+
+		// Use optimized TypedSQL query (same as production cron.server.ts)
+		const rawRecipients = await prisma.$queryRawTyped(
+			getrecipientsforcron(reminderCutoff),
+		)
 		const queryMs = performance.now() - queryStart
 
 		const computeStart = performance.now()
@@ -301,10 +291,14 @@ async function benchmarkCron(iterations: number): Promise<BenchResult> {
 		let errors = 0
 		for (const recipient of rawRecipients) {
 			try {
+				const isSentinel =
+					recipient.nextScheduledAt?.getTime() ===
+					NEXT_SCHEDULE_SENTINEL_DATE.getTime()
 				const scheduleWindow =
 					recipient.nextScheduledAt &&
 					recipient.prevScheduledAt &&
-					recipient.nextScheduledAt > now
+					recipient.nextScheduledAt > now &&
+					!isSentinel
 						? {
 								nextScheduledAt: recipient.nextScheduledAt,
 								prevScheduledAt: recipient.prevScheduledAt,
