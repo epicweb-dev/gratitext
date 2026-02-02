@@ -6,10 +6,12 @@ DROP INDEX IF EXISTS "Recipient_verified_disabled_idx";
 DROP INDEX IF EXISTS "Recipient_nextScheduledAt_idx";
 DROP INDEX IF EXISTS "Recipient_userId_nextScheduledAt_idx";
 
--- Update NULL nextScheduledAt values to sentinel date (9999-12-31)
+-- Update NULL schedule values to sentinel dates
+-- nextScheduledAt uses far-future date (9999-12-31) - will be filtered out by the query
+-- prevScheduledAt uses far-past date (1970-01-01) - indicates no previous schedule
 -- This eliminates the OR ... IS NULL pattern which defeats index usage in SQLite
 UPDATE "Recipient" SET "nextScheduledAt" = '9999-12-31T23:59:59.999Z' WHERE "nextScheduledAt" IS NULL;
-UPDATE "Recipient" SET "prevScheduledAt" = '9999-12-31T23:59:59.999Z' WHERE "prevScheduledAt" IS NULL;
+UPDATE "Recipient" SET "prevScheduledAt" = '1970-01-01T00:00:00.000Z' WHERE "prevScheduledAt" IS NULL;
 
 -- Create optimized composite index for the cron query
 -- Order: equality columns first (verified, disabled), then range column (nextScheduledAt), then join column (userId)

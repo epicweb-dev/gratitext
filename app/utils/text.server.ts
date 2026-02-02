@@ -1,7 +1,10 @@
 import { z } from 'zod'
 import { getScheduleWindow } from './cron.server.ts'
 import { prisma } from './db.server.ts'
-import { SCHEDULE_SENTINEL_DATE } from './schedule-constants.server.ts'
+import {
+	NEXT_SCHEDULE_SENTINEL_DATE,
+	PREV_SCHEDULE_SENTINEL_DATE,
+} from './schedule-constants.server.ts'
 import { getCustomerProducts } from './stripe.server.ts'
 
 const { TWILIO_SID, TWILIO_TOKEN } = process.env
@@ -105,10 +108,10 @@ export async function sendTextToRecipient({
 				sentAt,
 			)
 		} catch {
-			// Use sentinel date when schedule can't be computed
+			// Use sentinel dates when schedule can't be computed
 			scheduleData = {
-				prevScheduledAt: SCHEDULE_SENTINEL_DATE,
-				nextScheduledAt: SCHEDULE_SENTINEL_DATE,
+				prevScheduledAt: PREV_SCHEDULE_SENTINEL_DATE,
+				nextScheduledAt: NEXT_SCHEDULE_SENTINEL_DATE,
 			}
 		}
 

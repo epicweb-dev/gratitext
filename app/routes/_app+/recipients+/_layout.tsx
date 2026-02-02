@@ -8,7 +8,10 @@ import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { requireUserId } from '#app/utils/auth.server.js'
 import { CronParseError, getScheduleWindow } from '#app/utils/cron.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
-import { SCHEDULE_SENTINEL_DATE } from '#app/utils/schedule-constants.server.ts'
+import {
+	NEXT_SCHEDULE_SENTINEL_DATE,
+	PREV_SCHEDULE_SENTINEL_DATE,
+} from '#app/utils/schedule-constants.server.ts'
 import { getCustomerProducts } from '#app/utils/stripe.server.ts'
 
 function formatScheduleDisplay(date: Date, timeZone: string) {
@@ -62,7 +65,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			let prevScheduledAt = recipient.prevScheduledAt
 			// Check if current value is the sentinel date (invalid schedule)
 			const isSentinel =
-				nextScheduledAt?.getTime() === SCHEDULE_SENTINEL_DATE.getTime()
+				nextScheduledAt?.getTime() === NEXT_SCHEDULE_SENTINEL_DATE.getTime()
 			try {
 				if (
 					!nextScheduledAt ||
@@ -97,21 +100,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
 					cronError: null as string | null,
 				}
 			} catch (error) {
-				// Use sentinel date for invalid schedules, update if needed
+				// Use sentinel dates for invalid schedules, update if needed
 				const needsSentinelUpdate =
 					!recipient.nextScheduledAt ||
-					recipient.nextScheduledAt.getTime() !== SCHEDULE_SENTINEL_DATE.getTime()
+					recipient.nextScheduledAt.getTime() !==
+						NEXT_SCHEDULE_SENTINEL_DATE.getTime()
 				if (needsSentinelUpdate) {
 					scheduleUpdates.push({
 						id: recipient.id,
-						prevScheduledAt: SCHEDULE_SENTINEL_DATE,
-						nextScheduledAt: SCHEDULE_SENTINEL_DATE,
+						prevScheduledAt: PREV_SCHEDULE_SENTINEL_DATE,
+						nextScheduledAt: NEXT_SCHEDULE_SENTINEL_DATE,
 					})
 				}
 				return {
 					...recipient,
-					prevScheduledAt: prevScheduledAt ?? SCHEDULE_SENTINEL_DATE,
-					nextScheduledAt: SCHEDULE_SENTINEL_DATE, // Sentinel date for sorting
+					prevScheduledAt: prevScheduledAt ?? PREV_SCHEDULE_SENTINEL_DATE,
+					nextScheduledAt: NEXT_SCHEDULE_SENTINEL_DATE, // Sentinel date for sorting
 					cronError:
 						error instanceof CronParseError ? error.message : 'Invalid cron',
 				}

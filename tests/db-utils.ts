@@ -3,7 +3,10 @@ import bcrypt from 'bcryptjs'
 import { UniqueEnforcer } from 'enforce-unique'
 import { getScheduleWindow } from '#app/utils/cron.server.ts'
 import { type PrismaClient } from '#app/utils/prisma-generated.server/client.ts'
-import { SCHEDULE_SENTINEL_DATE } from '#app/utils/schedule-constants.server.ts'
+import {
+	NEXT_SCHEDULE_SENTINEL_DATE,
+	PREV_SCHEDULE_SENTINEL_DATE,
+} from '#app/utils/schedule-constants.server.ts'
 
 const uniqueUsernameEnforcer = new UniqueEnforcer()
 const uniquePhoneEnforcer = new UniqueEnforcer()
@@ -69,8 +72,8 @@ export function createRecipient() {
 		scheduleData = getScheduleWindow(scheduleCron, timeZone)
 	} catch {
 		scheduleData = {
-			prevScheduledAt: SCHEDULE_SENTINEL_DATE,
-			nextScheduledAt: SCHEDULE_SENTINEL_DATE,
+			prevScheduledAt: PREV_SCHEDULE_SENTINEL_DATE,
+			nextScheduledAt: NEXT_SCHEDULE_SENTINEL_DATE,
 		}
 	}
 

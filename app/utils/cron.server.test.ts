@@ -3,7 +3,10 @@ import { test, expect } from 'vitest'
 import { createMessage, createRecipient, createUser } from '#tests/db-utils.ts'
 import { getScheduleWindow, sendNextTexts } from './cron.server.ts'
 import { prisma } from './db.server.ts'
-import { SCHEDULE_SENTINEL_DATE } from './schedule-constants.server.ts'
+import {
+	NEXT_SCHEDULE_SENTINEL_DATE,
+	PREV_SCHEDULE_SENTINEL_DATE,
+} from './schedule-constants.server.ts'
 
 test('does not send any texts if there are none to be sent', async () => {
 	await prisma.sourceNumber.create({
@@ -97,8 +100,8 @@ test(`does not send a text if it is too overdue`, async () => {
 		scheduleData = getScheduleWindow(scheduleCron, timeZone)
 	} catch {
 		scheduleData = {
-			prevScheduledAt: SCHEDULE_SENTINEL_DATE,
-			nextScheduledAt: SCHEDULE_SENTINEL_DATE,
+			prevScheduledAt: PREV_SCHEDULE_SENTINEL_DATE,
+			nextScheduledAt: NEXT_SCHEDULE_SENTINEL_DATE,
 		}
 	}
 
