@@ -1,4 +1,5 @@
 import path from 'node:path'
+import Database from 'better-sqlite3'
 import { execaCommand } from 'execa'
 import fsExtra from 'fs-extra'
 
@@ -6,6 +7,19 @@ export const BASE_DATABASE_PATH = path.join(
 	process.cwd(),
 	`./tests/prisma/base.db`,
 )
+
+function hasSeedData() {
+	try {
+		const db = new Database(BASE_DATABASE_PATH, { readonly: true })
+		const row = db
+			.prepare('select count(*) as count from "SourceNumber"')
+			.get() as { count?: number }
+		db.close()
+		return Number(row?.count ?? 0) > 0
+	} catch {
+		return false
+	}
+}
 
 export async function setup() {
 	const databaseExists = await fsExtra.pathExists(BASE_DATABASE_PATH)
@@ -17,7 +31,10 @@ export async function setup() {
 			await fsExtra.stat('./prisma/schema.prisma')
 		).mtime
 
-		if (prismaSchemaLastModifiedAt < databaseLastModifiedAt) {
+		if (
+			prismaSchemaLastModifiedAt < databaseLastModifiedAt &&
+			hasSeedData()
+		) {
 			return
 		}
 	}
