@@ -91,13 +91,9 @@ let updatePrimaryCacheValuePromise: Promise<UpdatePrimaryCacheValue> | null =
 async function getUpdatePrimaryCacheValue(): Promise<UpdatePrimaryCacheValue> {
 	if (!updatePrimaryCacheValuePromise) {
 		updatePrimaryCacheValuePromise =
-			import('#app/routes/_app+/admin+/cache_.sqlite.server.js')
-				.then((mod) => mod.updatePrimaryCacheValue)
-				.catch(async () => {
-					const mod =
-						await import('#app/routes/_app+/admin+/cache_.sqlite.server.ts')
-					return mod.updatePrimaryCacheValue
-				})
+			import('#app/routes/_app+/admin+/cache_.sqlite.server.ts').then(
+				(mod) => mod.updatePrimaryCacheValue,
+			)
 	}
 	return updatePrimaryCacheValuePromise
 }
