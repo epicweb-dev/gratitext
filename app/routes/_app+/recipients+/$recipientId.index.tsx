@@ -441,12 +441,6 @@ function MessageForms({
 		})
 	}
 
-	const handleContentInput: React.FormEventHandler<HTMLTextAreaElement> = (
-		event,
-	) => {
-		setCurrentContent(event.currentTarget.value)
-	}
-
 	const handleDeleteSelect = (event: Event) => {
 		if (!confirmDelete) {
 			event.preventDefault()
@@ -549,7 +543,9 @@ function MessageForms({
 						</label>
 						<textarea
 							{...textareaProps}
-							onInput={handleContentInput}
+							onInput={(event) => {
+								setCurrentContent(event.currentTarget.value)
+							}}
 							ref={textareaRef}
 							className="mt-4 w-full resize-none bg-transparent text-sm leading-relaxed text-[hsl(var(--palette-cream))] placeholder:text-[hsl(var(--palette-cream))]/80 focus-visible:outline-none"
 							rows={4}
