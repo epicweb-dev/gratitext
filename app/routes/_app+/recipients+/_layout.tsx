@@ -4,6 +4,7 @@ import {
 	Outlet,
 	useLoaderData,
 } from 'react-router'
+import { Prisma } from '@prisma/client'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { requireUserId } from '#app/utils/auth.server.js'
 import { CronParseError, getScheduleWindow } from '#app/utils/cron.server.ts'
@@ -34,8 +35,21 @@ function formatScheduleDisplay(date: Date, timeZone: string) {
 	return `Every ${weekday} at ${hour}:${minute} ${dayPeriod} ${timeZoneName}`.trim()
 }
 
+const DEFAULT_RECIPIENTS_PAGE_SIZE = 200
+const MAX_RECIPIENTS_PAGE_SIZE = 1000
+
+function parsePageSize(value: string | null) {
+	const parsed = Number(value ?? DEFAULT_RECIPIENTS_PAGE_SIZE)
+	if (!Number.isFinite(parsed)) return DEFAULT_RECIPIENTS_PAGE_SIZE
+	return Math.min(MAX_RECIPIENTS_PAGE_SIZE, Math.max(1, Math.floor(parsed)))
+}
+
 export async function loader({ request }: LoaderFunctionArgs) {
 	const userId = await requireUserId(request)
+	const url = new URL(request.url)
+	const pageSize = parsePageSize(url.searchParams.get('limit'))
+	const cursor = url.searchParams.get('cursor')
+
 	const recipients = await prisma.recipient.findMany({
 		select: {
 			id: true,
@@ -46,10 +60,36 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			disabled: true,
 			prevScheduledAt: true,
 			nextScheduledAt: true,
-			_count: { select: { messages: { where: { sentAt: null } } } },
 		},
-		where: { userId },
+		where: {
+			userId,
+			...(cursor ? { id: { gt: cursor } } : {}),
+		},
+		orderBy: { id: 'asc' },
+		take: pageSize,
 	})
+	const recipientIds = recipients.map((recipient) => recipient.id)
+	const messageCounts = recipientIds.length
+		? await prisma.$queryRaw<
+				Array<{ recipientId: string; unsentCount: number | bigint }>
+			>(Prisma.sql`
+				SELECT "recipientId", COUNT(*) AS "unsentCount"
+				FROM "Message"
+				WHERE "sentAt" IS NULL
+				AND "recipientId" IN (${Prisma.join(recipientIds)})
+				GROUP BY "recipientId"
+			`)
+		: []
+	const messageCountByRecipientId = new Map(
+		messageCounts.map((row) => [
+			row.recipientId,
+			Number(row.unsentCount),
+		]),
+	)
+	const recipientsWithCounts = recipients.map((recipient) => ({
+		...recipient,
+		messageCount: messageCountByRecipientId.get(recipient.id) ?? 0,
+	}))
 
 	const now = new Date()
 	const scheduleUpdates: Array<{
@@ -59,7 +99,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	}> = []
 
 	// Ensure we have a schedule window for sorting/display
-	const sortedRecipients = recipients
+	const sortedRecipients = recipientsWithCounts
 		.map((recipient) => {
 			let nextScheduledAt = recipient.nextScheduledAt
 			let prevScheduledAt = recipient.prevScheduledAt

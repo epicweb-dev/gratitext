@@ -67,7 +67,7 @@ export default function RecipientsIndexRoute() {
 				{hasRecipients ? (
 					<div className="md:divide-border space-y-4 md:space-y-0 md:divide-y">
 						{recipients.map((recipient) => {
-							const messageCount = recipient._count.messages
+							const messageCount = recipient.messageCount
 							const messageLabel = messageCount === 1 ? 'message' : 'messages'
 							const messageText = `${messageCount} ${messageLabel}`
 							const messagePreparedText = `${messageText} prepared`
