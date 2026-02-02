@@ -3,6 +3,7 @@ import { performance } from 'node:perf_hooks'
 import { parseArgs } from 'node:util'
 import { CronParseError, getScheduleWindow } from '#app/utils/cron.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
+import { SCHEDULE_SENTINEL_DATE } from '#app/utils/schedule-constants.server.ts'
 
 const MESSAGES_PER_PAGE = 100
 
@@ -128,10 +129,14 @@ async function benchmarkRecipientsList(
 		const sortedRecipients = recipients
 			.map((recipient) => {
 				try {
+					const isSentinel =
+						recipient.nextScheduledAt?.getTime() ===
+						SCHEDULE_SENTINEL_DATE.getTime()
 					const scheduleWindow =
 						recipient.nextScheduledAt &&
 						recipient.prevScheduledAt &&
-						recipient.nextScheduledAt > now
+						recipient.nextScheduledAt > now &&
+						!isSentinel
 							? {
 									nextScheduledAt: recipient.nextScheduledAt,
 									prevScheduledAt: recipient.prevScheduledAt,
@@ -262,6 +267,17 @@ async function benchmarkPastMessages(
 	}
 }
 
+type CronBenchRecipient = {
+	id: string
+	name: string
+	scheduleCron: string
+	timeZone: string
+	prevScheduledAt: Date | null
+	nextScheduledAt: Date | null
+	lastRemindedAt: Date | null
+	lastSentAt: Date | null
+}
+
 async function benchmarkCron(iterations: number): Promise<BenchResult> {
 	const querySamples: number[] = []
 	const computeSamples: number[] = []
@@ -272,27 +288,26 @@ async function benchmarkCron(iterations: number): Promise<BenchResult> {
 		const reminderWindowMs = 1000 * 60 * 30
 		const reminderCutoff = new Date(now.getTime() + reminderWindowMs)
 		const queryStart = performance.now()
-		const rawRecipients = await prisma.recipient.findMany({
-			where: {
-				verified: true,
-				disabled: false,
-				user: { stripeId: { not: null } },
-				OR: [
-					{ nextScheduledAt: { lte: reminderCutoff } },
-					{ nextScheduledAt: null },
-				],
-			},
-			select: {
-				id: true,
-				name: true,
-				scheduleCron: true,
-				timeZone: true,
-				lastRemindedAt: true,
-				lastSentAt: true,
-				prevScheduledAt: true,
-				nextScheduledAt: true,
-			},
-		})
+
+		// Use optimized raw SQL query (same as production cron.server.ts)
+		const rawRecipients = await prisma.$queryRaw<CronBenchRecipient[]>`
+			SELECT
+				r.id,
+				r.name,
+				r.scheduleCron,
+				r.timeZone,
+				r.prevScheduledAt,
+				r.nextScheduledAt,
+				r.lastRemindedAt,
+				r.lastSentAt
+			FROM Recipient r
+			INNER JOIN User u ON u.id = r.userId
+			WHERE r.verified = 1
+				AND r.disabled = 0
+				AND u.stripeId IS NOT NULL
+				AND r.nextScheduledAt <= ${reminderCutoff}
+			ORDER BY r.nextScheduledAt ASC
+		`
 		const queryMs = performance.now() - queryStart
 
 		const computeStart = performance.now()
@@ -301,10 +316,14 @@ async function benchmarkCron(iterations: number): Promise<BenchResult> {
 		let errors = 0
 		for (const recipient of rawRecipients) {
 			try {
+				const isSentinel =
+					recipient.nextScheduledAt?.getTime() ===
+					SCHEDULE_SENTINEL_DATE.getTime()
 				const scheduleWindow =
 					recipient.nextScheduledAt &&
 					recipient.prevScheduledAt &&
-					recipient.nextScheduledAt > now
+					recipient.nextScheduledAt > now &&
+					!isSentinel
 						? {
 								nextScheduledAt: recipient.nextScheduledAt,
 								prevScheduledAt: recipient.prevScheduledAt,

@@ -3,6 +3,7 @@ import { performance } from 'node:perf_hooks'
 import { parseArgs } from 'node:util'
 import { getScheduleWindow } from '#app/utils/cron.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
+import { SCHEDULE_SENTINEL_DATE } from '#app/utils/schedule-constants.server.ts'
 
 type BackfillOptions = {
 	batchSize: number
@@ -61,15 +62,20 @@ async function run() {
 
 		const updates = recipients.flatMap((recipient) => {
 			const lastSentAt = lastSentMap.get(recipient.id) ?? null
+			// Check if current value is the sentinel date
+			const isSentinel =
+				recipient.nextScheduledAt?.getTime() ===
+				SCHEDULE_SENTINEL_DATE.getTime()
 			const shouldUpdateSchedule =
 				!options.onlyMissing ||
 				!recipient.prevScheduledAt ||
-				!recipient.nextScheduledAt
+				!recipient.nextScheduledAt ||
+				isSentinel
 			const shouldUpdateLastSent = !options.onlyMissing || !recipient.lastSentAt
 
 			const data: {
-				prevScheduledAt?: Date | null
-				nextScheduledAt?: Date | null
+				prevScheduledAt?: Date
+				nextScheduledAt?: Date
 				lastSentAt?: Date | null
 			} = {}
 
@@ -83,8 +89,9 @@ async function run() {
 					data.prevScheduledAt = scheduleWindow.prevScheduledAt
 					data.nextScheduledAt = scheduleWindow.nextScheduledAt
 				} catch {
-					data.prevScheduledAt = null
-					data.nextScheduledAt = null
+					// Use sentinel date when schedule can't be computed
+					data.prevScheduledAt = SCHEDULE_SENTINEL_DATE
+					data.nextScheduledAt = SCHEDULE_SENTINEL_DATE
 				}
 			}
 
