@@ -33,6 +33,10 @@
    (Use `REDIS_URL=redis://localhost:6379/0` in `.env`; dummy Stripe/Twilio
    values are fine when running with mocks.)
 
+   Without Docker, use:
+
+   npm run redis:local:bin
+
 2. Run the app + BullMQ sidecar with mocks:
 
    npm run dev:sidecar
@@ -44,6 +48,10 @@
 To run everything in one command (Redis + app + sidecar):
 
 npm run dev:sidecar:redis
+
+Without Docker, use:
+
+npm run dev:sidecar:redis:bin
 
 To stop the Redis container:
 
