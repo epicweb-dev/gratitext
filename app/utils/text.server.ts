@@ -120,6 +120,9 @@ export async function sendTextToRecipient({
 			where: { id: messageId },
 			data: { sentAt, twilioId: result.data.sid },
 		})
+		// Update denormalized fields on Recipient for cron query performance.
+		// lastSentAt is equivalent to MAX(Message.sentAt) but stored directly to avoid
+		// slow JOIN + GROUP BY aggregation. See prisma/sql/getrecipientsforcron.sql
 		await prisma.recipient.update({
 			where: { id: recipientId },
 			data: {

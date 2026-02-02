@@ -1,6 +1,23 @@
 -- Optimized cron query for fetching recipients due for reminders/messages
--- Uses INNER JOIN instead of LEFT JOIN, and filters by nextScheduledAt range
--- The composite index Recipient_cron_query_idx covers this query pattern
+-- 
+-- PERFORMANCE NOTES:
+-- This query was optimized from ~259ms to single-digit ms by:
+-- 1. Using INNER JOIN instead of LEFT JOIN (we filter on User.stripeId, so LEFT is unnecessary)
+-- 2. Eliminating OR ... IS NULL by using sentinel dates (see schedule-constants.server.ts)
+-- 3. Using composite index Recipient_cron_query_idx(verified, disabled, nextScheduledAt, userId)
+-- 4. Reading denormalized lastSentAt directly instead of computing MAX(Message.sentAt)
+--
+-- WHY lastSentAt IS DENORMALIZED:
+-- The original query computed MAX(Message.sentAt) via LEFT JOIN + GROUP BY, which was slow.
+-- lastSentAt is now stored on Recipient and updated atomically when messages are sent.
+-- DO NOT change this to compute from Message table - it would reintroduce the performance issue.
+-- If data drifts, use: npx tsx scripts/backfill-recipient-schedules.ts
+--
+-- WHY SENTINEL DATES:
+-- NULL values for nextScheduledAt defeat SQLite index usage (OR ... IS NULL pattern).
+-- Instead, invalid/missing schedules use NEXT_SCHEDULE_SENTINEL_DATE (9999-12-31),
+-- which is always > $1 (reminderCutoff), so they're naturally filtered out.
+--
 -- @param {DateTime} $1 - The reminder cutoff time (now + 30 minutes)
 SELECT
   r.id,

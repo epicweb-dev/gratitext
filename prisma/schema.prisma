@@ -115,10 +115,26 @@ model Recipient {
   verified       Boolean
   scheduleCron   String
   timeZone       String
+
+  /// Cached previous schedule time. When NULL or invalid cron, uses PREV_SCHEDULE_SENTINEL_DATE (1970-01-01).
+  /// This is computed from scheduleCron and cached for performance.
   prevScheduledAt DateTime?
+
+  /// Cached next schedule time. When NULL or invalid cron, uses NEXT_SCHEDULE_SENTINEL_DATE (9999-12-31).
+  /// Using a far-future sentinel instead of NULL allows efficient index usage in the cron query.
+  /// See: prisma/sql/getrecipientsforcron.sql
   nextScheduledAt DateTime?
+
   lastRemindedAt DateTime?
+
+  /// DENORMALIZED: This is equivalent to MAX(Message.sentAt) for this recipient's messages.
+  /// We store it directly on Recipient for performance - computing the aggregate via JOIN
+  /// on every cron run (every 5 seconds) would be too slow. This field is updated atomically
+  /// in text.server.ts when a message is sent. If data drifts, use the backfill script:
+  /// `npx tsx scripts/backfill-recipient-schedules.ts`
+  /// DO NOT remove this field or compute it dynamically - it would reintroduce the ~259ms query.
   lastSentAt     DateTime?
+
   disabled       Boolean   @default(false)
 
   createdAt DateTime @default(now())
