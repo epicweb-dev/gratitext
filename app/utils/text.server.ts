@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { getScheduleWindow } from './cron.server.ts'
 import { prisma } from './db.server.ts'
+import { SCHEDULE_SENTINEL_DATE } from './schedule-constants.server.ts'
 import { getCustomerProducts } from './stripe.server.ts'
 
 const { TWILIO_SID, TWILIO_TOKEN } = process.env
@@ -96,8 +97,7 @@ export async function sendTextToRecipient({
 	})
 	if (result.status === 'success') {
 		const sentAt = new Date()
-		let scheduleData: { prevScheduledAt: Date; nextScheduledAt: Date } | null =
-			null
+		let scheduleData: { prevScheduledAt: Date; nextScheduledAt: Date }
 		try {
 			scheduleData = getScheduleWindow(
 				recipient.scheduleCron,
@@ -105,7 +105,11 @@ export async function sendTextToRecipient({
 				sentAt,
 			)
 		} catch {
-			scheduleData = null
+			// Use sentinel date when schedule can't be computed
+			scheduleData = {
+				prevScheduledAt: SCHEDULE_SENTINEL_DATE,
+				nextScheduledAt: SCHEDULE_SENTINEL_DATE,
+			}
 		}
 
 		await prisma.message.update({
@@ -117,12 +121,8 @@ export async function sendTextToRecipient({
 			where: { id: recipientId },
 			data: {
 				lastSentAt: sentAt,
-				...(scheduleData
-					? {
-							prevScheduledAt: scheduleData.prevScheduledAt,
-							nextScheduledAt: scheduleData.nextScheduledAt,
-						}
-					: {}),
+				prevScheduledAt: scheduleData.prevScheduledAt,
+				nextScheduledAt: scheduleData.nextScheduledAt,
 			},
 		})
 	}
