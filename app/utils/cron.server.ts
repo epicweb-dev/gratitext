@@ -8,12 +8,12 @@ import { prisma } from './db.server.ts'
 import { sendText, sendTextToRecipient } from './text.server.ts'
 
 export class CronParseError extends Error {
-	constructor(
-		message: string,
-		public readonly cronString: string,
-	) {
+	public readonly cronString: string
+
+	constructor(message: string, cronString: string) {
 		super(message)
 		this.name = 'CronParseError'
+		this.cronString = cronString
 	}
 }
 
