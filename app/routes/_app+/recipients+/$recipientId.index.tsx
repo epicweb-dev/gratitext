@@ -432,13 +432,7 @@ function MessageForms({
 
 	const handleEditMessage = () => {
 		setConfirmDelete(false)
-		requestAnimationFrame(() => {
-			const textarea = textareaRef.current
-			if (!textarea) return
-			textarea.focus()
-			const caretPosition = textarea.value.length
-			textarea.setSelectionRange(caretPosition, caretPosition)
-		})
+		setTimeout(() => textareaRef.current?.focus(), 0)
 	}
 
 	const handleDeleteSelect = (event: Event) => {
