@@ -22,6 +22,7 @@ test('does not send to unverified recipients', async () => {
 	await prisma.user.create({
 		data: {
 			...createUser(),
+			stripeId: faker.string.uuid(),
 			recipients: {
 				create: [
 					{
@@ -108,6 +109,7 @@ test(`does not send a text if it is too overdue`, async () => {
 	await prisma.user.create({
 		data: {
 			...createUser(),
+			stripeId: faker.string.uuid(),
 			recipients: {
 				create: [
 					{

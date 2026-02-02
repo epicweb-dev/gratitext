@@ -103,8 +103,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 				// Use sentinel dates for invalid schedules, update if needed
 				const needsSentinelUpdate =
 					!recipient.nextScheduledAt ||
+					!recipient.prevScheduledAt ||
 					recipient.nextScheduledAt.getTime() !==
-						NEXT_SCHEDULE_SENTINEL_DATE.getTime()
+						NEXT_SCHEDULE_SENTINEL_DATE.getTime() ||
+					recipient.prevScheduledAt.getTime() !==
+						PREV_SCHEDULE_SENTINEL_DATE.getTime()
 				if (needsSentinelUpdate) {
 					scheduleUpdates.push({
 						id: recipient.id,
