@@ -35,20 +35,8 @@ function formatScheduleDisplay(date: Date, timeZone: string) {
 	return `Every ${weekday} at ${hour}:${minute} ${dayPeriod} ${timeZoneName}`.trim()
 }
 
-const DEFAULT_RECIPIENTS_PAGE_SIZE = 200
-const MAX_RECIPIENTS_PAGE_SIZE = 1000
-
-function parsePageSize(value: string | null) {
-	const parsed = Number(value ?? DEFAULT_RECIPIENTS_PAGE_SIZE)
-	if (!Number.isFinite(parsed)) return DEFAULT_RECIPIENTS_PAGE_SIZE
-	return Math.min(MAX_RECIPIENTS_PAGE_SIZE, Math.max(1, Math.floor(parsed)))
-}
-
 export async function loader({ request }: LoaderFunctionArgs) {
 	const userId = await requireUserId(request)
-	const url = new URL(request.url)
-	const pageSize = parsePageSize(url.searchParams.get('limit'))
-	const cursor = url.searchParams.get('cursor')
 
 	const recipients = await prisma.recipient.findMany({
 		select: {
@@ -63,10 +51,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		},
 		where: {
 			userId,
-			...(cursor ? { id: { gt: cursor } } : {}),
 		},
 		orderBy: { id: 'asc' },
-		take: pageSize,
 	})
 	const recipientIds = recipients.map((recipient) => recipient.id)
 	const messageCounts = recipientIds.length
