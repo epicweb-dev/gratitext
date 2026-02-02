@@ -8,6 +8,7 @@ import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { requireUserId } from '#app/utils/auth.server.js'
 import { CronParseError, getScheduleWindow } from '#app/utils/cron.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
+import { getunsentmessagecounts } from '#app/utils/prisma-generated.server/sql.ts'
 import {
 	NEXT_SCHEDULE_SENTINEL_DATE,
 	PREV_SCHEDULE_SENTINEL_DATE,
@@ -36,6 +37,7 @@ function formatScheduleDisplay(date: Date, timeZone: string) {
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const userId = await requireUserId(request)
+
 	const recipients = await prisma.recipient.findMany({
 		select: {
 			id: true,
@@ -46,10 +48,25 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			disabled: true,
 			prevScheduledAt: true,
 			nextScheduledAt: true,
-			_count: { select: { messages: { where: { sentAt: null } } } },
 		},
-		where: { userId },
+		where: {
+			userId,
+		},
+		orderBy: { id: 'asc' },
 	})
+	const recipientIds = recipients.map((recipient) => recipient.id)
+	const messageCounts = recipientIds.length
+		? await prisma.$queryRawTyped(
+				getunsentmessagecounts(JSON.stringify(recipientIds)),
+			)
+		: []
+	const messageCountByRecipientId = new Map(
+		messageCounts.map((row) => [row.recipientId, Number(row.unsentCount ?? 0)]),
+	)
+	const recipientsWithCounts = recipients.map((recipient) => ({
+		...recipient,
+		messageCount: messageCountByRecipientId.get(recipient.id) ?? 0,
+	}))
 
 	const now = new Date()
 	const scheduleUpdates: Array<{
@@ -59,7 +76,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	}> = []
 
 	// Ensure we have a schedule window for sorting/display
-	const sortedRecipients = recipients
+	const sortedRecipients = recipientsWithCounts
 		.map((recipient) => {
 			let nextScheduledAt = recipient.nextScheduledAt
 			let prevScheduledAt = recipient.prevScheduledAt

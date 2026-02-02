@@ -3,10 +3,14 @@ import { performance } from 'node:perf_hooks'
 import { parseArgs } from 'node:util'
 import { CronParseError, getScheduleWindow } from '#app/utils/cron.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
-import { getrecipientsforcron } from '#app/utils/prisma-generated.server/sql.ts'
+import {
+	getrecipientsforcron,
+	getunsentmessagecounts,
+} from '#app/utils/prisma-generated.server/sql.ts'
 import { NEXT_SCHEDULE_SENTINEL_DATE } from '#app/utils/schedule-constants.server.ts'
 
 const MESSAGES_PER_PAGE = 100
+const RECIPIENTS_PAGE_SIZE = 200
 
 type Summary = {
 	min: number
@@ -120,14 +124,31 @@ async function benchmarkRecipientsList(
 				disabled: true,
 				prevScheduledAt: true,
 				nextScheduledAt: true,
-				_count: { select: { messages: { where: { sentAt: null } } } },
 			},
+			orderBy: { id: 'asc' },
+			take: RECIPIENTS_PAGE_SIZE,
 		})
+		const recipientIds = recipients.map((recipient) => recipient.id)
+		const messageCounts = recipientIds.length
+			? await prisma.$queryRawTyped(
+					getunsentmessagecounts(JSON.stringify(recipientIds)),
+				)
+			: []
+		const messageCountByRecipientId = new Map(
+			messageCounts.map((row) => [
+				row.recipientId,
+				Number(row.unsentCount ?? 0),
+			]),
+		)
+		const recipientsWithCounts = recipients.map((recipient) => ({
+			...recipient,
+			messageCount: messageCountByRecipientId.get(recipient.id) ?? 0,
+		}))
 		const queryMs = performance.now() - queryStart
 
 		const computeStart = performance.now()
 		let errors = 0
-		const sortedRecipients = recipients
+		const sortedRecipients = recipientsWithCounts
 			.map((recipient) => {
 				try {
 					const isSentinel =
@@ -184,7 +205,7 @@ async function benchmarkRecipientsList(
 		querySamples.push(queryMs)
 		computeSamples.push(computeMs)
 		cronErrors.push(errors)
-		lastCount = recipients.length
+		lastCount = recipientsWithCounts.length
 	}
 
 	return {
