@@ -444,14 +444,19 @@ function MessageForms({
 
 	const handleEditMessage = () => {
 		setConfirmDelete(false)
-		setTimeout(() => textareaRef.current?.focus(), 0)
+		requestAnimationFrame(() => {
+			const textarea = textareaRef.current
+			if (!textarea) return
+			textarea.focus()
+			const caretPosition = textarea.value.length
+			textarea.setSelectionRange(caretPosition, caretPosition)
+		})
 	}
 
-	const handleContentChange: React.ChangeEventHandler<HTMLTextAreaElement> = (
+	const handleContentInput: React.FormEventHandler<HTMLTextAreaElement> = (
 		event,
 	) => {
-		textareaProps.onChange?.(event)
-		setHasEdits(event.target.value !== savedContent)
+		setHasEdits(event.currentTarget.value !== savedContent)
 	}
 
 	const handleDeleteSelect = (event: Event) => {
@@ -556,7 +561,7 @@ function MessageForms({
 						</label>
 						<textarea
 							{...textareaProps}
-							onChange={handleContentChange}
+							onInput={handleContentInput}
 							ref={textareaRef}
 							className="mt-4 w-full resize-none bg-transparent text-sm leading-relaxed text-[hsl(var(--palette-cream))] placeholder:text-[hsl(var(--palette-cream))]/80 focus-visible:outline-none"
 							rows={4}
