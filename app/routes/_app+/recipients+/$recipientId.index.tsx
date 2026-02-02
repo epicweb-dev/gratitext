@@ -300,6 +300,22 @@ export default function RecipientRoute() {
 	const data = useLoaderData<typeof loader>()
 	const newMessageFetcher = useFetcher<typeof action>()
 	const isCreating = newMessageFetcher.state !== 'idle'
+	const newMessageInputRef = useRef<HTMLTextAreaElement | null>(null)
+	const shouldClearMessageInput = useRef(false)
+
+	useEffect(() => {
+		if (newMessageFetcher.state !== 'idle') {
+			shouldClearMessageInput.current = true
+			return
+		}
+		if (!shouldClearMessageInput.current) return
+
+		const hasErrors = Boolean(newMessageFetcher.data?.result?.error)
+		if (!hasErrors && newMessageInputRef.current) {
+			newMessageInputRef.current.value = ''
+		}
+		shouldClearMessageInput.current = false
+	}, [newMessageFetcher.state, newMessageFetcher.data])
 
 	return (
 		<div className="flex flex-col gap-8">
@@ -341,6 +357,7 @@ export default function RecipientRoute() {
 						<textarea
 							id="new-message"
 							name="content"
+							ref={newMessageInputRef}
 							placeholder="Aa"
 							className="text-foreground placeholder:text-muted-foreground min-h-[44px] flex-1 resize-none rounded-full bg-transparent px-4 py-2 text-sm leading-relaxed focus-visible:outline-none"
 							rows={1}
