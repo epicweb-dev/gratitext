@@ -4,11 +4,11 @@ import {
 	Outlet,
 	useLoaderData,
 } from 'react-router'
-import { Prisma } from '#app/utils/prisma-generated.server/client.ts'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { requireUserId } from '#app/utils/auth.server.js'
 import { CronParseError, getScheduleWindow } from '#app/utils/cron.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
+import { Prisma } from '#app/utils/prisma-generated.server/client.ts'
 import {
 	NEXT_SCHEDULE_SENTINEL_DATE,
 	PREV_SCHEDULE_SENTINEL_DATE,
