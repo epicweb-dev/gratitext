@@ -536,6 +536,20 @@ function MessageForms({
 							className="mt-4 w-full resize-none bg-transparent text-sm leading-relaxed text-[hsl(var(--palette-cream))] placeholder:text-[hsl(var(--palette-cream))]/80 focus-visible:outline-none"
 							rows={4}
 						/>
+						<div className="mt-4 flex items-center justify-end">
+							<StatusButton
+								type="submit"
+								name="intent"
+								value={updateMessageContentActionIntent}
+								status={updateIsPending ? 'pending' : 'idle'}
+								disabled={updateIsPending}
+								size="sm"
+								className="bg-[hsl(var(--palette-cream))] text-[hsl(var(--palette-green-700))] hover:bg-[hsl(var(--palette-cream))/0.9]"
+							>
+								<Icon name="check" size="sm" />
+								Save
+							</StatusButton>
+						</div>
 					</updateContentFetcher.Form>
 				</div>
 				<ErrorList
