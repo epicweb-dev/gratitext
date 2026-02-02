@@ -383,6 +383,8 @@ function MessageForms({
 	const deleteSafeDelayMs = 150
 	const [confirmDelete, setConfirmDelete] = useState(false)
 	const [canDelete, setCanDelete] = useState(false)
+	const [savedContent, setSavedContent] = useState(message.content)
+	const [hasEdits, setHasEdits] = useState(false)
 	const formRef = useRef<HTMLFormElement | null>(null)
 	const textareaRef = useRef<HTMLTextAreaElement | null>(null)
 	const [updateContentForm, updateContentFields] = useForm({
@@ -408,6 +410,7 @@ function MessageForms({
 	const sendIsPending = sendNowFetcher.state !== 'idle'
 	const deleteIsPending = deleteFetcher.state !== 'idle'
 	const textareaProps = getTextareaProps(updateContentFields.content)
+	const showSaveButton = hasEdits || updateIsPending
 
 	useEffect(() => {
 		if (confirmDelete) {
@@ -418,6 +421,18 @@ function MessageForms({
 		}
 		setCanDelete(false)
 	}, [confirmDelete, deleteSafeDelayMs])
+
+	useEffect(() => {
+		setSavedContent(message.content)
+		setHasEdits(false)
+	}, [message.content])
+
+	useEffect(() => {
+		if (updateContentFetcher.data?.result.status === 'success') {
+			setSavedContent((previous) => textareaRef.current?.value ?? previous)
+			setHasEdits(false)
+		}
+	}, [updateContentFetcher.data?.result.status])
 
 	const handleSendNow = () => {
 		setConfirmDelete(false)
@@ -430,6 +445,13 @@ function MessageForms({
 	const handleEditMessage = () => {
 		setConfirmDelete(false)
 		setTimeout(() => textareaRef.current?.focus(), 0)
+	}
+
+	const handleContentChange: React.ChangeEventHandler<HTMLTextAreaElement> = (
+		event,
+	) => {
+		textareaProps.onChange?.(event)
+		setHasEdits(event.target.value !== savedContent)
 	}
 
 	const handleDeleteSelect = (event: Event) => {
@@ -461,19 +483,21 @@ function MessageForms({
 							<span>{headerText}</span>
 						</div>
 						<div className="flex items-center gap-2">
-							<StatusButton
-								form={updateContentForm.id}
-								status={updateIsPending ? 'pending' : 'idle'}
-								className="h-11 w-11 gap-0 text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-cream))/0.15] sm:h-10 sm:w-10"
-								size="icon"
-								variant="ghost"
-								type="submit"
-								name="intent"
-								value={updateMessageContentActionIntent}
-							>
-								<Icon name="check" size="sm" />
-								<span className="sr-only">Save</span>
-							</StatusButton>
+							{showSaveButton ? (
+								<StatusButton
+									form={updateContentForm.id}
+									status={updateIsPending ? 'pending' : 'idle'}
+									className="h-11 w-11 gap-0 text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-cream))/0.15] sm:h-10 sm:w-10"
+									size="icon"
+									variant="ghost"
+									type="submit"
+									name="intent"
+									value={updateMessageContentActionIntent}
+								>
+									<Icon name="check" size="sm" />
+									<span className="sr-only">Save</span>
+								</StatusButton>
+							) : null}
 							<DropdownMenu
 								onOpenChange={(open) => {
 									if (!open) setConfirmDelete(false)
@@ -532,24 +556,11 @@ function MessageForms({
 						</label>
 						<textarea
 							{...textareaProps}
+							onChange={handleContentChange}
 							ref={textareaRef}
 							className="mt-4 w-full resize-none bg-transparent text-sm leading-relaxed text-[hsl(var(--palette-cream))] placeholder:text-[hsl(var(--palette-cream))]/80 focus-visible:outline-none"
 							rows={4}
 						/>
-						<div className="mt-4 flex items-center justify-end">
-							<StatusButton
-								type="submit"
-								name="intent"
-								value={updateMessageContentActionIntent}
-								status={updateIsPending ? 'pending' : 'idle'}
-								disabled={updateIsPending}
-								size="sm"
-								className="bg-[hsl(var(--palette-cream))] text-[hsl(var(--palette-green-700))] hover:bg-[hsl(var(--palette-cream))/0.9]"
-							>
-								<Icon name="check" size="sm" />
-								Save
-							</StatusButton>
-						</div>
 					</updateContentFetcher.Form>
 				</div>
 				<ErrorList
