@@ -4,7 +4,7 @@ import {
 	Outlet,
 	useLoaderData,
 } from 'react-router'
-import { Prisma } from '@prisma/client'
+import { Prisma } from '#app/utils/prisma-generated.server/client.ts'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { requireUserId } from '#app/utils/auth.server.js'
 import { CronParseError, getScheduleWindow } from '#app/utils/cron.server.ts'

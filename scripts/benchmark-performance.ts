@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import { performance } from 'node:perf_hooks'
 import { parseArgs } from 'node:util'
-import { Prisma } from '@prisma/client'
+import { Prisma } from '#app/utils/prisma-generated.server/client.ts'
 import { CronParseError, getScheduleWindow } from '#app/utils/cron.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { getrecipientsforcron } from '#app/utils/prisma-generated.server/sql.ts'
