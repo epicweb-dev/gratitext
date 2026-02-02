@@ -400,6 +400,7 @@ function MessageForms({
 	const deleteSafeDelayMs = 150
 	const [confirmDelete, setConfirmDelete] = useState(false)
 	const [canDelete, setCanDelete] = useState(false)
+	const [currentContent, setCurrentContent] = useState(message.content)
 	const formRef = useRef<HTMLFormElement | null>(null)
 	const textareaRef = useRef<HTMLTextAreaElement | null>(null)
 	const [updateContentForm, updateContentFields] = useForm({
@@ -425,6 +426,8 @@ function MessageForms({
 	const sendIsPending = sendNowFetcher.state !== 'idle'
 	const deleteIsPending = deleteFetcher.state !== 'idle'
 	const textareaProps = getTextareaProps(updateContentFields.content)
+	const hasEdits = currentContent !== message.content
+	const showSaveButton = hasEdits || updateIsPending
 
 	useEffect(() => {
 		if (confirmDelete) {
@@ -478,19 +481,21 @@ function MessageForms({
 							<span>{headerText}</span>
 						</div>
 						<div className="flex items-center gap-2">
-							<StatusButton
-								form={updateContentForm.id}
-								status={updateIsPending ? 'pending' : 'idle'}
-								className="h-11 w-11 gap-0 text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-cream))/0.15] sm:h-10 sm:w-10"
-								size="icon"
-								variant="ghost"
-								type="submit"
-								name="intent"
-								value={updateMessageContentActionIntent}
-							>
-								<Icon name="check" size="sm" />
-								<span className="sr-only">Save</span>
-							</StatusButton>
+							{showSaveButton ? (
+								<StatusButton
+									form={updateContentForm.id}
+									status={updateIsPending ? 'pending' : 'idle'}
+									className="h-11 w-11 gap-0 text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-cream))/0.15] sm:h-10 sm:w-10"
+									size="icon"
+									variant="ghost"
+									type="submit"
+									name="intent"
+									value={updateMessageContentActionIntent}
+								>
+									<Icon name="check" size="sm" />
+									<span className="sr-only">Save</span>
+								</StatusButton>
+							) : null}
 							<DropdownMenu
 								onOpenChange={(open) => {
 									if (!open) setConfirmDelete(false)
@@ -549,6 +554,9 @@ function MessageForms({
 						</label>
 						<textarea
 							{...textareaProps}
+							onInput={(event) => {
+								setCurrentContent(event.currentTarget.value)
+							}}
 							ref={textareaRef}
 							className="mt-4 w-full resize-none bg-transparent text-sm leading-relaxed text-[hsl(var(--palette-cream))] placeholder:text-[hsl(var(--palette-cream))]/80 focus-visible:outline-none"
 							rows={4}
