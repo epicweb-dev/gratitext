@@ -383,7 +383,6 @@ function MessageForms({
 	const deleteSafeDelayMs = 150
 	const [confirmDelete, setConfirmDelete] = useState(false)
 	const [canDelete, setCanDelete] = useState(false)
-	const [savedContent, setSavedContent] = useState(message.content)
 	const [currentContent, setCurrentContent] = useState(message.content)
 	const formRef = useRef<HTMLFormElement | null>(null)
 	const textareaRef = useRef<HTMLTextAreaElement | null>(null)
@@ -410,7 +409,7 @@ function MessageForms({
 	const sendIsPending = sendNowFetcher.state !== 'idle'
 	const deleteIsPending = deleteFetcher.state !== 'idle'
 	const textareaProps = getTextareaProps(updateContentFields.content)
-	const hasEdits = currentContent !== savedContent
+	const hasEdits = currentContent !== message.content
 	const showSaveButton = hasEdits || updateIsPending
 
 	useEffect(() => {
@@ -424,17 +423,14 @@ function MessageForms({
 	}, [confirmDelete, deleteSafeDelayMs])
 
 	useEffect(() => {
-		setSavedContent(message.content)
 		setCurrentContent(message.content)
 	}, [message.content])
 
 	useEffect(() => {
 		if (updateContentFetcher.data?.result.status === 'success') {
-			const nextContent = textareaRef.current?.value ?? currentContent
-			setSavedContent(nextContent)
-			setCurrentContent(nextContent)
+			setCurrentContent(message.content)
 		}
-	}, [currentContent, updateContentFetcher.data?.result.status])
+	}, [message.content, updateContentFetcher.data?.result.status])
 
 	const handleSendNow = () => {
 		setConfirmDelete(false)
