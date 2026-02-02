@@ -82,7 +82,6 @@ test('sends a text if one is due', async () => {
 	const unsentMessages = await prisma.message.findMany({
 		where: { sentAt: null },
 	})
-	console.log(unsentMessages)
 	expect(unsentMessages).toHaveLength(0)
 })
 
