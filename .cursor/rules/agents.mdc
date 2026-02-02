@@ -2,3 +2,4 @@
 
 - Use typed SQL (generated `sql` helpers with `prisma.$queryRawTyped`).
 - Do not use `prisma.$queryRaw` or `Prisma.sql`.
+- Exception: Prisma typed SQL filenames must be valid JS identifiers (no dashes), so the lower-kebab-case rule does not apply under `prisma/sql/`.

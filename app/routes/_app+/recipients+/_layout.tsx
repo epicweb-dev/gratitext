@@ -4,11 +4,11 @@ import {
 	Outlet,
 	useLoaderData,
 } from 'react-router'
-import * as prismaRuntime from '@prisma/client/runtime/client'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { requireUserId } from '#app/utils/auth.server.js'
 import { CronParseError, getScheduleWindow } from '#app/utils/cron.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
+import { getunsentmessagecounts } from '#app/utils/prisma-generated.server/sql.ts'
 import {
 	NEXT_SCHEDULE_SENTINEL_DATE,
 	PREV_SCHEDULE_SENTINEL_DATE,
@@ -37,23 +37,6 @@ function formatScheduleDisplay(date: Date, timeZone: string) {
 
 const DEFAULT_RECIPIENTS_PAGE_SIZE = 200
 const MAX_RECIPIENTS_PAGE_SIZE = 1000
-
-type UnsentMessageCountRow = {
-	recipientId: string
-	unsentCount: number | null
-}
-
-const getUnsentMessageCounts = prismaRuntime.makeTypedQueryFactory(
-	`SELECT
-  recipientId,
-  CAST(COUNT(*) AS INTEGER) AS unsentCount
-FROM Message INDEXED BY message_unsent_by_recipient
-WHERE sentAt IS NULL
-  AND recipientId IN (SELECT value FROM json_each($1))
-GROUP BY recipientId;`,
-) as (
-	recipientIdsJson: string,
-) => prismaRuntime.TypedSql<[recipientIdsJson: string], UnsentMessageCountRow>
 
 function parsePageSize(value: string | null) {
 	const parsed = Number(value ?? DEFAULT_RECIPIENTS_PAGE_SIZE)
@@ -88,7 +71,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	const recipientIds = recipients.map((recipient) => recipient.id)
 	const messageCounts = recipientIds.length
 		? await prisma.$queryRawTyped(
-				getUnsentMessageCounts(JSON.stringify(recipientIds)),
+				getunsentmessagecounts(JSON.stringify(recipientIds)),
 			)
 		: []
 	const messageCountByRecipientId = new Map(
