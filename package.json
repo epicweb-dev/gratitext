@@ -48,7 +48,6 @@
     "@epic-web/invariant": "^1.0.0",
     "@epic-web/remember": "^1.1.0",
     "@epic-web/totp": "^4.0.1",
-    "@libsql/client": "^0.15.15",
     "@nasa-gcn/remix-seo": "^2.0.1",
     "@oslojs/crypto": "^1.0.1",
     "@paralleldrive/cuid2": "^3.3.0",
