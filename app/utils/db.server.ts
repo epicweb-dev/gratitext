@@ -1,6 +1,5 @@
 import { remember } from '@epic-web/remember'
 import { PrismaLibSql } from '@prisma/adapter-libsql'
-import { createClient } from '@libsql/client'
 import chalk from 'chalk'
 import { PrismaClient } from '#app/utils/prisma-generated.server/client.ts'
 
@@ -22,9 +21,8 @@ export const prisma = remember('prisma', () => {
 		)
 	}
 
-	const libsql = createClient({ url })
 	const client = new PrismaClient({
-		adapter: new PrismaLibSql(libsql),
+		adapter: new PrismaLibSql({ url }),
 		log: [
 			{ level: 'query', emit: 'event' },
 			{ level: 'error', emit: 'stdout' },
