@@ -3,8 +3,10 @@ import { performance } from 'node:perf_hooks'
 import { parseArgs } from 'node:util'
 import { CronParseError, getScheduleWindow } from '#app/utils/cron.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
-import { Prisma } from '#app/utils/prisma-generated.server/client.ts'
-import { getrecipientsforcron } from '#app/utils/prisma-generated.server/sql.ts'
+import {
+	getrecipientsforcron,
+	getunsentmessagecounts,
+} from '#app/utils/prisma-generated.server/sql.ts'
 import { NEXT_SCHEDULE_SENTINEL_DATE } from '#app/utils/schedule-constants.server.ts'
 
 const MESSAGES_PER_PAGE = 100
@@ -128,18 +130,15 @@ async function benchmarkRecipientsList(
 		})
 		const recipientIds = recipients.map((recipient) => recipient.id)
 		const messageCounts = recipientIds.length
-			? await prisma.$queryRaw<
-					Array<{ recipientId: string; unsentCount: number | bigint }>
-				>(Prisma.sql`
-					SELECT "recipientId", COUNT(*) AS "unsentCount"
-					FROM "Message" INDEXED BY "message_unsent_by_recipient"
-					WHERE "sentAt" IS NULL
-					AND "recipientId" IN (${Prisma.join(recipientIds)})
-					GROUP BY "recipientId"
-				`)
+			? await prisma.$queryRawTyped(
+					getunsentmessagecounts(JSON.stringify(recipientIds)),
+				)
 			: []
 		const messageCountByRecipientId = new Map(
-			messageCounts.map((row) => [row.recipientId, Number(row.unsentCount)]),
+			messageCounts.map((row) => [
+				row.recipientId,
+				Number(row.unsentCount ?? 0),
+			]),
 		)
 		const recipientsWithCounts = recipients.map((recipient) => ({
 			...recipient,

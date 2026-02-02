@@ -8,7 +8,7 @@ import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { requireUserId } from '#app/utils/auth.server.js'
 import { CronParseError, getScheduleWindow } from '#app/utils/cron.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
-import { Prisma } from '#app/utils/prisma-generated.server/client.ts'
+import { getunsentmessagecounts } from '#app/utils/prisma-generated.server/sql.ts'
 import {
 	NEXT_SCHEDULE_SENTINEL_DATE,
 	PREV_SCHEDULE_SENTINEL_DATE,
@@ -70,18 +70,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	})
 	const recipientIds = recipients.map((recipient) => recipient.id)
 	const messageCounts = recipientIds.length
-		? await prisma.$queryRaw<
-				Array<{ recipientId: string; unsentCount: number | bigint }>
-			>(Prisma.sql`
-				SELECT "recipientId", COUNT(*) AS "unsentCount"
-				FROM "Message" INDEXED BY "message_unsent_by_recipient"
-				WHERE "sentAt" IS NULL
-				AND "recipientId" IN (${Prisma.join(recipientIds)})
-				GROUP BY "recipientId"
-			`)
+		? await prisma.$queryRawTyped(
+				getunsentmessagecounts(JSON.stringify(recipientIds)),
+			)
 		: []
 	const messageCountByRecipientId = new Map(
-		messageCounts.map((row) => [row.recipientId, Number(row.unsentCount)]),
+		messageCounts.map((row) => [
+			row.recipientId,
+			Number(row.unsentCount ?? 0),
+		]),
 	)
 	const recipientsWithCounts = recipients.map((recipient) => ({
 		...recipient,

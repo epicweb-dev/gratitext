@@ -1,4 +1,4 @@
 # Agent instructions
 
-- Prefer typed SQL (generated `sql` helpers with `prisma.$queryRawTyped`) over `Prisma.sql`.
-- Avoid `Prisma.sql` unless typed SQL cannot express the query.
+- Use typed SQL (generated `sql` helpers with `prisma.$queryRawTyped`).
+- Do not use `prisma.$queryRaw` or `Prisma.sql`.
