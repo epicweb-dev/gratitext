@@ -9,31 +9,11 @@ regular schedule.
 - Build: `npm run build` (runs `build:icons`, then `react-router build`)
 - Typecheck: `npm run typecheck` (runs `react-router typegen`, then `tsc`)
 
-### Setup script
-
-Start with:
-
-```
-git clone https://github.com/kentcdodds/gratitext.git
-cd gratitext
-cp .env.example .env
-npm install
-npm run setup
-```
-
-The `npm run setup` script does the following:
-
-- Build the app
-- Ensure the Prisma DB is present
-- Generate the Prisma SQL
-- Migrate the DB
-- Seed the DB
-- Install the Playwright browsers
-
 ## More instructions
 
 - [Data access rules](docs/agents/data-access.md)
 - [Git workflow rules](docs/agents/git-workflow.md)
+- [Setup](docs/agents/setup.md)
 - [Routing](docs/agents/routing.md)
 - [Auth and session](docs/agents/auth-session.md)
 - [Environment and config](docs/agents/env-config.md)

@@ -1,7 +1,7 @@
 import 'dotenv/config'
-import path from 'node:path'
-import fs from 'node:fs/promises'
 import { spawnSync } from 'node:child_process'
+import fs from 'node:fs/promises'
+import path from 'node:path'
 
 const defaultDatabaseUrl = 'file:./prisma/sqlite.db'
 const databaseUrl = process.env.DATABASE_URL || defaultDatabaseUrl
