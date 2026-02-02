@@ -85,7 +85,6 @@ type RecipientJobSeedData = {
 type JobSchedulerState = {
 	timeout: ReturnType<typeof setTimeout> | null
 	isProcessing: boolean
-	rescheduleRequested: boolean
 }
 
 const jobSchedulerRef = remember<{ current: JobSchedulerState }>(
@@ -94,7 +93,6 @@ const jobSchedulerRef = remember<{ current: JobSchedulerState }>(
 		current: {
 			timeout: null,
 			isProcessing: false,
-			rescheduleRequested: false,
 		},
 	}),
 )
@@ -124,6 +122,33 @@ function computeJobRunAt(recipient: RecipientJobSeedData, now: Date) {
 	}
 }
 
+function getRecipientScheduleUpdate(
+	recipient: {
+		id: string
+		prevScheduledAt: Date | null
+		nextScheduledAt: Date | null
+	},
+	scheduleWindow: { prevScheduledAt: Date; nextScheduledAt: Date },
+) {
+	const shouldUpdateSchedule =
+		!recipient.prevScheduledAt ||
+		!recipient.nextScheduledAt ||
+		recipient.prevScheduledAt.getTime() !==
+			scheduleWindow.prevScheduledAt.getTime() ||
+		recipient.nextScheduledAt.getTime() !==
+			scheduleWindow.nextScheduledAt.getTime()
+
+	if (!shouldUpdateSchedule) return null
+
+	return prisma.recipient.update({
+		where: { id: recipient.id },
+		data: {
+			prevScheduledAt: scheduleWindow.prevScheduledAt,
+			nextScheduledAt: scheduleWindow.nextScheduledAt,
+		},
+	})
+}
+
 async function scheduleNextJobRun() {
 	if (jobSchedulerRef.current.timeout) {
 		clearTimeout(jobSchedulerRef.current.timeout)
@@ -148,7 +173,6 @@ async function scheduleNextJobRun() {
 
 async function requestJobReschedule() {
 	if (jobSchedulerRef.current.isProcessing) {
-		jobSchedulerRef.current.rescheduleRequested = true
 		return
 	}
 	await scheduleNextJobRun()
@@ -169,7 +193,6 @@ async function runScheduledJobs() {
 		console.error(error)
 	} finally {
 		jobSchedulerRef.current.isProcessing = false
-		jobSchedulerRef.current.rescheduleRequested = false
 		await scheduleNextJobRun()
 	}
 }
@@ -203,26 +226,9 @@ async function upsertRecipientJobFromData(
 		return null
 	}
 
-	const shouldUpdateSchedule =
-		!recipient.prevScheduledAt ||
-		!recipient.nextScheduledAt ||
-		recipient.prevScheduledAt.getTime() !==
-			scheduleWindow.prevScheduledAt.getTime() ||
-		recipient.nextScheduledAt.getTime() !==
-			scheduleWindow.nextScheduledAt.getTime()
-
 	const updates = []
-	if (shouldUpdateSchedule) {
-		updates.push(
-			prisma.recipient.update({
-				where: { id: recipient.id },
-				data: {
-					prevScheduledAt: scheduleWindow.prevScheduledAt,
-					nextScheduledAt: scheduleWindow.nextScheduledAt,
-				},
-			}),
-		)
-	}
+	const scheduleUpdate = getRecipientScheduleUpdate(recipient, scheduleWindow)
+	if (scheduleUpdate) updates.push(scheduleUpdate)
 	updates.push(
 		prisma.recipientJob.upsert({
 			where: { recipientId: recipient.id },
@@ -377,21 +383,10 @@ async function processRecipientJob(job: { id: string; recipientId: string }) {
 		return { reminderSent: false, dueSent: false }
 	}
 
+	const scheduleUpdate = getRecipientScheduleUpdate(recipient, scheduleWindow)
+	if (scheduleUpdate) await scheduleUpdate
+
 	const { prevScheduledAt, nextScheduledAt } = scheduleWindow
-	const shouldUpdateSchedule =
-		!recipient.prevScheduledAt ||
-		!recipient.nextScheduledAt ||
-		recipient.prevScheduledAt.getTime() !== prevScheduledAt.getTime() ||
-		recipient.nextScheduledAt.getTime() !== nextScheduledAt.getTime()
-	if (shouldUpdateSchedule) {
-		await prisma.recipient.update({
-			where: { id: recipient.id },
-			data: {
-				prevScheduledAt,
-				nextScheduledAt,
-			},
-		})
-	}
 
 	const reminderWindowStart = getReminderWindowStart(nextScheduledAt)
 	const withinReminderWindow = reminderWindowStart.getTime() <= now.getTime()

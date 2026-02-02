@@ -47,9 +47,4 @@ export async function setup() {
 		stdio: 'inherit',
 		env: prismaEnv,
 	})
-
-	await execaCommand('npx prisma db seed', {
-		stdio: 'inherit',
-		env: prismaEnv,
-	})
 }
