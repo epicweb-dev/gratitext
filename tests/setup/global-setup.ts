@@ -36,13 +36,20 @@ export async function setup() {
 		}
 	}
 
-	await execaCommand('npx prisma migrate reset --force', {
+	const prismaEnv = {
+		...process.env,
+		DATABASE_URL: `file:${BASE_DATABASE_PATH}`,
+		// Required consent for Prisma in automated/CI environments
+		PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION: 'yes',
+	}
+
+	await execaCommand('npx prisma migrate reset --force --skip-seed', {
 		stdio: 'inherit',
-		env: {
-			...process.env,
-			DATABASE_URL: `file:${BASE_DATABASE_PATH}`,
-			// Required consent for Prisma in automated/CI environments
-			PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION: 'yes',
-		},
+		env: prismaEnv,
+	})
+
+	await execaCommand('npx prisma db seed', {
+		stdio: 'inherit',
+		env: prismaEnv,
 	})
 }
