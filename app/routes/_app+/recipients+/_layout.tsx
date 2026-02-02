@@ -81,10 +81,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			`)
 		: []
 	const messageCountByRecipientId = new Map(
-		messageCounts.map((row) => [
-			row.recipientId,
-			Number(row.unsentCount),
-		]),
+		messageCounts.map((row) => [row.recipientId, Number(row.unsentCount)]),
 	)
 	const recipientsWithCounts = recipients.map((recipient) => ({
 		...recipient,
