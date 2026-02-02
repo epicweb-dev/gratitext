@@ -128,12 +128,25 @@ model Recipient {
   userId String
 
   messages Message[]
+  job      RecipientJob?
 
   // non-unique foreign key
   @@index([userId])
   @@index([verified, disabled])
   @@index([nextScheduledAt])
   @@index([userId, nextScheduledAt])
+}
+
+model RecipientJob {
+  id          String   @id @default(cuid())
+  runAt       DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  recipient   Recipient @relation(fields: [recipientId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  recipientId String    @unique
+
+  @@index([runAt])
 }
 
 model Message {

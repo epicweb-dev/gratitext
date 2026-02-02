@@ -2,7 +2,10 @@ import { parseWithZod } from '@conform-to/zod/v4'
 import { invariant, invariantResponse } from '@epic-web/invariant'
 import { data as json, redirect, type ActionFunctionArgs } from 'react-router'
 import { requireUserId } from '#app/utils/auth.server.ts'
-import { getScheduleWindow } from '#app/utils/cron.server.ts'
+import {
+	getScheduleWindow,
+	upsertRecipientJob,
+} from '#app/utils/cron.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { sendText } from '#app/utils/text.server.js'
 import { redirectWithToast } from '#app/utils/toast.server.js'
@@ -196,6 +199,7 @@ export async function usertRecipientAction({
 				...scheduleFields,
 			},
 		})
+		await upsertRecipientJob(updatedRecipient.id)
 		return redirect(`/recipients/${updatedRecipient.id}`)
 	} else {
 		const newRecipient = await prisma.recipient.create({
@@ -211,6 +215,7 @@ export async function usertRecipientAction({
 				...scheduleFields,
 			},
 		})
+		await upsertRecipientJob(newRecipient.id)
 
 		return redirectWithToast(`/recipients/${newRecipient.id}/edit`, {
 			type: 'success',

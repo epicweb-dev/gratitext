@@ -31,6 +31,7 @@
     "benchmark:data": "tsx ./scripts/benchmark-data-load.ts",
     "benchmark:perf": "tsx ./scripts/benchmark-performance.ts",
     "backfill:recipient-schedules": "tsx ./scripts/backfill-recipient-schedules.ts",
+    "backfill:recipient-jobs": "tsx ./scripts/backfill-recipient-jobs.ts",
     "validate": "run-p \"test -- --run\" lint typecheck test:e2e:run"
   },
   "prettier": "@epic-web/config/prettier",
@@ -96,7 +97,6 @@
     "react-router": "^7.13.0",
     "remix-utils": "^9.0.1",
     "set-cookie-parser": "^3.0.1",
-    "set-interval-async": "^3.0.3",
     "sonner": "^2.0.7",
     "source-map-support": "^0.5.21",
     "spin-delay": "^2.0.1",

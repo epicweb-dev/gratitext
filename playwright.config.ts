@@ -53,6 +53,7 @@ export default defineConfig({
 		// Increase server startup timeout
 		timeout: 120 * 1000,
 		env: {
+			...process.env,
 			PORT,
 			PLAYWRIGHT_TEST_BASE_URL: `http://localhost:${PORT}`,
 		},

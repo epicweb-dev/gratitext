@@ -24,6 +24,11 @@
 
    npm run dev
 
+## Scheduling jobs
+
+Recipient scheduling uses the `RecipientJob` table and a timeout-based runner.
+See `docs/recipient-job-runner.md` for details and backfill instructions.
+
 ## Thanks
 
 You rock 🪨

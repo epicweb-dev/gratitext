@@ -1,5 +1,8 @@
 import { faker } from '@faker-js/faker'
-import { getScheduleWindow } from '#app/utils/cron.server.ts'
+import {
+	getScheduleWindow,
+	upsertRecipientJob,
+} from '#app/utils/cron.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { deleteText, waitForText } from '#tests/mocks/utils.ts'
 import {
@@ -142,6 +145,7 @@ test('Scheduled messages go out on schedule', async ({ page, login }) => {
 			},
 		})
 	})
+	await upsertRecipientJob(recipient.id, { reschedule: false })
 
 	// Increase timeout for scheduled message test
 	test.setTimeout(90000)
