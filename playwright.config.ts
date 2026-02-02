@@ -1,7 +1,19 @@
+import path from 'node:path'
 import { defineConfig, devices } from '@playwright/test'
 import 'dotenv/config'
 
 const PORT = process.env.PORT || '3000'
+const TEST_DATABASE_PATH = path.join(process.cwd(), 'tests', 'prisma', 'base.db')
+const TEST_CACHE_DATABASE_PATH = path.join(
+	process.cwd(),
+	'tests',
+	'prisma',
+	'cache.db',
+)
+
+process.env.DATABASE_PATH = TEST_DATABASE_PATH
+process.env.DATABASE_URL = `file:${TEST_DATABASE_PATH}`
+process.env.CACHE_DATABASE_PATH = TEST_CACHE_DATABASE_PATH
 
 export default defineConfig({
 	testDir: './tests/e2e',
