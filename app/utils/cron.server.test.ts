@@ -1,8 +1,9 @@
 import { faker } from '@faker-js/faker'
 import { test, expect } from 'vitest'
 import { createMessage, createRecipient, createUser } from '#tests/db-utils.ts'
-import { sendNextTexts } from './cron.server.ts'
+import { getScheduleWindow, sendNextTexts } from './cron.server.ts'
 import { prisma } from './db.server.ts'
+import { SCHEDULE_SENTINEL_DATE } from './schedule-constants.server.ts'
 
 test('does not send any texts if there are none to be sent', async () => {
 	await prisma.sourceNumber.create({
@@ -43,6 +44,12 @@ test('sends a text if one is due', async () => {
 	await prisma.sourceNumber.create({
 		data: { phoneNumber: faker.phone.number() },
 	})
+
+	// Compute schedule based on the actual cron being used
+	const scheduleCron = '*/1 * * * *'
+	const timeZone = 'America/Denver'
+	const scheduleData = getScheduleWindow(scheduleCron, timeZone)
+
 	await prisma.user.create({
 		data: {
 			...createUser(),
@@ -52,7 +59,10 @@ test('sends a text if one is due', async () => {
 					{
 						...createRecipient(),
 						verified: true,
-						scheduleCron: '*/1 * * * *',
+						scheduleCron,
+						timeZone,
+						prevScheduledAt: scheduleData.prevScheduledAt,
+						nextScheduledAt: scheduleData.nextScheduledAt,
 						messages: {
 							create: {
 								...createMessage(),
@@ -78,6 +88,20 @@ test(`does not send a text if it is too overdue`, async () => {
 	await prisma.sourceNumber.create({
 		data: { phoneNumber: faker.phone.number() },
 	})
+
+	// Use a cron that's monthly - too overdue to send
+	const scheduleCron = '* * 1 * *'
+	const timeZone = 'America/Denver'
+	let scheduleData: { prevScheduledAt: Date; nextScheduledAt: Date }
+	try {
+		scheduleData = getScheduleWindow(scheduleCron, timeZone)
+	} catch {
+		scheduleData = {
+			prevScheduledAt: SCHEDULE_SENTINEL_DATE,
+			nextScheduledAt: SCHEDULE_SENTINEL_DATE,
+		}
+	}
+
 	await prisma.user.create({
 		data: {
 			...createUser(),
@@ -86,7 +110,10 @@ test(`does not send a text if it is too overdue`, async () => {
 					{
 						...createRecipient(),
 						verified: true,
-						scheduleCron: '* * 1 * *',
+						scheduleCron,
+						timeZone,
+						prevScheduledAt: scheduleData.prevScheduledAt,
+						nextScheduledAt: scheduleData.nextScheduledAt,
 						messages: {
 							create: { ...createMessage(), sentAt: null },
 						},
