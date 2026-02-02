@@ -1,26 +1,22 @@
+-- Optimized cron query for fetching recipients due for reminders/messages
+-- Uses INNER JOIN instead of LEFT JOIN, and filters by nextScheduledAt range
+-- The composite index Recipient_cron_query_idx covers this query pattern
+-- @param {DateTime} $1 - The reminder cutoff time (now + 30 minutes)
 SELECT
-  "Recipient"."id" AS "id",
-  "Recipient"."name" AS "name",
-  "Recipient"."scheduleCron" AS "scheduleCron",
-  "Recipient"."timeZone" AS "timeZone",
-  "Recipient"."lastRemindedAt" AS "lastRemindedAt",
-  MAX("Message"."sentAt") AS "lastSentAt",
-  "User"."phoneNumber" AS "userPhoneNumber",
-  "User"."name" AS "userName"
-FROM "Recipient"
-JOIN "User"
-  ON "User"."id" = "Recipient"."userId"
-LEFT JOIN "Message"
-  ON "Message"."recipientId" = "Recipient"."id"
-  AND "Message"."sentAt" IS NOT NULL
-WHERE "Recipient"."verified" = 1
-  AND "Recipient"."disabled" = 0
-  AND "User"."stripeId" IS NOT NULL
-GROUP BY
-  "Recipient"."id",
-  "Recipient"."name",
-  "Recipient"."scheduleCron",
-  "Recipient"."timeZone",
-  "Recipient"."lastRemindedAt",
-  "User"."phoneNumber",
-  "User"."name";
+  r.id,
+  r.name,
+  r.scheduleCron,
+  r.timeZone,
+  r.prevScheduledAt,
+  r.nextScheduledAt,
+  r.lastRemindedAt,
+  r.lastSentAt,
+  u.phoneNumber AS userPhoneNumber,
+  u.name AS userName
+FROM Recipient r
+INNER JOIN User u ON u.id = r.userId
+WHERE r.verified = 1
+  AND r.disabled = 0
+  AND u.stripeId IS NOT NULL
+  AND r.nextScheduledAt <= $1
+ORDER BY r.nextScheduledAt ASC;

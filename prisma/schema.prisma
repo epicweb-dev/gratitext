@@ -131,9 +131,8 @@ model Recipient {
 
   // non-unique foreign key
   @@index([userId])
-  @@index([verified, disabled])
-  @@index([nextScheduledAt])
-  @@index([userId, nextScheduledAt])
+  // Optimized composite index for cron query: equality cols first, then range, then join
+  @@index([verified, disabled, nextScheduledAt, userId], name: "Recipient_cron_query_idx")
 }
 
 model Message {

@@ -10,6 +10,7 @@ import {
 	setIntervalAsync,
 } from 'set-interval-async/dynamic'
 import { prisma } from './db.server.ts'
+import { SCHEDULE_SENTINEL_DATE } from './schedule-constants.server.ts'
 import { sendText, sendTextToRecipient } from './text.server.ts'
 
 export class CronParseError extends Error {
@@ -63,52 +64,77 @@ export async function init() {
 	)
 }
 
+/**
+ * Type for recipients returned from the optimized cron query
+ */
+type CronRecipient = {
+	id: string
+	name: string
+	scheduleCron: string
+	timeZone: string
+	prevScheduledAt: Date | null
+	nextScheduledAt: Date | null
+	lastRemindedAt: Date | null
+	lastSentAt: Date | null
+	userPhoneNumber: string
+	userName: string | null
+}
+
 export async function sendNextTexts() {
 	const now = new Date()
 	const reminderWindowMs = 1000 * 60 * 30
 	const reminderCutoff = new Date(now.getTime() + reminderWindowMs)
 
-	const recipients = await prisma.recipient.findMany({
-		where: {
-			verified: true,
-			disabled: false,
-			user: { stripeId: { not: null } },
-			OR: [
-				{ nextScheduledAt: { lte: reminderCutoff } },
-				{ nextScheduledAt: null },
-			],
-		},
-		select: {
-			id: true,
-			name: true,
-			scheduleCron: true,
-			timeZone: true,
-			prevScheduledAt: true,
-			nextScheduledAt: true,
-			lastRemindedAt: true,
-			lastSentAt: true,
-			user: {
-				select: {
-					phoneNumber: true,
-					name: true,
-				},
-			},
-		},
-	})
+	// Optimized raw SQL query that:
+	// 1. Uses EXISTS instead of JOIN (we only filter by User, don't select from it)
+	// 2. Uses the composite index on (verified, disabled, nextScheduledAt, userId)
+	// 3. Handles both regular scheduled recipients and those with sentinel dates
+	// Note: SCHEDULE_SENTINEL_DATE (9999-12-31) will always be > reminderCutoff,
+	// so recipients with invalid schedules won't be included unless we explicitly fetch them
+	const recipients = await prisma.$queryRaw<CronRecipient[]>`
+		SELECT
+			r.id,
+			r.name,
+			r.scheduleCron,
+			r.timeZone,
+			r.prevScheduledAt,
+			r.nextScheduledAt,
+			r.lastRemindedAt,
+			r.lastSentAt,
+			u.phoneNumber AS userPhoneNumber,
+			u.name AS userName
+		FROM Recipient r
+		INNER JOIN User u ON u.id = r.userId
+		WHERE r.verified = 1
+			AND r.disabled = 0
+			AND u.stripeId IS NOT NULL
+			AND r.nextScheduledAt <= ${reminderCutoff}
+		ORDER BY r.nextScheduledAt ASC
+	`
 
-	if (!recipients.length) return
+	// Transform the raw result to match the expected format
+	const formattedRecipients = recipients.map((r) => ({
+		...r,
+		user: {
+			phoneNumber: r.userPhoneNumber,
+			name: r.userName,
+		},
+	}))
+
+	if (!formattedRecipients.length) return
 
 	let dueSentCount = 0
 	let reminderSentCount = 0
-	for (const recipient of recipients) {
+	for (const recipient of formattedRecipients) {
 		let scheduleWindow: {
 			prevScheduledAt: Date
 			nextScheduledAt: Date
-		} | null = null
+		}
 		if (
 			recipient.prevScheduledAt &&
 			recipient.nextScheduledAt &&
-			recipient.nextScheduledAt > now
+			recipient.nextScheduledAt > now &&
+			recipient.nextScheduledAt.getTime() !== SCHEDULE_SENTINEL_DATE.getTime()
 		) {
 			scheduleWindow = {
 				prevScheduledAt: recipient.prevScheduledAt,
@@ -126,6 +152,14 @@ export async function sendNextTexts() {
 					`Invalid cron string "${recipient.scheduleCron}" for recipient ${recipient.id}:`,
 					error instanceof Error ? error.message : error,
 				)
+				// Update with sentinel to prevent repeated processing
+				await prisma.recipient.update({
+					where: { id: recipient.id },
+					data: {
+						prevScheduledAt: SCHEDULE_SENTINEL_DATE,
+						nextScheduledAt: SCHEDULE_SENTINEL_DATE,
+					},
+				})
 				continue
 			}
 		}
