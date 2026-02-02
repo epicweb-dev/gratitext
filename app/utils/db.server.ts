@@ -1,5 +1,5 @@
 import { remember } from '@epic-web/remember'
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
+import { PrismaLibSql } from '@prisma/adapter-libsql'
 import chalk from 'chalk'
 import { PrismaClient } from '#app/utils/prisma-generated.server/client.ts'
 
@@ -22,7 +22,7 @@ export const prisma = remember('prisma', () => {
 	}
 
 	const client = new PrismaClient({
-		adapter: new PrismaBetterSqlite3({ url }),
+		adapter: new PrismaLibSql({ url }),
 		log: [
 			{ level: 'query', emit: 'event' },
 			{ level: 'error', emit: 'stdout' },
