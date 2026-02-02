@@ -410,11 +410,23 @@ export default function RecipientRoute() {
 
 	useEffect(() => {
 		if (!loadMoreData) return
+		if (
+			loadMoreData.recipient.phoneNumber !== data.recipient.phoneNumber ||
+			loadMoreData.searchQuery !== data.searchQuery ||
+			loadMoreData.dateFilter !== data.dateFilter
+		) {
+			return
+		}
 		if (loadMoreData.pastMessages.length) {
 			setPastMessages((prev) => [...prev, ...loadMoreData.pastMessages])
 		}
 		setPastNextCursor(loadMoreData.nextCursor)
-	}, [loadMoreData])
+	}, [
+		loadMoreData,
+		data.recipient.phoneNumber,
+		data.searchQuery,
+		data.dateFilter,
+	])
 
 	useLayoutEffect(() => {
 		const container = scrollContainer
