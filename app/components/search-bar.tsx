@@ -11,19 +11,23 @@ export function SearchBar({
 	autoFocus = false,
 	autoSubmit = false,
 	action,
+	showDateFilter = false,
 }: {
 	status: 'idle' | 'pending' | 'success' | 'error'
 	autoFocus?: boolean
 	autoSubmit?: boolean
 	action?: string
+	showDateFilter?: boolean
 }) {
 	const id = useId()
+	const dateId = `${id}-date`
 	const [searchParams] = useSearchParams()
 	const submit = useSubmit()
 	const isSubmitting = useIsPending({
 		formMethod: 'GET',
 		formAction: action,
 	})
+	const dateValue = searchParams.get('date') ?? ''
 
 	const handleFormChange = useDebounce((form: HTMLFormElement) => {
 		void submit(form)
@@ -50,6 +54,20 @@ export function SearchBar({
 					autoFocus={autoFocus}
 				/>
 			</div>
+			{showDateFilter ? (
+				<div className="w-full sm:w-auto">
+					<Label htmlFor={dateId} className="sr-only">
+						Filter by date
+					</Label>
+					<Input
+						type="date"
+						name="date"
+						id={dateId}
+						defaultValue={dateValue}
+						className="w-full"
+					/>
+				</div>
+			) : null}
 			<div>
 				<StatusButton
 					type="submit"
