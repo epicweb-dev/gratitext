@@ -31,10 +31,7 @@ export async function setup() {
 			await fsExtra.stat('./prisma/schema.prisma')
 		).mtime
 
-		if (
-			prismaSchemaLastModifiedAt < databaseLastModifiedAt &&
-			hasSeedData()
-		) {
+		if (prismaSchemaLastModifiedAt < databaseLastModifiedAt && hasSeedData()) {
 			return
 		}
 	}
