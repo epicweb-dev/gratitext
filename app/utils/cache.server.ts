@@ -80,8 +80,10 @@ const cacheQueryResultSchema = z.object({
 	value: z.string(),
 })
 
-type UpdatePrimaryCacheValue =
-	typeof import('#app/routes/_app+/admin+/cache_.sqlite.server.ts').updatePrimaryCacheValue
+type UpdatePrimaryCacheValue = (args: {
+	key: string
+	cacheValue: unknown
+}) => Promise<Response>
 
 let updatePrimaryCacheValuePromise: Promise<UpdatePrimaryCacheValue> | null =
 	null

@@ -1,5 +1,5 @@
 import 'dotenv/config'
-import { Queue, Worker, type ConnectionOptions } from 'bullmq'
+import { Queue, Worker } from 'bullmq'
 import chalk from 'chalk'
 import closeWithGrace from 'close-with-grace'
 import {
