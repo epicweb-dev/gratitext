@@ -3,7 +3,12 @@ import { defineConfig, devices } from '@playwright/test'
 import 'dotenv/config'
 
 const PORT = process.env.PORT || '3000'
-const TEST_DATABASE_PATH = path.join(process.cwd(), 'tests', 'prisma', 'base.db')
+const TEST_DATABASE_PATH = path.join(
+	process.cwd(),
+	'tests',
+	'prisma',
+	'base.db',
+)
 const TEST_CACHE_DATABASE_PATH = path.join(
 	process.cwd(),
 	'tests',
