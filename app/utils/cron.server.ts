@@ -3,12 +3,7 @@
  * Probably inngest... But we're gonna stick with this for now and see how far
  * it gets us.
  */
-import { remember } from '@epic-web/remember'
 import { CronExpressionParser } from 'cron-parser'
-import {
-	clearIntervalAsync,
-	setIntervalAsync,
-} from 'set-interval-async/dynamic'
 import { prisma } from './db.server.ts'
 import { sendText, sendTextToRecipient } from './text.server.ts'
 
@@ -47,20 +42,6 @@ export function getScheduleWindow(
 	const prevScheduledAt = interval.prev().toDate()
 	const nextScheduledAt = interval.next().toDate()
 	return { prevScheduledAt, nextScheduledAt }
-}
-
-const cronIntervalRef = remember<{
-	current: ReturnType<typeof setIntervalAsync> | null
-}>('cronInterval', () => ({ current: null }))
-
-export async function init() {
-	console.log('initializing cron interval')
-	if (cronIntervalRef.current) await clearIntervalAsync(cronIntervalRef.current)
-
-	cronIntervalRef.current = setIntervalAsync(
-		() => sendNextTexts().catch((err) => console.error(err)),
-		1000 * 5,
-	)
 }
 
 export async function sendNextTexts() {

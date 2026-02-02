@@ -11,6 +11,8 @@ const schema = z.object({
 	// If you plan on using Sentry, uncomment this line
 	// SENTRY_DSN: z.string(),
 	ALLOW_INDEXING: z.enum(['true', 'false']).optional(),
+	REDIS_URL: z.string().optional(),
+	CRON_SIDECAR_INTERVAL_MS: z.string().optional(),
 
 	TWILIO_TOKEN: z.string(),
 	TWILIO_SID: z.string(),

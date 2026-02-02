@@ -11,7 +11,6 @@ import {
 	ServerRouter,
 } from 'react-router'
 import { getSessionRenewal, sessionKey } from './utils/auth.server.ts'
-import { init as initCron } from './utils/cron.server.ts'
 import { getEnv, init as initEnv } from './utils/env.server.ts'
 import { getInstanceInfo } from './utils/litefs.server.ts'
 import { NonceProvider } from './utils/nonce-provider.ts'
@@ -22,8 +21,6 @@ const ABORT_DELAY = 5000
 
 initEnv()
 global.ENV = getEnv()
-
-void initCron()
 
 type DocRequestArgs = Parameters<HandleDocumentRequestFunction>
 

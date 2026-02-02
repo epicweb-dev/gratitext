@@ -2,8 +2,11 @@ app = "gratitext"
 primary_region = "sjc"
 kill_signal = "SIGINT"
 kill_timeout = 5
-processes = [ ]
 swap_size_mb = 512
+
+[processes]
+  app = "litefs mount -config /etc/litefs.yml"
+  bullmq-sidecar = "litefs mount -config /etc/litefs-sidecar.yml"
 
 [experimental]
 allowed_public_ports = [ ]
