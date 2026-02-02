@@ -43,7 +43,7 @@ export async function setup() {
 		PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION: 'yes',
 	}
 
-	await execaCommand('npx prisma migrate reset --force --skip-seed', {
+	await execaCommand('npx prisma migrate reset --force', {
 		stdio: 'inherit',
 		env: prismaEnv,
 	})
