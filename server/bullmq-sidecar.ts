@@ -13,6 +13,10 @@ import { init as initEnv } from '#app/utils/env.server.ts'
 
 initEnv()
 
+if (process.env.MOCKS === 'true') {
+	await import('#tests/mocks/index.ts')
+}
+
 const connection = getRedisConnectionOptions()
 const queue = new Queue(BULLMQ_SIDECAR_QUEUE, { connection })
 const intervalMs = getSidecarIntervalMs()

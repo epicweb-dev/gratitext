@@ -24,6 +24,31 @@
 
    npm run dev
 
+## Local sidecar testing (BullMQ)
+
+1. Ensure Redis is available locally:
+
+   npm run redis:local
+
+   (Use `REDIS_URL=redis://localhost:6379/0` in `.env`; dummy Stripe/Twilio
+   values are fine when running with mocks.)
+
+2. Run the app + BullMQ sidecar with mocks:
+
+   npm run dev:sidecar
+
+3. Visit the app:
+
+   http://localhost:3000
+
+To run everything in one command (Redis + app + sidecar):
+
+npm run dev:sidecar:redis
+
+To stop the Redis container:
+
+npm run redis:local:down
+
 ## Thanks
 
 You rock 🪨
