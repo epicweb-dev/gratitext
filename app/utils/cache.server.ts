@@ -14,7 +14,6 @@ import { remember } from '@epic-web/remember'
 import Database from 'better-sqlite3'
 import { LRUCache } from 'lru-cache'
 import { z } from 'zod'
-import { updatePrimaryCacheValue } from '#app/routes/_app+/admin+/cache_.sqlite.server.js'
 import { getInstanceInfo, getInstanceInfoSync } from './litefs.server.ts'
 import { cachifiedTimingReporter, type Timings } from './timing.server.ts'
 
@@ -81,6 +80,26 @@ const cacheQueryResultSchema = z.object({
 	value: z.string(),
 })
 
+type UpdatePrimaryCacheValue =
+	typeof import('#app/routes/_app+/admin+/cache_.sqlite.server.ts').updatePrimaryCacheValue
+
+let updatePrimaryCacheValuePromise: Promise<UpdatePrimaryCacheValue> | null =
+	null
+
+async function getUpdatePrimaryCacheValue(): Promise<UpdatePrimaryCacheValue> {
+	if (!updatePrimaryCacheValuePromise) {
+		updatePrimaryCacheValuePromise =
+			import('#app/routes/_app+/admin+/cache_.sqlite.server.js')
+				.then((mod) => mod.updatePrimaryCacheValue)
+				.catch(async () => {
+					const mod =
+						await import('#app/routes/_app+/admin+/cache_.sqlite.server.ts')
+					return mod.updatePrimaryCacheValue
+				})
+	}
+	return updatePrimaryCacheValuePromise
+}
+
 export const cache: CachifiedCache = {
 	name: 'SQLite cache',
 	get(key) {
@@ -113,6 +132,7 @@ export const cache: CachifiedCache = {
 				})
 		} else {
 			// fire-and-forget cache update
+			const updatePrimaryCacheValue = await getUpdatePrimaryCacheValue()
 			void updatePrimaryCacheValue({
 				key,
 				cacheValue: entry,
@@ -132,6 +152,7 @@ export const cache: CachifiedCache = {
 			cacheDb.prepare('DELETE FROM cache WHERE key = ?').run(key)
 		} else {
 			// fire-and-forget cache update
+			const updatePrimaryCacheValue = await getUpdatePrimaryCacheValue()
 			void updatePrimaryCacheValue({
 				key,
 				cacheValue: undefined,
