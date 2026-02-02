@@ -422,16 +422,6 @@ function MessageForms({
 		setCanDelete(false)
 	}, [confirmDelete, deleteSafeDelayMs])
 
-	useEffect(() => {
-		setCurrentContent(message.content)
-	}, [message.content])
-
-	useEffect(() => {
-		if (updateContentFetcher.data?.result.status === 'success') {
-			setCurrentContent(message.content)
-		}
-	}, [message.content, updateContentFetcher.data?.result.status])
-
 	const handleSendNow = () => {
 		setConfirmDelete(false)
 		const formData = new FormData()
