@@ -11,5 +11,5 @@
     `STRIPE_PREMIUM_PAYMENT_LINK`, `STRIPE_PREMIUM_PRODUCT`
   - `ALLOW_INDEXING` is optional.
 
-When initializing the environment, you should copy the `.env.example` file
-to `.env` and these values will be filled in with mocked values.
+When initializing the environment, you should copy the `.env.example` file to
+`.env` and these values will be filled in with mocked values.

@@ -6,8 +6,8 @@ regular schedule.
 ## Essentials
 
 - Node version: `^24`
-- Build: `npm run build` (runs `build:icons`, then `react-router build`)
-- Typecheck: `npm run typecheck` (runs `react-router typegen`, then `tsc`)
+- Build: `bun run build` (runs `build:icons`, then `react-router build`)
+- Typecheck: `bun run typecheck` (runs `react-router typegen`, then `tsc`)
 
 ## More instructions
 

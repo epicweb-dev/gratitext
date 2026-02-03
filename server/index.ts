@@ -297,11 +297,13 @@ app.use(compression())
 // http://expressjs.com/en/advanced/best-practice-security.html#at-a-minimum-disable-x-powered-by-header
 app.disable('x-powered-by')
 
-app.get(/^\/(?:img|favicons)\/.*/, (_req, res) => {
-	// if we made it past the express.static for these, then we're missing something.
-	// So we'll just send a 404 and won't bother calling other middleware.
-	return res.status(404).send('Not found')
-})
+if (!IS_DEV) {
+	app.get(/^\/(?:img|favicons)\/.*/, (_req, res) => {
+		// if we made it past the express.static for these, then we're missing something.
+		// So we'll just send a 404 and won't bother calling other middleware.
+		return res.status(404).send('Not found')
+	})
+}
 
 morgan.token('url', (req) => decodeURIComponent(req.url ?? ''))
 app.use(
@@ -337,11 +339,12 @@ app.use(
 				'frame-src': ["'self'"],
 				'img-src': ["'self'", 'data:'],
 				'script-src': [
+					IS_DEV ? "'unsafe-eval'" : null,
 					"'strict-dynamic'",
 					"'self'",
 					// @ts-expect-error
 					(_, res) => `'nonce-${res.locals.cspNonce}'`,
-				],
+				].filter(Boolean),
 				'script-src-attr': [
 					// @ts-expect-error
 					(_, res) => `'nonce-${res.locals.cspNonce}'`,

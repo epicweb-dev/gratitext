@@ -475,13 +475,13 @@ export default function RecipientRoute() {
 			return
 		}
 		if (loadMoreData.pastMessages.length) {
-		setPastMessages((prev) => {
-			const existingIds = new Set(prev.map((message) => message.id))
-			const newMessages = loadMoreData.pastMessages.filter(
-				(message) => !existingIds.has(message.id),
-			)
-			return newMessages.length ? [...prev, ...newMessages] : prev
-		})
+			setPastMessages((prev) => {
+				const existingIds = new Set(prev.map((message) => message.id))
+				const newMessages = loadMoreData.pastMessages.filter(
+					(message) => !existingIds.has(message.id),
+				)
+				return newMessages.length ? [...prev, ...newMessages] : prev
+			})
 		}
 		setPastNextCursor(loadMoreData.nextCursor)
 	}, [

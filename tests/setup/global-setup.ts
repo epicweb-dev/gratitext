@@ -26,7 +26,7 @@ export async function setup() {
 	}
 
 	await fsExtra.remove(BASE_DATABASE_PATH)
-	await execaCommand('npx prisma migrate deploy', {
+	await execaCommand('bunx prisma migrate deploy', {
 		stdio: 'inherit',
 		env: {
 			...process.env,

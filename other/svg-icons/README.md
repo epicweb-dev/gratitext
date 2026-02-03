@@ -8,4 +8,4 @@ actually needs as there's no "tree-shaking" for sprites. If you wish to manually
 split up your SVG sprite into multiple files, you'll need to update the
 `build-icons.ts` script to do that.
 
-Run `npm run build:icons` to update the sprite.
+Run `bun run build:icons` to update the sprite.

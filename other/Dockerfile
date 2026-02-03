@@ -1,7 +1,7 @@
 # This file is moved to the root directory before building the image
 
-# base node image
-FROM node:24-bookworm-slim as base
+# base bun image
+FROM oven/bun:1.3.8 as base
 
 # set for base and all layer that inherit from it
 ENV NODE_ENV production
@@ -14,20 +14,19 @@ FROM base as deps
 
 WORKDIR /myapp
 
-ADD package.json package-lock.json .npmrc ./
+ADD package.json bun.lock .npmrc ./
 ADD scripts /myapp/scripts
 ADD prisma /myapp/prisma
 ADD prisma.config.ts /myapp/prisma.config.ts
-RUN npm install --include=dev
+RUN bun install --frozen-lockfile
 
 # Setup production node_modules
 FROM base as production-deps
 
 WORKDIR /myapp
 
-COPY --from=deps /myapp/node_modules /myapp/node_modules
-ADD package.json package-lock.json .npmrc ./
-RUN npm prune --omit=dev
+ADD package.json bun.lock .npmrc ./
+RUN bun install --production --frozen-lockfile
 
 # Build the app
 FROM base as build
@@ -42,8 +41,8 @@ COPY --from=deps /myapp/node_modules /myapp/node_modules
 ADD prisma /myapp/prisma
 ADD prisma.config.ts /myapp/prisma.config.ts
 ADD scripts /myapp/scripts
-RUN node scripts/ensure-prisma-db.js && \
-	npx prisma@7 generate --sql
+RUN bun scripts/ensure-prisma-db.js && \
+	bunx prisma@7 generate --sql
 
 ADD . .
 
@@ -53,7 +52,7 @@ ENV SENTRY_PROJECT="gratitext"
 # Mount the secret and set it as an environment variable and run the build
 RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN \
     export SENTRY_AUTH_TOKEN=$(cat /run/secrets/SENTRY_AUTH_TOKEN) && \
-    npm run build
+    bun run build
 
 # Finally, build the production image with minimal footprint
 FROM base
