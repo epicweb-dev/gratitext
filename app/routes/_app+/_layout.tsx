@@ -67,8 +67,13 @@ export default function Layout() {
 	const data = useLoaderData<typeof loader>()
 	const user = useOptionalUser()
 	const requestInfo = useRequestInfo()
+	const isRecipientsRoute = requestInfo.path.startsWith('/recipients')
 	return (
-		<div className="flex h-screen flex-col justify-between">
+		<div
+			className={`flex h-screen flex-col justify-between ${
+				isRecipientsRoute ? 'bg-white' : 'bg-background'
+			}`}
+		>
 			<header className="container py-5 md:py-6">
 				<nav className="flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8">
 					<Logo />

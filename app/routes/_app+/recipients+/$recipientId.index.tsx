@@ -605,7 +605,7 @@ export default function RecipientRoute() {
 				{hasAnyMessages ? (
 					<div
 						ref={setScrollContainer}
-						className="border-border/60 bg-white max-h-[65vh] overflow-y-auto rounded-[24px] border px-4 py-5 shadow-sm sm:px-5 sm:py-6"
+						className="border-border/60 bg-[linear-gradient(180deg,_hsl(var(--palette-cream)),_hsl(var(--palette-beige))_45%,_hsl(0_0%_100%)_100%)] max-h-[65vh] overflow-y-auto rounded-[24px] border px-4 py-5 shadow-sm sm:px-5 sm:py-6"
 					>
 						{hasPastMessages || pastNextCursor ? (
 							<div className="text-muted-foreground flex flex-col items-center gap-2 text-xs font-semibold tracking-[0.2em] uppercase">
@@ -615,7 +615,7 @@ export default function RecipientRoute() {
 						<ul className="flex flex-col gap-4 sm:gap-5">
 							{pastMessagesForDisplay.map((m) => (
 								<li key={m.id} className="flex flex-col items-end gap-1">
-									<div className="max-w-[75%] rounded-[24px] bg-[linear-gradient(135deg,_hsl(var(--palette-green-500)),_hsl(var(--palette-green-700)))] px-4 py-3 text-sm leading-relaxed text-[hsl(var(--palette-cream))] shadow-sm sm:max-w-[65%] sm:px-5 sm:py-4">
+									<div className="max-w-[75%] rounded-[24px] bg-[hsl(var(--palette-green-500))] px-4 py-3 text-sm leading-relaxed text-[hsl(var(--palette-cream))] shadow-sm sm:max-w-[65%] sm:px-5 sm:py-4">
 										<p className="whitespace-pre-wrap">{m.content}</p>
 									</div>
 									<time
@@ -632,7 +632,7 @@ export default function RecipientRoute() {
 						</ul>
 					</div>
 				) : (
-					<div className="border-border/60 bg-white rounded-[24px] border px-4 py-10 text-center text-sm shadow-sm sm:px-5 sm:py-12">
+					<div className="border-border/60 bg-[linear-gradient(180deg,_hsl(var(--palette-cream)),_hsl(var(--palette-beige))_45%,_hsl(0_0%_100%)_100%)] rounded-[24px] border px-4 py-10 text-center text-sm shadow-sm sm:px-5 sm:py-12">
 						<p className="text-muted-foreground">{emptyThreadMessage}</p>
 						<Link
 							to="new"
@@ -705,8 +705,7 @@ function MessageForms({ message }: { message: FutureMessage }) {
 		},
 		shouldRevalidate: 'onBlur',
 	})
-	const cardTone =
-		'bg-[linear-gradient(135deg,_hsl(var(--palette-blues)),_hsl(var(--palette-navy)))]'
+	const cardTone = 'bg-[hsl(var(--palette-blues))]'
 	const scheduleLabel = message.sendAtDisplay
 		? `Scheduled for ${message.sendAtDisplay}`
 		: 'Scheduled message'
@@ -846,8 +845,8 @@ function MessageForms({ message }: { message: FutureMessage }) {
 							setCurrentContent(event.currentTarget.value)
 						}}
 						ref={textareaRef}
-						className="mt-3 w-full resize-none bg-transparent text-sm leading-relaxed text-[hsl(var(--palette-cream))] placeholder:text-[hsl(var(--palette-cream))]/80 focus-visible:outline-none"
-						rows={3}
+						className="mt-2 w-full resize-none bg-transparent text-sm leading-relaxed text-[hsl(var(--palette-cream))] placeholder:text-[hsl(var(--palette-cream))]/80 focus-visible:outline-none"
+						rows={2}
 					/>
 				</updateContentFetcher.Form>
 			</div>
