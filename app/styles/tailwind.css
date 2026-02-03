@@ -216,4 +216,12 @@
 	::file-selector-button {
 		border-color: hsl(var(--border));
 	}
+
+	@media (width <= 768px) {
+		input,
+		textarea,
+		select {
+			font-size: 16px !important;
+		}
+	}
 }
