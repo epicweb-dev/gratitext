@@ -702,12 +702,9 @@ function MessageForms({
 	const sendIsPending = sendNowFetcher.state !== 'idle'
 	const deleteIsPending = deleteFetcher.state !== 'idle'
 	const wasUpdatePendingRef = useRef(updateIsPending)
-	const {
-		defaultValue: _defaultValue,
-		onInput: conformOnInput,
-		onChange: conformOnChange,
-		...textareaProps
-	} = getTextareaProps(updateContentFields.content)
+	const { defaultValue: _defaultValue, ...textareaProps } = getTextareaProps(
+		updateContentFields.content,
+	)
 	const hasEdits = currentContent !== message.content
 	const showSaveButton = hasEdits || updateIsPending
 
@@ -860,12 +857,6 @@ function MessageForms({
 							value={currentContent}
 							onChange={(event) => {
 								setCurrentContent(event.currentTarget.value)
-								if (conformOnChange) {
-									conformOnChange(event)
-								}
-								if (conformOnInput) {
-									conformOnInput(event)
-								}
 							}}
 							ref={textareaRef}
 							className="mt-4 w-full resize-none bg-transparent text-sm leading-relaxed text-[hsl(var(--palette-cream))] placeholder:text-[hsl(var(--palette-cream))]/80 focus-visible:outline-none"
