@@ -1,5 +1,8 @@
 # Setup
 
+We use Bun for package management and scripts. Use `bun install` and `bun run`
+for the commands below.
+
 Start with:
 
 ```

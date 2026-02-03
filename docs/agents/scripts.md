@@ -1,5 +1,7 @@
 # Scripts
 
+We use Bun for package management and scripts. Run commands via `bun run`.
+
 - `bun run dev`: starts dev server with `NODE_ENV=development` and `MOCKS=true`.
 - `bun run build`: runs `build:icons`, then `react-router build`.
 - `bun run start`: production server (`NODE_ENV=production`).
