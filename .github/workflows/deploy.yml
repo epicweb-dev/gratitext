@@ -30,17 +30,8 @@ jobs:
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
 
-      - name: 🏄 Copy test env vars
-        run: cp .env.example .env
-
-      - name: 🛠 Setup database
-        run: npx prisma migrate deploy
-
-      - name: 🧬 Generate Prisma client
-        run: npx prisma generate --sql
-
-      - name: 🖼 Build icons
-        run: npm run build:icons
+      - name: 🧰 Setup env
+        run: npm run setup:env
 
       - name: 🔬 Lint
         run: npm run lint
@@ -60,17 +51,8 @@ jobs:
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
 
-      - name: 🏄 Copy test env vars
-        run: cp .env.example .env
-
-      - name: 🛠 Setup database
-        run: npx prisma migrate deploy
-
-      - name: 🧬 Generate Prisma client
-        run: npx prisma generate --sql
-
-      - name: 🖼 Build icons
-        run: npm run build:icons
+      - name: 🧰 Setup env
+        run: npm run setup:env
 
       - name: 🔎 Type check
         run: npm run typecheck --if-present
@@ -90,15 +72,6 @@ jobs:
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
 
-      - name: 🏄 Copy test env vars
-        run: cp .env.example .env
-
-      - name: 🛠 Setup database
-        run: npx prisma migrate deploy
-
-      - name: 🧬 Generate Prisma client
-        run: npx prisma generate --sql
-
       - name: 🎭 Cache Playwright browsers
         uses: actions/cache@v4
         with:
@@ -110,8 +83,8 @@ jobs:
       - name: 🎭 Install Playwright browsers
         run: npm run test:e2e:install
 
-      - name: 🖼 Build icons
-        run: npm run build:icons
+      - name: 🧰 Setup env
+        run: npm run setup:env
 
       - name: ⚡ Run vitest
         run: npm run test -- --coverage
@@ -123,9 +96,6 @@ jobs:
     steps:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v4
-
-      - name: 🏄 Copy test env vars
-        run: cp .env.example .env
 
       - name: ⎔ Setup node
         uses: actions/setup-node@v4
@@ -146,11 +116,8 @@ jobs:
       - name: 📥 Install Playwright Browsers
         run: npm run test:e2e:install
 
-      - name: 🛠 Setup Database
-        run: npx prisma migrate deploy
-
-      - name: 🧬 Generate Prisma client
-        run: npx prisma generate --sql
+      - name: 🧰 Setup env
+        run: npm run setup:env
 
       - name: 🏦 Cache Database
         id: db-cache
