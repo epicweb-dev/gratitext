@@ -18,11 +18,11 @@
 
 2. Install dependencies:
 
-   npm install
+   bun install
 
 3. Run the development server:
 
-   npm run dev
+   bun run dev
 
 ## Thanks
 

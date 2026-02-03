@@ -29,7 +29,7 @@ lease:
     key: 'epic-stack-litefs/${FLY_APP_NAME}'
 
 exec:
-  - cmd: npx prisma@7 migrate deploy
+  - cmd: bunx prisma@7 migrate deploy
     if-candidate: true
 
   # Set the journal mode for the database to WAL. This reduces concurrency deadlock issues
@@ -40,4 +40,4 @@ exec:
   - cmd: sqlite3 $CACHE_DATABASE_PATH "PRAGMA journal_mode = WAL;"
     if-candidate: true
 
-  - cmd: npm start
+  - cmd: bun run start

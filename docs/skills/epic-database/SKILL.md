@@ -254,13 +254,13 @@ model Note {
 **Create migration:**
 
 ```bash
-npx prisma migrate dev --name add_user_field
+bunx prisma migrate dev --name add_user_field
 ```
 
 **Apply migrations in production:**
 
 ```bash
-npx prisma migrate deploy
+bunx prisma migrate deploy
 ```
 
 **Automatic migrations:** Migrations are automatically applied on deploy via
@@ -472,9 +472,9 @@ seed()
 **Run seed:**
 
 ```bash
-npx prisma db seed
+bunx prisma db seed
 # Or directly:
-npx tsx prisma/seed.ts
+bunx tsx prisma/seed.ts
 ```
 
 ### Query Optimization
@@ -579,7 +579,7 @@ fly ssh console -C database-cli --app [YOUR_APP_NAME]
 
 ```bash
 # Terminal 1: Start Prisma Studio
-fly ssh console -C "npx prisma studio" -s --app [YOUR_APP_NAME]
+fly ssh console -C "bunx prisma studio" -s --app [YOUR_APP_NAME]
 
 # Terminal 2: Local proxy
 fly proxy 5556:5555 --app [YOUR_APP_NAME]

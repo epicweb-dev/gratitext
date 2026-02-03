@@ -27,14 +27,19 @@ jobs:
         with:
           node-version: 24
 
+      - name: 🥟 Setup bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
       - name: 📥 Download deps
-        uses: bahmutov/npm-install@v1
+        run: bun install --frozen-lockfile
 
       - name: 🧰 Setup env
-        run: npm run setup:env
+        run: bun run setup:env
 
       - name: 🔬 Lint
-        run: npm run lint
+        run: bun run lint
 
   typecheck:
     name: ʦ TypeScript
@@ -48,14 +53,19 @@ jobs:
         with:
           node-version: 24
 
+      - name: 🥟 Setup bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
       - name: 📥 Download deps
-        uses: bahmutov/npm-install@v1
+        run: bun install --frozen-lockfile
 
       - name: 🧰 Setup env
-        run: npm run setup:env
+        run: bun run setup:env
 
       - name: 🔎 Type check
-        run: npm run typecheck --if-present
+        run: bun run typecheck
 
   vitest:
     name: ⚡ Vitest
@@ -69,25 +79,30 @@ jobs:
         with:
           node-version: 24
 
+      - name: 🥟 Setup bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
       - name: 📥 Download deps
-        uses: bahmutov/npm-install@v1
+        run: bun install --frozen-lockfile
 
       - name: 🎭 Cache Playwright browsers
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
           restore-keys: |
             playwright-${{ runner.os }}-
 
       - name: 🎭 Install Playwright browsers
-        run: npm run test:e2e:install
+        run: bun run test:e2e:install
 
       - name: 🧰 Setup env
-        run: npm run setup:env
+        run: bun run setup:env
 
       - name: ⚡ Run vitest
-        run: npm run test -- --coverage
+        run: bun run test -- --coverage
 
   playwright:
     name: 🎭 Playwright
@@ -102,22 +117,27 @@ jobs:
         with:
           node-version: 24
 
+      - name: 🥟 Setup bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
       - name: 📥 Download deps
-        uses: bahmutov/npm-install@v1
+        run: bun install --frozen-lockfile
 
       - name: 🎭 Cache Playwright browsers
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
           restore-keys: |
             playwright-${{ runner.os }}-
 
       - name: 📥 Install Playwright Browsers
-        run: npm run test:e2e:install
+        run: bun run test:e2e:install
 
       - name: 🧰 Setup env
-        run: npm run setup:env
+        run: bun run setup:env
 
       - name: 🏦 Cache Database
         id: db-cache
@@ -131,15 +151,15 @@ jobs:
 
       - name: 🌱 Seed Database
         if: steps.db-cache.outputs.cache-hit != 'true'
-        run: npx prisma db seed
+        run: bunx prisma db seed
         env:
           MINIMAL_SEED: true
 
       - name: 🏗 Build
-        run: npm run build
+        run: bun run build
 
       - name: 🎭 Playwright tests
-        run: npx playwright test
+        run: bunx playwright test
 
       - name: 📊 Upload report
         uses: actions/upload-artifact@v4

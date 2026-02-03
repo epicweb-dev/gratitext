@@ -7,27 +7,31 @@ FROM node:24-bookworm-slim as base
 ENV NODE_ENV production
 
 # Install openssl for Prisma
-RUN apt-get update && apt-get install -y fuse3 openssl sqlite3 ca-certificates
+RUN apt-get update && apt-get install -y fuse3 openssl sqlite3 ca-certificates curl unzip
+
+# Install bun for package management
+ENV BUN_INSTALL=/usr/local/bun
+ENV PATH="$BUN_INSTALL/bin:$PATH"
+RUN curl -fsSL https://bun.sh/install | bash
 
 # Install all node_modules, including dev dependencies
 FROM base as deps
 
 WORKDIR /myapp
 
-ADD package.json package-lock.json .npmrc ./
+ADD package.json bun.lock .npmrc ./
 ADD scripts /myapp/scripts
 ADD prisma /myapp/prisma
 ADD prisma.config.ts /myapp/prisma.config.ts
-RUN npm install --include=dev
+RUN bun install --frozen-lockfile
 
 # Setup production node_modules
 FROM base as production-deps
 
 WORKDIR /myapp
 
-COPY --from=deps /myapp/node_modules /myapp/node_modules
-ADD package.json package-lock.json .npmrc ./
-RUN npm prune --omit=dev
+ADD package.json bun.lock .npmrc ./
+RUN bun install --production --frozen-lockfile
 
 # Build the app
 FROM base as build
@@ -43,7 +47,7 @@ ADD prisma /myapp/prisma
 ADD prisma.config.ts /myapp/prisma.config.ts
 ADD scripts /myapp/scripts
 RUN node scripts/ensure-prisma-db.js && \
-	npx prisma@7 generate --sql
+	bunx prisma@7 generate --sql
 
 ADD . .
 
@@ -53,7 +57,7 @@ ENV SENTRY_PROJECT="gratitext"
 # Mount the secret and set it as an environment variable and run the build
 RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN \
     export SENTRY_AUTH_TOKEN=$(cat /run/secrets/SENTRY_AUTH_TOKEN) && \
-    npm run build
+    bun run build
 
 # Finally, build the production image with minimal footprint
 FROM base

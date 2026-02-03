@@ -4,12 +4,12 @@
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start dev server with mocks (port 3000) |
-| `npm test` | Run Vitest unit tests |
-| `npm run test:e2e:run` | Run Playwright e2e tests |
-| `npm run lint` | ESLint |
-| `npm run typecheck` | TypeScript type checking |
-| `npm run validate` | Run all checks (tests, lint, typecheck, e2e) |
+| `bun run dev` | Start dev server with mocks (port 3000) |
+| `bun run test` | Run Vitest unit tests |
+| `bun run test:e2e:run` | Run Playwright e2e tests |
+| `bun run lint` | ESLint |
+| `bun run typecheck` | TypeScript type checking |
+| `bun run validate` | Run all checks (tests, lint, typecheck, e2e) |
 
 ## Development Mode
 
@@ -21,7 +21,7 @@ When testing SMS flows, mock verification codes are stored in `/workspace/tests/
 
 ## Database
 
-SQLite database at `./prisma/sqlite.db`. Use `npx prisma studio` to browse data.
+SQLite database at `./prisma/sqlite.db`. Use `bunx prisma studio` to browse data.
 
 ## Testing
 

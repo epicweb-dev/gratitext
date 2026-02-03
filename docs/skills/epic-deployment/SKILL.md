@@ -87,14 +87,14 @@ lease:
     key: 'epic-stack-litefs_20250222/${FLY_APP_NAME}'
 
 exec:
-  - cmd: npx prisma migrate deploy
+  - cmd: bunx prisma migrate deploy
     if-candidate: true
   - cmd: sqlite3 $DATABASE_PATH "PRAGMA journal_mode = WAL;"
     if-candidate: true
   - cmd: sqlite3 $CACHE_DATABASE_PATH "PRAGMA journal_mode = WAL;"
     if-candidate: true
-  - cmd: npx prisma generate --sql
-  - cmd: npm start
+  - cmd: bunx prisma generate --sql
+  - cmd: bun run start
 ```
 
 ### Healthchecks
@@ -344,7 +344,7 @@ fly storage create --app [YOUR_APP_NAME]
 
 ```yaml
 exec:
-  - cmd: npx prisma migrate deploy
+  - cmd: bunx prisma migrate deploy
     if-candidate: true
 ```
 
@@ -530,7 +530,7 @@ jobs:
 
 ```bash
 # Create migration
-npx prisma migrate dev --name add_field
+bunx prisma migrate dev --name add_field
 
 # Commit and push
 git add .
@@ -540,7 +540,7 @@ git push origin main
 # GitHub Actions automatically runs:
 # 1. Build
 # 2. Deploy
-# 3. litefs.yml runs: npx prisma migrate deploy (only on primary)
+# 3. litefs.yml runs: bunx prisma migrate deploy (only on primary)
 ```
 
 ## Common mistakes to avoid
@@ -704,14 +704,14 @@ WORKDIR /app
 # Install dependencies
 FROM base AS deps
 COPY package*.json ./
-RUN npm ci --only=production
+RUN bun install --production --frozen-lockfile
 
 # Build application
 FROM base AS builder
 COPY package*.json ./
-RUN npm ci
+RUN bun install --frozen-lockfile
 COPY . .
-RUN npm run build
+RUN bun run build
 
 # Production image
 FROM base AS runner
@@ -729,7 +729,7 @@ COPY --from=builder /app/package.json ./
 # Exclude unnecessary files
 # node_modules/.cache, .git, etc. are already excluded via .dockerignore
 
-CMD ["npm", "start"]
+CMD ["bun", "run", "start"]
 ```
 
 **✅ Good - Docker ignore file:**
