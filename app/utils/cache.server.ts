@@ -11,7 +11,7 @@ import {
 	type CreateReporter,
 } from '@epic-web/cachified'
 import { remember } from '@epic-web/remember'
-import Database from 'better-sqlite3'
+import { Database } from 'bun:sqlite'
 import { LRUCache } from 'lru-cache'
 import { z } from 'zod'
 import { updatePrimaryCacheValue } from '#app/routes/_app+/admin+/cache_.sqlite.server.js'
@@ -22,7 +22,7 @@ const CACHE_DATABASE_PATH = process.env.CACHE_DATABASE_PATH
 
 const cacheDb = remember('cacheDb', createDatabase)
 
-function createDatabase(tryAgain = true): Database.Database {
+function createDatabase(tryAgain = true): Database {
 	const db = new Database(CACHE_DATABASE_PATH)
 	const { currentIsPrimary } = getInstanceInfoSync()
 	if (!currentIsPrimary) return db

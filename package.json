@@ -114,7 +114,6 @@
     "@sentry/vite-plugin": "^4.8.0",
     "@sly-cli/sly": "^2.1.1",
     "@total-typescript/ts-reset": "^0.6.1",
-    "@types/better-sqlite3": "^7.6.13",
     "@types/compression": "^1.8.1",
     "@types/eslint": "^9.6.1",
     "@types/express": "^5.0.6",
