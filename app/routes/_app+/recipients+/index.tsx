@@ -39,14 +39,12 @@ export default function RecipientsIndexRoute() {
 				</h1>
 				<ButtonLink
 					to="new"
-					variant="ghost"
+					variant="outline"
 					size="icon"
 					aria-label="Add recipient"
-					className="h-14 w-14 bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] shadow-sm hover:bg-[hsl(var(--palette-green-700))]"
+					className="bg-muted hover:bg-card h-14 w-14 shadow-sm"
 				>
-					<span aria-hidden="true" className="text-3xl leading-none font-bold">
-						+
-					</span>
+					<Icon name="plus" size="xl" />
 				</ButtonLink>
 			</div>
 
