@@ -30,6 +30,9 @@ jobs:
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
 
+      - name: 🛠 Setup database
+        run: npx prisma migrate deploy
+
       - name: 🧬 Generate Prisma client
         run: npx prisma generate --sql
 
@@ -54,6 +57,9 @@ jobs:
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
 
+      - name: 🛠 Setup database
+        run: npx prisma migrate deploy
+
       - name: 🧬 Generate Prisma client
         run: npx prisma generate --sql
 
@@ -77,6 +83,9 @@ jobs:
 
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
+
+      - name: 🛠 Setup database
+        run: npx prisma migrate deploy
 
       - name: 🧬 Generate Prisma client
         run: npx prisma generate --sql
@@ -120,9 +129,6 @@ jobs:
       - name: 📥 Download deps
         uses: bahmutov/npm-install@v1
 
-      - name: 🧬 Generate Prisma client
-        run: npx prisma generate --sql
-
       - name: 🎭 Cache Playwright browsers
         uses: actions/cache@v4
         with:
@@ -136,6 +142,9 @@ jobs:
 
       - name: 🛠 Setup Database
         run: npx prisma migrate deploy
+
+      - name: 🧬 Generate Prisma client
+        run: npx prisma generate --sql
 
       - name: 🏦 Cache Database
         id: db-cache
