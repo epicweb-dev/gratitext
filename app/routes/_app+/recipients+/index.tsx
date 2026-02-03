@@ -42,11 +42,9 @@ export default function RecipientsIndexRoute() {
 					variant="ghost"
 					size="icon"
 					aria-label="Add recipient"
-					className="h-14 w-14 bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] shadow-sm hover:bg-[hsl(var(--palette-green-700))]"
+					className="border-border text-muted-foreground hover:bg-card hover:text-foreground h-14 w-14 border shadow-sm transition"
 				>
-					<span aria-hidden="true" className="text-3xl leading-none font-bold">
-						+
-					</span>
+					<Icon name="plus" size="xl" />
 				</ButtonLink>
 			</div>
 
