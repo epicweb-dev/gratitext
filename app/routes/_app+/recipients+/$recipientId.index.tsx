@@ -48,7 +48,7 @@ type FutureMessage = LoaderData['futureMessages'][number]
 
 const PAST_MESSAGES_PER_PAGE = 30
 
-function getDateRange(value: string, timeZone: string) {
+function parseDateValue(value: string) {
 	if (!value) return null
 	const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
 	if (!match) return null
@@ -56,18 +56,39 @@ function getDateRange(value: string, timeZone: string) {
 	const month = Number(match[2])
 	const day = Number(match[3])
 	if (!year || !month || !day) return null
+	return { year, month, day }
+}
+
+function getStartDate(value: string, timeZone: string) {
+	const parts = parseDateValue(value)
+	if (!parts) return null
 	try {
-		const start = getDateInTimeZone(year, month, day, timeZone)
-		if (Number.isNaN(start.getTime())) return null
-		const nextDay = new Date(Date.UTC(year, month - 1, day + 1))
+		const start = getDateInTimeZone(
+			parts.year,
+			parts.month,
+			parts.day,
+			timeZone,
+		)
+		return Number.isNaN(start.getTime()) ? null : start
+	} catch {
+		return null
+	}
+}
+
+function getEndDate(value: string, timeZone: string) {
+	const parts = parseDateValue(value)
+	if (!parts) return null
+	try {
+		const nextDay = new Date(
+			Date.UTC(parts.year, parts.month - 1, parts.day + 1),
+		)
 		const end = getDateInTimeZone(
 			nextDay.getUTCFullYear(),
 			nextDay.getUTCMonth() + 1,
 			nextDay.getUTCDate(),
 			timeZone,
 		)
-		if (Number.isNaN(end.getTime())) return null
-		return { start, end }
+		return Number.isNaN(end.getTime()) ? null : end
 	} catch {
 		return null
 	}
@@ -115,7 +136,8 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 	const hints = getHints(request)
 	const url = new URL(request.url)
 	const searchQuery = url.searchParams.get('search') ?? ''
-	const dateFilter = url.searchParams.get('date') ?? ''
+	const startDateFilter = url.searchParams.get('startDate') ?? ''
+	const endDateFilter = url.searchParams.get('endDate') ?? ''
 	const cursor = url.searchParams.get('cursor')
 	const recipient = await prisma.recipient.findUnique({
 		where: { id: params.recipientId },
@@ -140,13 +162,21 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 		where: { phoneNumber: recipient.phoneNumber },
 	})
 
-	const dateRange = getDateRange(
-		dateFilter,
+	const startDate = getStartDate(
+		startDateFilter,
 		hints.timeZone ?? recipient.timeZone,
 	)
-	const sentAtFilter = dateRange
-		? { gte: dateRange.start, lt: dateRange.end }
-		: { not: null }
+	const endDate = getEndDate(
+		endDateFilter,
+		hints.timeZone ?? recipient.timeZone,
+	)
+	const sentAtFilter =
+		startDate || endDate
+			? {
+					...(startDate ? { gte: startDate } : {}),
+					...(endDate ? { lt: endDate } : {}),
+				}
+			: { not: null }
 	const pastMessageWhere = {
 		recipientId: params.recipientId,
 		sentAt: sentAtFilter,
@@ -173,7 +203,8 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 		optedOut: Boolean(optOut),
 		recipient: recipientProps,
 		searchQuery,
-		dateFilter,
+		startDateFilter,
+		endDateFilter,
 		nextCursor,
 		cronError: (() => {
 			try {
@@ -461,7 +492,8 @@ export default function RecipientRoute() {
 		data.pastMessages,
 		data.nextCursor,
 		data.searchQuery,
-		data.dateFilter,
+		data.startDateFilter,
+		data.endDateFilter,
 		data.recipient.phoneNumber,
 	])
 
@@ -470,7 +502,8 @@ export default function RecipientRoute() {
 		if (
 			loadMoreData.recipient.phoneNumber !== data.recipient.phoneNumber ||
 			loadMoreData.searchQuery !== data.searchQuery ||
-			loadMoreData.dateFilter !== data.dateFilter
+			loadMoreData.startDateFilter !== data.startDateFilter ||
+			loadMoreData.endDateFilter !== data.endDateFilter
 		) {
 			return
 		}
@@ -488,7 +521,8 @@ export default function RecipientRoute() {
 		loadMoreData,
 		data.recipient.phoneNumber,
 		data.searchQuery,
-		data.dateFilter,
+		data.startDateFilter,
+		data.endDateFilter,
 	])
 
 	useLayoutEffect(() => {
@@ -535,7 +569,9 @@ export default function RecipientRoute() {
 		}
 	}, [handleScroll, scrollContainer])
 
-	const isPastFiltered = Boolean(data.searchQuery || data.dateFilter)
+	const isPastFiltered = Boolean(
+		data.searchQuery || data.startDateFilter || data.endDateFilter,
+	)
 	const hasPastMessages = pastMessagesForDisplay.length > 0
 	const hasFutureMessages = data.futureMessages.length > 0
 	const hasAnyMessages = hasPastMessages || hasFutureMessages
@@ -566,56 +602,52 @@ export default function RecipientRoute() {
 					</h3>
 				</div>
 				<SearchBar status="idle" autoSubmit showDateFilter />
-				<div className="border-border bg-card rounded-3xl border px-4 py-5 shadow-sm sm:px-6 sm:py-6">
-					{hasAnyMessages ? (
-						<div
-							ref={setScrollContainer}
-							className="border-border/60 bg-muted max-h-[65vh] overflow-y-auto rounded-[24px] border px-4 py-5 sm:px-5 sm:py-6"
-						>
-							<div className="flex flex-col gap-4">
-								{hasPastMessages || pastNextCursor ? (
-									<div className="text-muted-foreground flex flex-col items-center gap-2 text-xs font-semibold tracking-[0.2em] uppercase">
-										<span aria-live="polite">{loadMoreLabel}</span>
-									</div>
-								) : null}
-								<ul className="flex flex-col gap-4 sm:gap-5">
-									{pastMessagesForDisplay.map((m) => (
-										<li key={m.id} className="flex flex-col items-end gap-1">
-											<div className="max-w-[75%] rounded-[24px] bg-[hsl(var(--palette-green-500))] px-4 py-3 text-sm leading-relaxed text-[hsl(var(--palette-cream))] shadow-sm sm:max-w-[65%] sm:px-5 sm:py-4">
-												<p className="whitespace-pre-wrap">{m.content}</p>
-											</div>
-											<time
-												dateTime={m.sentAtIso}
-												className="text-muted-foreground text-[0.7rem] font-semibold tracking-[0.2em] uppercase"
-											>
-												{m.sentAtDisplay}
-											</time>
-										</li>
-									))}
-									{data.futureMessages.map((m) => (
-										<MessageForms key={m.id} message={m} />
-									))}
-								</ul>
+				{hasAnyMessages ? (
+					<div
+						ref={setScrollContainer}
+						className="border-border/60 bg-white max-h-[65vh] overflow-y-auto rounded-[24px] border px-4 py-5 shadow-sm sm:px-5 sm:py-6"
+					>
+						{hasPastMessages || pastNextCursor ? (
+							<div className="text-muted-foreground flex flex-col items-center gap-2 text-xs font-semibold tracking-[0.2em] uppercase">
+								<span aria-live="polite">{loadMoreLabel}</span>
 							</div>
-						</div>
-					) : (
-						<div className="flex flex-col items-center gap-3 py-10 text-center text-sm">
-							<p className="text-muted-foreground">{emptyThreadMessage}</p>
-							<Link
-								to="new"
-								className="text-foreground text-sm font-semibold underline"
-							>
-								Create a new message
-							</Link>
-						</div>
-					)}
-				</div>
+						) : null}
+						<ul className="flex flex-col gap-4 sm:gap-5">
+							{pastMessagesForDisplay.map((m) => (
+								<li key={m.id} className="flex flex-col items-end gap-1">
+									<div className="max-w-[75%] rounded-[24px] bg-[linear-gradient(135deg,_hsl(var(--palette-green-500)),_hsl(var(--palette-green-700)))] px-4 py-3 text-sm leading-relaxed text-[hsl(var(--palette-cream))] shadow-sm sm:max-w-[65%] sm:px-5 sm:py-4">
+										<p className="whitespace-pre-wrap">{m.content}</p>
+									</div>
+									<time
+										dateTime={m.sentAtIso}
+										className="text-muted-foreground text-[0.7rem] font-semibold tracking-[0.2em] uppercase"
+									>
+										{m.sentAtDisplay}
+									</time>
+								</li>
+							))}
+							{data.futureMessages.map((m) => (
+								<MessageForms key={m.id} message={m} />
+							))}
+						</ul>
+					</div>
+				) : (
+					<div className="border-border/60 bg-white rounded-[24px] border px-4 py-10 text-center text-sm shadow-sm sm:px-5 sm:py-12">
+						<p className="text-muted-foreground">{emptyThreadMessage}</p>
+						<Link
+							to="new"
+							className="text-foreground text-sm font-semibold underline"
+						>
+							Create a new message
+						</Link>
+					</div>
+				)}
 			</section>
 			<div className="flex flex-col gap-2">
 				<newMessageFetcher.Form
 					method="POST"
 					action="new"
-					className="border-border bg-card rounded-full border p-2 shadow-sm transition focus-within:rounded-[28px] focus-within:p-3"
+					className="border-border/60 bg-white rounded-full border p-2 shadow-sm transition focus-within:rounded-[28px] focus-within:p-3"
 				>
 					<label htmlFor="new-message" className="sr-only">
 						Add a new message
@@ -662,7 +694,6 @@ function MessageForms({ message }: { message: FutureMessage }) {
 	const [confirmDelete, setConfirmDelete] = useState(false)
 	const [canDelete, setCanDelete] = useState(false)
 	const [currentContent, setCurrentContent] = useState(message.content)
-	const formRef = useRef<HTMLFormElement | null>(null)
 	const textareaRef = useRef<HTMLTextAreaElement | null>(null)
 	const [updateContentForm, updateContentFields] = useForm({
 		id: `message-form-${message.id}`,
@@ -674,7 +705,8 @@ function MessageForms({ message }: { message: FutureMessage }) {
 		},
 		shouldRevalidate: 'onBlur',
 	})
-	const cardTone = 'bg-[hsl(var(--palette-blues))]'
+	const cardTone =
+		'bg-[linear-gradient(135deg,_hsl(var(--palette-blues)),_hsl(var(--palette-navy)))]'
 	const scheduleLabel = message.sendAtDisplay
 		? `Scheduled for ${message.sendAtDisplay}`
 		: 'Scheduled message'
@@ -732,8 +764,75 @@ function MessageForms({ message }: { message: FutureMessage }) {
 			<div
 				className={`max-w-[75%] rounded-[24px] px-4 py-3 text-[hsl(var(--palette-cream))] shadow-sm sm:max-w-[65%] sm:px-5 sm:py-4 ${cardTone}`}
 			>
+				<div className="flex items-start justify-between gap-4 text-[0.7rem] font-semibold tracking-[0.2em] text-[hsl(var(--palette-cream))] uppercase">
+					<div className="flex items-center gap-2">
+						<Icon name="clock" size="sm" />
+						<span>{scheduleLabel}</span>
+					</div>
+					<div className="flex items-center gap-1">
+						{showSaveButton ? (
+							<StatusButton
+								form={updateContentForm.id}
+								status={updateIsPending ? 'pending' : 'idle'}
+								className="h-9 w-9 gap-0 text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-cream))/0.15]"
+								size="icon"
+								variant="ghost"
+								type="submit"
+								name="intent"
+								value={updateMessageContentActionIntent}
+							>
+								<Icon name="check" size="sm" />
+								<span className="sr-only">Save</span>
+							</StatusButton>
+						) : null}
+						<DropdownMenu
+							onOpenChange={(open) => {
+								if (!open) setConfirmDelete(false)
+							}}
+						>
+							<DropdownMenuTrigger asChild>
+								<Button
+									variant="ghost"
+									size="icon"
+									className="h-9 w-9 text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-cream))/0.15]"
+									aria-label="Message actions"
+								>
+									<Icon name="dots-horizontal" size="sm" />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent
+								align="end"
+								className="border-border/70 bg-card w-48 rounded-2xl p-2 shadow-lg"
+							>
+								<DropdownMenuItem
+									className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold"
+									disabled={sendIsPending}
+									onSelect={handleSendNow}
+								>
+									<Icon name="send" size="sm" />
+									Send Now
+								</DropdownMenuItem>
+								<DropdownMenuItem
+									className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold"
+									onSelect={handleEditMessage}
+								>
+									<Icon name="pencil-1" size="sm" />
+									Edit Message
+								</DropdownMenuItem>
+								<DropdownMenuSeparator className="bg-border/60" />
+								<DropdownMenuItem
+									className="text-foreground-destructive focus:text-foreground-destructive flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold"
+									disabled={deleteIsPending}
+									onSelect={handleDeleteSelect}
+								>
+									<Icon name={confirmDelete ? 'check' : 'trash'} size="sm" />
+									{confirmDelete ? 'Confirm delete' : 'Delete'}
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
+					</div>
+				</div>
 				<updateContentFetcher.Form
-					ref={formRef}
 					method="POST"
 					{...getFormProps(updateContentForm)}
 				>
@@ -747,75 +846,10 @@ function MessageForms({ message }: { message: FutureMessage }) {
 							setCurrentContent(event.currentTarget.value)
 						}}
 						ref={textareaRef}
-						className="w-full resize-none bg-transparent text-sm leading-relaxed text-[hsl(var(--palette-cream))] placeholder:text-[hsl(var(--palette-cream))]/80 focus-visible:outline-none"
-						rows={4}
+						className="mt-3 w-full resize-none bg-transparent text-sm leading-relaxed text-[hsl(var(--palette-cream))] placeholder:text-[hsl(var(--palette-cream))]/80 focus-visible:outline-none"
+						rows={3}
 					/>
 				</updateContentFetcher.Form>
-			</div>
-			<span className="text-muted-foreground text-[0.7rem] font-semibold tracking-[0.2em] uppercase">
-				{scheduleLabel}
-			</span>
-			<div className="flex items-center gap-2">
-				{showSaveButton ? (
-					<StatusButton
-						form={updateContentForm.id}
-						status={updateIsPending ? 'pending' : 'idle'}
-						className="h-9 w-9 gap-0 hover:bg-card/60"
-						size="icon"
-						variant="ghost"
-						type="submit"
-						name="intent"
-						value={updateMessageContentActionIntent}
-					>
-						<Icon name="check" size="sm" />
-						<span className="sr-only">Save</span>
-					</StatusButton>
-				) : null}
-				<DropdownMenu
-					onOpenChange={(open) => {
-						if (!open) setConfirmDelete(false)
-					}}
-				>
-					<DropdownMenuTrigger asChild>
-						<Button
-							variant="ghost"
-							size="icon"
-							className="h-9 w-9 hover:bg-card/60"
-							aria-label="Message actions"
-						>
-							<Icon name="dots-horizontal" size="sm" />
-						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent
-						align="end"
-						className="border-border/70 bg-card w-48 rounded-2xl p-2 shadow-lg"
-					>
-						<DropdownMenuItem
-							className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold"
-							disabled={sendIsPending}
-							onSelect={handleSendNow}
-						>
-							<Icon name="send" size="sm" />
-							Send Now
-						</DropdownMenuItem>
-						<DropdownMenuItem
-							className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold"
-							onSelect={handleEditMessage}
-						>
-							<Icon name="pencil-1" size="sm" />
-							Edit Message
-						</DropdownMenuItem>
-						<DropdownMenuSeparator className="bg-border/60" />
-						<DropdownMenuItem
-							className="text-foreground-destructive focus:text-foreground-destructive flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold"
-							disabled={deleteIsPending}
-							onSelect={handleDeleteSelect}
-						>
-							<Icon name={confirmDelete ? 'check' : 'trash'} size="sm" />
-							{confirmDelete ? 'Confirm delete' : 'Delete'}
-						</DropdownMenuItem>
-					</DropdownMenuContent>
-				</DropdownMenu>
 			</div>
 			<div className="flex w-full max-w-[75%] flex-col gap-1 self-end empty:hidden sm:max-w-[65%]">
 				<ErrorList
