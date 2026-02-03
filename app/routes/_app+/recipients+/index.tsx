@@ -42,7 +42,7 @@ export default function RecipientsIndexRoute() {
 					variant="outline"
 					size="icon"
 					aria-label="Add recipient"
-					className="h-14 w-14 shadow-sm"
+					className="bg-muted hover:bg-card h-14 w-14 shadow-sm"
 				>
 					<Icon name="plus" size="xl" />
 				</ButtonLink>
