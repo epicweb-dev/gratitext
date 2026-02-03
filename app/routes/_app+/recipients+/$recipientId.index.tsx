@@ -675,6 +675,7 @@ function MessageForms({
 	const [confirmDelete, setConfirmDelete] = useState(false)
 	const [canDelete, setCanDelete] = useState(false)
 	const [currentContent, setCurrentContent] = useState(message.content)
+	const lastServerContentRef = useRef(message.content)
 	const formRef = useRef<HTMLFormElement | null>(null)
 	const textareaRef = useRef<HTMLTextAreaElement | null>(null)
 	const [updateContentForm, updateContentFields] = useForm({
@@ -697,11 +698,39 @@ function MessageForms({
 	const sendErrors = getResultErrors(sendNowFetcher.data?.result)
 	const deleteErrors = getResultErrors(deleteFetcher.data?.result)
 	const updateIsPending = updateContentFetcher.state !== 'idle'
+	const updateResult = updateContentFetcher.data?.result
 	const sendIsPending = sendNowFetcher.state !== 'idle'
 	const deleteIsPending = deleteFetcher.state !== 'idle'
-	const textareaProps = getTextareaProps(updateContentFields.content)
+	const wasUpdatePendingRef = useRef(updateIsPending)
+	const {
+		defaultValue: _defaultValue,
+		onInput: conformOnInput,
+		onChange: conformOnChange,
+		...textareaProps
+	} = getTextareaProps(updateContentFields.content)
 	const hasEdits = currentContent !== message.content
 	const showSaveButton = hasEdits || updateIsPending
+
+	useEffect(() => {
+		const wasPending = wasUpdatePendingRef.current
+		if (wasPending && !updateIsPending) {
+			const hasResult = Boolean(updateResult)
+			const hasErrors = Boolean(updateResult?.error)
+			if (hasResult && !hasErrors) {
+				setCurrentContent(message.content)
+				lastServerContentRef.current = message.content
+			}
+		}
+		wasUpdatePendingRef.current = updateIsPending
+	}, [message.content, updateIsPending, updateResult])
+
+	useEffect(() => {
+		if (message.content === lastServerContentRef.current) return
+		if (currentContent === lastServerContentRef.current) {
+			setCurrentContent(message.content)
+		}
+		lastServerContentRef.current = message.content
+	}, [currentContent, message.content])
 
 	useEffect(() => {
 		if (confirmDelete) {
@@ -828,8 +857,15 @@ function MessageForms({
 						</label>
 						<textarea
 							{...textareaProps}
-							onInput={(event) => {
+							value={currentContent}
+							onChange={(event) => {
 								setCurrentContent(event.currentTarget.value)
+								if (conformOnChange) {
+									conformOnChange(event)
+								}
+								if (conformOnInput) {
+									conformOnInput(event)
+								}
 							}}
 							ref={textareaRef}
 							className="mt-4 w-full resize-none bg-transparent text-sm leading-relaxed text-[hsl(var(--palette-cream))] placeholder:text-[hsl(var(--palette-cream))]/80 focus-visible:outline-none"
