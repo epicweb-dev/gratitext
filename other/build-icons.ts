@@ -2,7 +2,9 @@ import * as path from 'node:path'
 import { $ } from 'execa'
 import fsExtra from 'fs-extra'
 import { glob } from 'glob'
-import { parse, type HTMLElement } from 'node-html-parser'
+import { type HTMLElement } from 'node-html-parser'
+
+const { parse } = await loadHtmlParser()
 
 const cwd = process.cwd()
 const inputDir = path.join(cwd, 'other', 'svg-icons')
@@ -157,6 +159,19 @@ async function generateSvgSprite({
 	].join('\n')
 
 	return writeIfChanged(outputPath, output)
+}
+
+async function loadHtmlParser() {
+	try {
+		return await import('node-html-parser')
+	} catch {
+		console.warn(
+			'node-html-parser is not a native module, using ESM build as a fallback.',
+		)
+		// Bun can resolve the CJS entrypoint in some environments, which is not
+		// shipped by node-html-parser. Prefer the ESM build as a fallback.
+		return await import('node-html-parser/dist/index.js')
+	}
 }
 
 async function writeIfChanged(filepath: string, newContent: string) {
