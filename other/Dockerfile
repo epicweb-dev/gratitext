@@ -1,18 +1,13 @@
 # This file is moved to the root directory before building the image
 
-# base node image
-FROM node:24-bookworm-slim as base
+# base bun image
+FROM oven/bun:1.3.8 as base
 
 # set for base and all layer that inherit from it
 ENV NODE_ENV production
 
 # Install openssl for Prisma
-RUN apt-get update && apt-get install -y fuse3 openssl sqlite3 ca-certificates curl unzip
-
-# Install bun for package management
-ENV BUN_INSTALL=/usr/local/bun
-ENV PATH="$BUN_INSTALL/bin:$PATH"
-RUN curl -fsSL https://bun.sh/install | bash
+RUN apt-get update && apt-get install -y fuse3 openssl sqlite3 ca-certificates
 
 # Install all node_modules, including dev dependencies
 FROM base as deps
@@ -46,7 +41,7 @@ COPY --from=deps /myapp/node_modules /myapp/node_modules
 ADD prisma /myapp/prisma
 ADD prisma.config.ts /myapp/prisma.config.ts
 ADD scripts /myapp/scripts
-RUN node scripts/ensure-prisma-db.js && \
+RUN bun scripts/ensure-prisma-db.js && \
 	bunx prisma@7 generate --sql
 
 ADD . .
