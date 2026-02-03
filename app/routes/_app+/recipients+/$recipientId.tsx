@@ -207,18 +207,6 @@ export default function RecipientRoute() {
 						</Icon>
 					</Link>
 					<Link
-						to="past"
-						preventScrollReset
-						className={cn(
-							'border-border text-muted-foreground hover:bg-card hover:text-foreground flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold tracking-[0.15em] uppercase transition sm:w-auto sm:justify-start sm:tracking-[0.2em]',
-							currentPath === 'past' && 'bg-card text-foreground shadow-sm',
-						)}
-					>
-						<Icon name="chevron-down" size="sm">
-							Past
-						</Icon>
-					</Link>
-					<Link
 						to="edit"
 						preventScrollReset
 						className={cn(

@@ -112,7 +112,7 @@ test('Scheduled messages go out on schedule', async ({ page, login }) => {
 		},
 	})
 
-	await page.goto(`/recipients/${recipient.id}/past`)
+	await page.goto(`/recipients/${recipient.id}`)
 	await page.waitForLoadState('domcontentloaded')
 	await expect(page.getByText(/no past messages yet/i)).toBeVisible({
 		timeout: 15000,

@@ -1,7 +1,14 @@
 import { getFormProps, getTextareaProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4'
 import { invariantResponse } from '@epic-web/invariant'
-import { useEffect, useRef, useState } from 'react'
+import {
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import {
 	data as json,
 	type ActionFunctionArgs,
@@ -9,10 +16,12 @@ import {
 	Link,
 	useFetcher,
 	useLoaderData,
+	useSearchParams,
 } from 'react-router'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { ErrorList } from '#app/components/forms.js'
+import { SearchBar } from '#app/components/search-bar.tsx'
 import { Button } from '#app/components/ui/button.tsx'
 import {
 	DropdownMenu,
@@ -37,9 +46,77 @@ import { createToastHeaders } from '#app/utils/toast.server.js'
 type LoaderData = Awaited<ReturnType<typeof loader>>['data']
 type FutureMessage = LoaderData['futureMessages'][number]
 
+const PAST_MESSAGES_PER_PAGE = 30
+
+function getDateRange(value: string, timeZone: string) {
+	if (!value) return null
+	const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
+	if (!match) return null
+	const year = Number(match[1])
+	const month = Number(match[2])
+	const day = Number(match[3])
+	if (!year || !month || !day) return null
+	try {
+		const start = getDateInTimeZone(year, month, day, timeZone)
+		if (Number.isNaN(start.getTime())) return null
+		const nextDay = new Date(Date.UTC(year, month - 1, day + 1))
+		const end = getDateInTimeZone(
+			nextDay.getUTCFullYear(),
+			nextDay.getUTCMonth() + 1,
+			nextDay.getUTCDate(),
+			timeZone,
+		)
+		if (Number.isNaN(end.getTime())) return null
+		return { start, end }
+	} catch {
+		return null
+	}
+}
+
+function getDateInTimeZone(
+	year: number,
+	month: number,
+	day: number,
+	timeZone: string,
+) {
+	const utcDate = new Date(Date.UTC(year, month - 1, day))
+	const offset = getTimeZoneOffset(utcDate, timeZone)
+	return new Date(utcDate.getTime() - offset)
+}
+
+function getTimeZoneOffset(date: Date, timeZone: string) {
+	const formatter = new Intl.DateTimeFormat('en-US', {
+		timeZone,
+		year: 'numeric',
+		month: '2-digit',
+		day: '2-digit',
+		hour: '2-digit',
+		minute: '2-digit',
+		second: '2-digit',
+		hourCycle: 'h23',
+	})
+	const parts = formatter.formatToParts(date)
+	const values = Object.fromEntries(
+		parts.map(({ type, value }) => [type, value]),
+	)
+	const asUTC = Date.UTC(
+		Number(values.year),
+		Number(values.month) - 1,
+		Number(values.day),
+		Number(values.hour),
+		Number(values.minute),
+		Number(values.second),
+	)
+	return asUTC - date.getTime()
+}
+
 export async function loader({ params, request }: LoaderFunctionArgs) {
 	const userId = await requireUserId(request)
 	const hints = getHints(request)
+	const url = new URL(request.url)
+	const searchQuery = url.searchParams.get('search') ?? ''
+	const dateFilter = url.searchParams.get('date') ?? ''
+	const cursor = url.searchParams.get('cursor')
 	const recipient = await prisma.recipient.findUnique({
 		where: { id: params.recipientId },
 		select: {
@@ -63,11 +140,41 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 		where: { phoneNumber: recipient.phoneNumber },
 	})
 
+	const dateRange = getDateRange(
+		dateFilter,
+		hints.timeZone ?? recipient.timeZone,
+	)
+	const sentAtFilter = dateRange
+		? { gte: dateRange.start, lt: dateRange.end }
+		: { not: null }
+	const pastMessageWhere = {
+		recipientId: params.recipientId,
+		sentAt: sentAtFilter,
+		...(searchQuery ? { content: { contains: searchQuery } } : {}),
+	}
+	const pastMessages = await prisma.message.findMany({
+		where: pastMessageWhere,
+		select: { id: true, content: true, sentAt: true },
+		orderBy: [{ sentAt: 'desc' }, { id: 'desc' }],
+		...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+		take: PAST_MESSAGES_PER_PAGE + 1,
+	})
+	const hasMorePast = pastMessages.length > PAST_MESSAGES_PER_PAGE
+	const pastPageMessages = hasMorePast
+		? pastMessages.slice(0, PAST_MESSAGES_PER_PAGE)
+		: pastMessages
+	const nextCursor = hasMorePast
+		? pastPageMessages[pastPageMessages.length - 1]?.id
+		: null
+
 	const { userId: _userId, messages, ...recipientProps } = recipient
 
 	return json({
 		optedOut: Boolean(optOut),
 		recipient: recipientProps,
+		searchQuery,
+		dateFilter,
+		nextCursor,
 		cronError: (() => {
 			try {
 				getSendTime(recipient.scheduleCron, { tz: recipient.timeZone }, 0)
@@ -119,6 +226,19 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 					}
 				}
 			}),
+		pastMessages: pastPageMessages.map((m) => ({
+			id: m.id,
+			sentAtDisplay: m.sentAt!.toLocaleDateString('en-US', {
+				weekday: 'short',
+				year: 'numeric',
+				month: 'short',
+				day: 'numeric',
+				hour: 'numeric',
+				minute: 'numeric',
+			}),
+			sentAtIso: m.sentAt!.toISOString(),
+			content: m.content,
+		})),
 	})
 }
 
@@ -302,6 +422,21 @@ export default function RecipientRoute() {
 	const isCreating = newMessageFetcher.state !== 'idle'
 	const newMessageInputRef = useRef<HTMLTextAreaElement | null>(null)
 	const shouldClearMessageInput = useRef(false)
+	const [searchParams] = useSearchParams()
+	const loadMoreFetcher = useFetcher<typeof loader>()
+	const loadMoreData = loadMoreFetcher.data ?? null
+	const [pastMessages, setPastMessages] = useState(data.pastMessages)
+	const [pastNextCursor, setPastNextCursor] = useState(data.nextCursor)
+	const [scrollContainer, setScrollContainer] = useState<HTMLDivElement | null>(
+		null,
+	)
+	const pendingScrollRef = useRef<{ height: number; top: number } | null>(null)
+	const shouldScrollToBottomRef = useRef(true)
+	const isLoadingMore = loadMoreFetcher.state !== 'idle'
+	const pastMessagesForDisplay = useMemo(
+		() => [...pastMessages].reverse(),
+		[pastMessages],
+	)
 
 	useEffect(() => {
 		if (newMessageFetcher.state !== 'idle') {
@@ -317,8 +452,101 @@ export default function RecipientRoute() {
 		shouldClearMessageInput.current = false
 	}, [newMessageFetcher.state, newMessageFetcher.data])
 
+	useEffect(() => {
+		setPastMessages(data.pastMessages)
+		setPastNextCursor(data.nextCursor)
+		pendingScrollRef.current = null
+		shouldScrollToBottomRef.current = true
+	}, [
+		data.pastMessages,
+		data.nextCursor,
+		data.searchQuery,
+		data.dateFilter,
+		data.recipient.phoneNumber,
+	])
+
+	useEffect(() => {
+		if (!loadMoreData) return
+		if (
+			loadMoreData.recipient.phoneNumber !== data.recipient.phoneNumber ||
+			loadMoreData.searchQuery !== data.searchQuery ||
+			loadMoreData.dateFilter !== data.dateFilter
+		) {
+			return
+		}
+		if (loadMoreData.pastMessages.length) {
+		setPastMessages((prev) => {
+			const existingIds = new Set(prev.map((message) => message.id))
+			const newMessages = loadMoreData.pastMessages.filter(
+				(message) => !existingIds.has(message.id),
+			)
+			return newMessages.length ? [...prev, ...newMessages] : prev
+		})
+		}
+		setPastNextCursor(loadMoreData.nextCursor)
+	}, [
+		loadMoreData,
+		data.recipient.phoneNumber,
+		data.searchQuery,
+		data.dateFilter,
+	])
+
+	useLayoutEffect(() => {
+		const container = scrollContainer
+		if (!container) return
+		if (shouldScrollToBottomRef.current) {
+			container.scrollTop = container.scrollHeight
+			shouldScrollToBottomRef.current = false
+			return
+		}
+		const pending = pendingScrollRef.current
+		if (!pending) return
+		container.scrollTop =
+			pending.top + (container.scrollHeight - pending.height)
+		pendingScrollRef.current = null
+	}, [pastMessages, scrollContainer])
+
+	const handleScroll = useCallback(
+		(container: HTMLDivElement) => {
+			if (container.scrollTop > 120) return
+			if (!pastNextCursor) return
+			if (shouldScrollToBottomRef.current) return
+			if (loadMoreFetcher.state !== 'idle') return
+
+			const params = new URLSearchParams(searchParams)
+			params.set('cursor', pastNextCursor)
+			const queryString = params.toString()
+			pendingScrollRef.current = {
+				height: container.scrollHeight,
+				top: container.scrollTop,
+			}
+			void loadMoreFetcher.load(queryString ? `?${queryString}` : '.')
+		},
+		[pastNextCursor, loadMoreFetcher, searchParams],
+	)
+
+	useEffect(() => {
+		const container = scrollContainer
+		if (!container) return
+		const onScroll = () => handleScroll(container)
+		container.addEventListener('scroll', onScroll, { passive: true })
+		return () => {
+			container.removeEventListener('scroll', onScroll)
+		}
+	}, [handleScroll, scrollContainer])
+
+	const isPastFiltered = Boolean(data.searchQuery || data.dateFilter)
+	const emptyPastMessage = isPastFiltered
+		? 'No messages match your search.'
+		: 'No past messages yet.'
+	const loadMoreLabel = pastNextCursor
+		? isLoadingMore
+			? 'Loading earlier messages...'
+			: 'Scroll up to load earlier messages.'
+		: 'Beginning of thread.'
+
 	return (
-		<div className="flex flex-col gap-8">
+		<div className="flex flex-col gap-10">
 			{data.cronError ? (
 				<div className="border-destructive/40 bg-destructive/10 text-foreground-destructive rounded-2xl border p-4 text-sm">
 					<strong className="font-semibold">Invalid Schedule:</strong>{' '}
@@ -328,22 +556,68 @@ export default function RecipientRoute() {
 					</Link>
 				</div>
 			) : null}
-			<ul className="flex flex-col gap-4 sm:gap-6">
-				{data.futureMessages.length ? (
-					data.futureMessages.map((m, index) => (
-						<li key={m.id} className="flex flex-col gap-3 sm:gap-4">
-							<MessageForms message={m} index={index} />
-						</li>
-					))
-				) : (
-					<Link
-						to="new"
-						className="text-foreground text-sm font-semibold underline"
-					>
-						Create a new message
-					</Link>
-				)}
-			</ul>
+			<section className="space-y-4">
+				<div className="flex flex-wrap items-center justify-between gap-2">
+					<h3 className="text-foreground text-xs font-semibold tracking-[0.2em] uppercase">
+						Past messages
+					</h3>
+				</div>
+				<SearchBar status="idle" autoSubmit showDateFilter />
+				<div className="border-border bg-card rounded-3xl border px-4 py-5 shadow-sm sm:px-6 sm:py-6">
+					{pastMessagesForDisplay.length === 0 ? (
+						<p className="text-muted-foreground py-10 text-center text-sm">
+							{emptyPastMessage}
+						</p>
+					) : (
+						<div
+							ref={setScrollContainer}
+							className="border-border/60 bg-muted max-h-[65vh] overflow-y-auto rounded-[24px] border px-4 py-5 sm:px-5 sm:py-6"
+						>
+							<div className="flex flex-col gap-4">
+								<div className="text-muted-foreground flex flex-col items-center gap-2 text-xs font-semibold tracking-[0.2em] uppercase">
+									<span aria-live="polite">{loadMoreLabel}</span>
+								</div>
+								<ul className="flex flex-col gap-4 sm:gap-5">
+									{pastMessagesForDisplay.map((m) => (
+										<li key={m.id} className="flex flex-col items-end gap-1">
+											<div className="max-w-[75%] rounded-[24px] bg-[hsl(var(--palette-green-500))] px-4 py-3 text-sm leading-relaxed text-[hsl(var(--palette-cream))] shadow-sm sm:max-w-[65%] sm:px-5 sm:py-4">
+												<p className="whitespace-pre-wrap">{m.content}</p>
+											</div>
+											<time
+												dateTime={m.sentAtIso}
+												className="text-muted-foreground text-[0.7rem] font-semibold tracking-[0.2em] uppercase"
+											>
+												{m.sentAtDisplay}
+											</time>
+										</li>
+									))}
+								</ul>
+							</div>
+						</div>
+					)}
+				</div>
+			</section>
+			<section className="space-y-4">
+				<h3 className="text-foreground text-xs font-semibold tracking-[0.2em] uppercase">
+					Upcoming messages
+				</h3>
+				<ul className="flex flex-col gap-4 sm:gap-6">
+					{data.futureMessages.length ? (
+						data.futureMessages.map((m, index) => (
+							<li key={m.id} className="flex flex-col gap-3 sm:gap-4">
+								<MessageForms message={m} index={index} />
+							</li>
+						))
+					) : (
+						<Link
+							to="new"
+							className="text-foreground text-sm font-semibold underline"
+						>
+							Create a new message
+						</Link>
+					)}
+				</ul>
+			</section>
 			<div className="flex flex-col gap-2">
 				<newMessageFetcher.Form
 					method="POST"
