@@ -339,11 +339,12 @@ app.use(
 				'frame-src': ["'self'"],
 				'img-src': ["'self'", 'data:'],
 				'script-src': [
+					IS_DEV ? "'unsafe-eval'" : null,
 					"'strict-dynamic'",
 					"'self'",
 					// @ts-expect-error
 					(_, res) => `'nonce-${res.locals.cspNonce}'`,
-				],
+				].filter(Boolean),
 				'script-src-attr': [
 					// @ts-expect-error
 					(_, res) => `'nonce-${res.locals.cspNonce}'`,
