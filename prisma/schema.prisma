@@ -2,8 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client"
-  output   = "../app/utils/prisma-generated.server"
+  provider        = "prisma-client"
+  output          = "../app/utils/prisma-generated.server"
   previewFeatures = ["typedSql"]
 }
 
@@ -109,12 +109,12 @@ model Verification {
 }
 
 model Recipient {
-  id             String    @id @default(cuid())
-  name           String
-  phoneNumber    String
-  verified       Boolean
-  scheduleCron   String
-  timeZone       String
+  id           String  @id @default(cuid())
+  name         String
+  phoneNumber  String
+  verified     Boolean
+  scheduleCron String
+  timeZone     String
 
   /// Cached previous schedule time. When NULL or invalid cron, uses PREV_SCHEDULE_SENTINEL_DATE (1970-01-01).
   /// This is computed from scheduleCron and cached for performance.
@@ -131,11 +131,11 @@ model Recipient {
   /// We store it directly on Recipient for performance - computing the aggregate via JOIN
   /// on every cron run (every 5 seconds) would be too slow. This field is updated atomically
   /// in text.server.ts when a message is sent. If data drifts, use the backfill script:
-  /// `npx tsx scripts/backfill-recipient-schedules.ts`
+  /// `bun run backfill:recipient-schedules`
   /// DO NOT remove this field or compute it dynamically - it would reintroduce the ~259ms query.
-  lastSentAt     DateTime?
+  lastSentAt DateTime?
 
-  disabled       Boolean   @default(false)
+  disabled Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

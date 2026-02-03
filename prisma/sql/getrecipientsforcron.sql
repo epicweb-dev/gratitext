@@ -11,7 +11,7 @@
 -- The original query computed MAX(Message.sentAt) via LEFT JOIN + GROUP BY, which was slow.
 -- lastSentAt is now stored on Recipient and updated atomically when messages are sent.
 -- DO NOT change this to compute from Message table - it would reintroduce the performance issue.
--- If data drifts, use: npx tsx scripts/backfill-recipient-schedules.ts
+-- If data drifts, use: bun run backfill:recipient-schedules
 --
 -- WHY SENTINEL DATES:
 -- NULL values for nextScheduledAt defeat SQLite index usage (OR ... IS NULL pattern).
