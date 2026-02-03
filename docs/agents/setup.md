@@ -6,6 +6,7 @@ Start with:
 git clone https://github.com/kentcdodds/gratitext.git
 cd gratitext
 cp .env.example .env
+rm -f prisma/sqlite.db prisma/sqlite.db-journal
 npm install
 npm run setup
 ```
