@@ -536,9 +536,12 @@ export default function RecipientRoute() {
 	}, [handleScroll, scrollContainer])
 
 	const isPastFiltered = Boolean(data.searchQuery || data.dateFilter)
-	const emptyPastMessage = isPastFiltered
+	const hasPastMessages = pastMessagesForDisplay.length > 0
+	const hasFutureMessages = data.futureMessages.length > 0
+	const hasAnyMessages = hasPastMessages || hasFutureMessages
+	const emptyThreadMessage = isPastFiltered
 		? 'No messages match your search.'
-		: 'No past messages yet.'
+		: 'No messages yet.'
 	const loadMoreLabel = pastNextCursor
 		? isLoadingMore
 			? 'Loading earlier messages...'
@@ -559,24 +562,22 @@ export default function RecipientRoute() {
 			<section className="space-y-4">
 				<div className="flex flex-wrap items-center justify-between gap-2">
 					<h3 className="text-foreground text-xs font-semibold tracking-[0.2em] uppercase">
-						Past messages
+						Messages
 					</h3>
 				</div>
 				<SearchBar status="idle" autoSubmit showDateFilter />
 				<div className="border-border bg-card rounded-3xl border px-4 py-5 shadow-sm sm:px-6 sm:py-6">
-					{pastMessagesForDisplay.length === 0 ? (
-						<p className="text-muted-foreground py-10 text-center text-sm">
-							{emptyPastMessage}
-						</p>
-					) : (
+					{hasAnyMessages ? (
 						<div
 							ref={setScrollContainer}
 							className="border-border/60 bg-muted max-h-[65vh] overflow-y-auto rounded-[24px] border px-4 py-5 sm:px-5 sm:py-6"
 						>
 							<div className="flex flex-col gap-4">
-								<div className="text-muted-foreground flex flex-col items-center gap-2 text-xs font-semibold tracking-[0.2em] uppercase">
-									<span aria-live="polite">{loadMoreLabel}</span>
-								</div>
+								{hasPastMessages || pastNextCursor ? (
+									<div className="text-muted-foreground flex flex-col items-center gap-2 text-xs font-semibold tracking-[0.2em] uppercase">
+										<span aria-live="polite">{loadMoreLabel}</span>
+									</div>
+								) : null}
 								<ul className="flex flex-col gap-4 sm:gap-5">
 									{pastMessagesForDisplay.map((m) => (
 										<li key={m.id} className="flex flex-col items-end gap-1">
@@ -591,32 +592,24 @@ export default function RecipientRoute() {
 											</time>
 										</li>
 									))}
+									{data.futureMessages.map((m) => (
+										<MessageForms key={m.id} message={m} />
+									))}
 								</ul>
 							</div>
 						</div>
+					) : (
+						<div className="flex flex-col items-center gap-3 py-10 text-center text-sm">
+							<p className="text-muted-foreground">{emptyThreadMessage}</p>
+							<Link
+								to="new"
+								className="text-foreground text-sm font-semibold underline"
+							>
+								Create a new message
+							</Link>
+						</div>
 					)}
 				</div>
-			</section>
-			<section className="space-y-4">
-				<h3 className="text-foreground text-xs font-semibold tracking-[0.2em] uppercase">
-					Upcoming messages
-				</h3>
-				<ul className="flex flex-col gap-4 sm:gap-6">
-					{data.futureMessages.length ? (
-						data.futureMessages.map((m, index) => (
-							<li key={m.id} className="flex flex-col gap-3 sm:gap-4">
-								<MessageForms message={m} index={index} />
-							</li>
-						))
-					) : (
-						<Link
-							to="new"
-							className="text-foreground text-sm font-semibold underline"
-						>
-							Create a new message
-						</Link>
-					)}
-				</ul>
 			</section>
 			<div className="flex flex-col gap-2">
 				<newMessageFetcher.Form
@@ -661,13 +654,7 @@ export default function RecipientRoute() {
 	)
 }
 
-function MessageForms({
-	message,
-	index,
-}: {
-	message: FutureMessage
-	index: number
-}) {
+function MessageForms({ message }: { message: FutureMessage }) {
 	const updateContentFetcher = useFetcher<typeof updateMessageContentAction>()
 	const sendNowFetcher = useFetcher<typeof action>()
 	const deleteFetcher = useFetcher<typeof action>()
@@ -687,13 +674,10 @@ function MessageForms({
 		},
 		shouldRevalidate: 'onBlur',
 	})
-	const isPrimary = index % 2 === 0
-	const cardTone = isPrimary
-		? 'bg-[hsl(var(--palette-green-500))]'
-		: 'bg-[hsl(var(--palette-blues))]'
-	const headerText = message.sendAtDisplay
+	const cardTone = 'bg-[hsl(var(--palette-blues))]'
+	const scheduleLabel = message.sendAtDisplay
 		? `Scheduled for ${message.sendAtDisplay}`
-		: 'Message'
+		: 'Scheduled message'
 	const sendErrors = getResultErrors(sendNowFetcher.data?.result)
 	const deleteErrors = getResultErrors(deleteFetcher.data?.result)
 	const updateIsPending = updateContentFetcher.state !== 'idle'
@@ -744,99 +728,96 @@ function MessageForms({
 	}
 
 	return (
-		<div className="flex flex-col gap-3 sm:gap-4">
-			<div className="flex-1 space-y-3">
-				<div
-					className={`rounded-[28px] px-4 py-4 text-[hsl(var(--palette-cream))] shadow-sm sm:px-6 sm:py-5 ${cardTone}`}
+		<li className="flex flex-col items-end gap-2">
+			<div
+				className={`max-w-[75%] rounded-[24px] px-4 py-3 text-[hsl(var(--palette-cream))] shadow-sm sm:max-w-[65%] sm:px-5 sm:py-4 ${cardTone}`}
+			>
+				<updateContentFetcher.Form
+					ref={formRef}
+					method="POST"
+					{...getFormProps(updateContentForm)}
 				>
-					<div className="flex flex-col gap-3 text-xs font-semibold tracking-[0.15em] text-[hsl(var(--palette-cream))] uppercase sm:flex-row sm:items-center sm:justify-between sm:tracking-[0.2em]">
-						<div className="flex flex-wrap items-center gap-2">
-							<Icon name={isPrimary ? 'check' : 'clock'} size="sm" />
-							<span>{headerText}</span>
-						</div>
-						<div className="flex items-center gap-2">
-							{showSaveButton ? (
-								<StatusButton
-									form={updateContentForm.id}
-									status={updateIsPending ? 'pending' : 'idle'}
-									className="h-11 w-11 gap-0 text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-cream))/0.15] sm:h-10 sm:w-10"
-									size="icon"
-									variant="ghost"
-									type="submit"
-									name="intent"
-									value={updateMessageContentActionIntent}
-								>
-									<Icon name="check" size="sm" />
-									<span className="sr-only">Save</span>
-								</StatusButton>
-							) : null}
-							<DropdownMenu
-								onOpenChange={(open) => {
-									if (!open) setConfirmDelete(false)
-								}}
-							>
-								<DropdownMenuTrigger asChild>
-									<Button
-										variant="ghost"
-										size="icon"
-										className="h-11 w-11 text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-cream))/0.15] sm:h-10 sm:w-10"
-										aria-label="Message actions"
-									>
-										<Icon name="dots-horizontal" size="sm" />
-									</Button>
-								</DropdownMenuTrigger>
-								<DropdownMenuContent
-									align="end"
-									className="border-border/70 bg-card w-48 rounded-2xl p-2 shadow-lg"
-								>
-									<DropdownMenuItem
-										className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold"
-										disabled={sendIsPending}
-										onSelect={handleSendNow}
-									>
-										<Icon name="send" size="sm" />
-										Send Now
-									</DropdownMenuItem>
-									<DropdownMenuItem
-										className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold"
-										onSelect={handleEditMessage}
-									>
-										<Icon name="pencil-1" size="sm" />
-										Edit Message
-									</DropdownMenuItem>
-									<DropdownMenuSeparator className="bg-border/60" />
-									<DropdownMenuItem
-										className="text-foreground-destructive focus:text-foreground-destructive flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold"
-										disabled={deleteIsPending}
-										onSelect={handleDeleteSelect}
-									>
-										<Icon name={confirmDelete ? 'check' : 'trash'} size="sm" />
-										{confirmDelete ? 'Confirm delete' : 'Delete'}
-									</DropdownMenuItem>
-								</DropdownMenuContent>
-							</DropdownMenu>
-						</div>
-					</div>
-					<updateContentFetcher.Form
-						ref={formRef}
-						method="POST"
-						{...getFormProps(updateContentForm)}
+					<input type="hidden" name="id" value={message.id} />
+					<label htmlFor={updateContentFields.content.id} className="sr-only">
+						Message content
+					</label>
+					<textarea
+						{...textareaProps}
+						onInput={(event) => {
+							setCurrentContent(event.currentTarget.value)
+						}}
+						ref={textareaRef}
+						className="w-full resize-none bg-transparent text-sm leading-relaxed text-[hsl(var(--palette-cream))] placeholder:text-[hsl(var(--palette-cream))]/80 focus-visible:outline-none"
+						rows={4}
+					/>
+				</updateContentFetcher.Form>
+			</div>
+			<span className="text-muted-foreground text-[0.7rem] font-semibold tracking-[0.2em] uppercase">
+				{scheduleLabel}
+			</span>
+			<div className="flex items-center gap-2">
+				{showSaveButton ? (
+					<StatusButton
+						form={updateContentForm.id}
+						status={updateIsPending ? 'pending' : 'idle'}
+						className="h-9 w-9 gap-0 hover:bg-card/60"
+						size="icon"
+						variant="ghost"
+						type="submit"
+						name="intent"
+						value={updateMessageContentActionIntent}
 					>
-						<input type="hidden" name="id" value={message.id} />
-						<label htmlFor={updateContentFields.content.id} className="sr-only">
-							Message content
-						</label>
-						<textarea
-							{...textareaProps}
-							onInput={(event) => {
-								setCurrentContent(event.currentTarget.value)
-							}}
-							ref={textareaRef}
-							className="mt-4 w-full resize-none bg-transparent text-sm leading-relaxed text-[hsl(var(--palette-cream))] placeholder:text-[hsl(var(--palette-cream))]/80 focus-visible:outline-none"
-							rows={4}
-						/>
-					</updateContentFetcher.Form>
-				</div>
+						<Icon name="check" size="sm" />
+						<span className="sr-only">Save</span>
+					</StatusButton>
+				) : null}
+				<DropdownMenu
+					onOpenChange={(open) => {
+						if (!open) setConfirmDelete(false)
+					}}
+				>
+					<DropdownMenuTrigger asChild>
+						<Button
+							variant="ghost"
+							size="icon"
+							className="h-9 w-9 hover:bg-card/60"
+							aria-label="Message actions"
+						>
+							<Icon name="dots-horizontal" size="sm" />
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent
+						align="end"
+						className="border-border/70 bg-card w-48 rounded-2xl p-2 shadow-lg"
+					>
+						<DropdownMenuItem
+							className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold"
+							disabled={sendIsPending}
+							onSelect={handleSendNow}
+						>
+							<Icon name="send" size="sm" />
+							Send Now
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold"
+							onSelect={handleEditMessage}
+						>
+							<Icon name="pencil-1" size="sm" />
+							Edit Message
+						</DropdownMenuItem>
+						<DropdownMenuSeparator className="bg-border/60" />
+						<DropdownMenuItem
+							className="text-foreground-destructive focus:text-foreground-destructive flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold"
+							disabled={deleteIsPending}
+							onSelect={handleDeleteSelect}
+						>
+							<Icon name={confirmDelete ? 'check' : 'trash'} size="sm" />
+							{confirmDelete ? 'Confirm delete' : 'Delete'}
+						</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
+			</div>
+			<div className="flex w-full max-w-[75%] flex-col gap-1 self-end empty:hidden sm:max-w-[65%]">
 				<ErrorList
 					id={updateContentForm.errorId}
 					errors={updateContentForm.errors}
@@ -848,7 +829,7 @@ function MessageForms({
 				<ErrorList errors={sendErrors} />
 				<ErrorList errors={deleteErrors} />
 			</div>
-		</div>
+		</li>
 	)
 }
 
