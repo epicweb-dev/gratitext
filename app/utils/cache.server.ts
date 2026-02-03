@@ -147,21 +147,21 @@ export const cache: CachifiedCache = {
 }
 
 export async function getAllCacheKeys(limit: number) {
+	const sqliteRows = cacheDb
+		.prepare('SELECT key FROM cache LIMIT ?')
+		.all(limit) as Array<{ key: string }>
 	return {
-		sqlite: cacheDb
-			.prepare('SELECT key FROM cache LIMIT ?')
-			.all(limit)
-			.map((row) => (row as { key: string }).key),
+		sqlite: sqliteRows.map((row) => row.key),
 		lru: [...lru.keys()],
 	}
 }
 
 export async function searchCacheKeys(search: string, limit: number) {
+	const sqliteRows = cacheDb
+		.prepare('SELECT key FROM cache WHERE key LIKE ? LIMIT ?')
+		.all(`%${search}%`, limit) as Array<{ key: string }>
 	return {
-		sqlite: cacheDb
-			.prepare('SELECT key FROM cache WHERE key LIKE ? LIMIT ?')
-			.all(`%${search}%`, limit)
-			.map((row) => (row as { key: string }).key),
+		sqlite: sqliteRows.map((row) => row.key),
 		lru: [...lru.keys()].filter((key) => key.includes(search)),
 	}
 }

@@ -167,6 +167,5 @@ function getSetCookie(headers: Headers) {
 	// this is a sort of polyfill for headers.getSetCookie
 	// https://github.com/microsoft/TypeScript/issues/55270
 	// https://github.com/remix-run/remix/issues/7067
-	// @ts-expect-error see the two issues above
 	return headers.getAll('set-cookie') as Array<string>
 }
