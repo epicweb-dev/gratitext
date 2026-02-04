@@ -67,6 +67,32 @@ jobs:
       - name: 🔎 Type check
         run: bun run typecheck
 
+  bun-tests:
+    name: 🧪 Bun tests
+    runs-on: ubuntu-22.04
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v4
+
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: 🥟 Setup bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: "1.3.8"
+
+      - name: 📥 Download deps
+        run: bun install --frozen-lockfile
+
+      - name: 🧰 Setup env
+        run: bun run setup:env
+
+      - name: 🧪 Run bun tests
+        run: bun run test
+
   vitest:
     name: ⚡ Vitest
     runs-on: ubuntu-22.04
@@ -102,7 +128,7 @@ jobs:
         run: bun run setup:env
 
       - name: ⚡ Run vitest
-        run: bun run test -- --coverage
+        run: bun run coverage
 
   playwright:
     name: 🎭 Playwright
@@ -172,7 +198,7 @@ jobs:
   deploy:
     name: 🚀 Deploy
     runs-on: ubuntu-22.04
-    needs: [lint, typecheck, vitest]
+    needs: [lint, typecheck, bun-tests, vitest]
     # only build/deploy branches on pushes
     if: ${{ github.event_name == 'push' }}
 
