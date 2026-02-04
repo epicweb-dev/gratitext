@@ -76,7 +76,7 @@ export default function Layout() {
 		: undefined
 	return (
 		<div
-			className="flex h-screen flex-col justify-between bg-background"
+			className="bg-background flex h-screen flex-col justify-between"
 			style={recipientsTheme}
 		>
 			<header className="border-border border-b">

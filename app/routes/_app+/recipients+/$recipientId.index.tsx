@@ -605,7 +605,7 @@ export default function RecipientRoute() {
 				{hasAnyMessages ? (
 					<div
 						ref={setScrollContainer}
-						className="bg-[linear-gradient(90deg,_hsl(var(--palette-cream)),_hsl(var(--palette-beige))_45%,_hsl(0_0%_100%)_100%)] max-h-[65vh] overflow-y-auto px-4 py-5 sm:px-5 sm:py-6"
+						className="max-h-[65vh] overflow-y-auto bg-[linear-gradient(90deg,_hsl(var(--palette-cream)),_hsl(var(--palette-beige))_45%,_hsl(0_0%_100%)_100%)] px-4 py-5 sm:px-5 sm:py-6"
 					>
 						{hasPastMessages || pastNextCursor ? (
 							<div className="text-muted-foreground flex flex-col items-center gap-2 text-xs font-semibold tracking-[0.2em] uppercase">
@@ -647,7 +647,7 @@ export default function RecipientRoute() {
 				<newMessageFetcher.Form
 					method="POST"
 					action="new"
-					className="border-border/60 bg-white rounded-full border p-2 shadow-sm transition focus-within:rounded-[28px] focus-within:p-3"
+					className="border-border/60 rounded-full border bg-white p-2 shadow-sm transition focus-within:rounded-[28px] focus-within:p-3"
 				>
 					<label htmlFor="new-message" className="sr-only">
 						Add a new message
