@@ -12,6 +12,7 @@ process.env.DATABASE_URL = `file:${path.join(process.cwd(), databaseFile)}`
 process.env.CACHE_DATABASE_PATH = path.join(process.cwd(), cacheDatabaseFile)
 const databasePath = path.join(process.cwd(), databaseFile)
 
+await fsExtra.ensureDir(path.join(process.cwd(), 'tests/prisma'))
 await import('#app/utils/env.server.ts')
 const { BASE_DATABASE_PATH, setup } = await import('./global-setup.ts')
 // we need these to be imported first 👆
