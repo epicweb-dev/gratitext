@@ -3,7 +3,8 @@ import { execaCommand } from 'execa'
 import fsExtra from 'fs-extra'
 import 'dotenv/config'
 import '#app/utils/env.server.ts'
-import '#app/utils/cache.server.ts'
+// Avoid loading bun:sqlite when Playwright runs under Node.
+const shouldInitCache = typeof process.versions?.bun === 'string'
 
 export const BASE_DATABASE_PATH = path.join(
 	process.cwd(),
@@ -11,6 +12,10 @@ export const BASE_DATABASE_PATH = path.join(
 )
 
 export async function setup() {
+	if (shouldInitCache) {
+		await import('#app/utils/cache.server.ts')
+	}
+
 	const databaseExists = await fsExtra.pathExists(BASE_DATABASE_PATH)
 
 	if (databaseExists) {
