@@ -171,7 +171,7 @@ export default function RecipientRoute() {
 					</SimpleTooltip>
 				</div>
 			</aside>
-			<section className="min-w-0 rounded-none border-0 bg-white px-0 py-4 sm:rounded-[32px] sm:border sm:border-border/60 sm:px-6 sm:py-8 sm:shadow-sm">
+			<section className="min-w-0 bg-white px-0 py-4 sm:px-6 sm:py-8">
 				<Outlet />
 			</section>
 		</div>
