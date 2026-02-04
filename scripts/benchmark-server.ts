@@ -83,18 +83,25 @@ function parseOptions() {
 		allowPositionals: true,
 	})
 
-	const baseUrl = values['base-url'] ?? process.env.BENCH_BASE_URL ?? 'http://localhost:3000'
+	const baseUrl =
+		values['base-url'] ?? process.env.BENCH_BASE_URL ?? 'http://localhost:3000'
 	const iterations = Math.max(
 		1,
-		Math.floor(toNumber(values.iterations, toNumber(process.env.BENCH_ITERATIONS, 20))),
+		Math.floor(
+			toNumber(values.iterations, toNumber(process.env.BENCH_ITERATIONS, 20)),
+		),
 	)
 	const concurrency = Math.max(
 		1,
-		Math.floor(toNumber(values.concurrency, toNumber(process.env.BENCH_CONCURRENCY, 4))),
+		Math.floor(
+			toNumber(values.concurrency, toNumber(process.env.BENCH_CONCURRENCY, 4)),
+		),
 	)
 	const timeoutMs = Math.max(
 		100,
-		Math.floor(toNumber(values.timeout, toNumber(process.env.BENCH_TIMEOUT_MS, 10000))),
+		Math.floor(
+			toNumber(values.timeout, toNumber(process.env.BENCH_TIMEOUT_MS, 10000)),
+		),
 	)
 	const routes = values.route?.length
 		? values.route
@@ -235,287 +242,6 @@ async function run() {
 			perfRunId,
 		)
 		;(report.routes as Record<string, RouteReport>)[route] = result
-	}
-
-	const output = JSON.stringify(report, null, 2)
-	console.log(output)
-
-	if (options.output) {
-		fs.writeFileSync(options.output, output)
-	}
-}
-
-await run().catch((error) => {
-	console.error('Benchmark failed:', error)
-	process.exitCode = 1
-})
-import crypto from 'node:crypto'
-import fs from 'node:fs'
-import { performance } from 'node:perf_hooks'
-import { parseArgs } from 'node:util'
-
-type Summary = {
-	min: number
-	max: number
-	avg: number
-	median: number
-	p90: number
-	p95: number
-	p99: number
-}
-
-type RequestResult = {
-	durationMs: number
-	status?: number
-	serverTiming?: string | null
-	error?: string
-}
-
-type RouteReport = {
-	summary: Summary
-	statusCounts: Record<string, number>
-	errorCount: number
-	errorSamples: string[]
-	serverTimingSamples: string[]
-}
-
-type Options = {
-	baseUrl: string
-	iterations: number
-	concurrency: number
-	warmup: boolean
-	timeoutMs: number
-	routes: string[]
-	output?: string
-	perfRunId: string
-}
-
-const toNumber = (value: string | undefined, fallback: number) => {
-	if (!value) return fallback
-	const parsed = Number(value)
-	return Number.isFinite(parsed) ? parsed : fallback
-}
-
-const clamp = (value: number, min: number, max: number) =>
-	Math.min(max, Math.max(min, value))
-
-const round = (value: number, digits = 2) => {
-	const factor = 10 ** digits
-	return Math.round(value * factor) / factor
-}
-
-const percentile = (sorted: number[], p: number) => {
-	if (sorted.length === 0) return 0
-	const index = Math.min(sorted.length - 1, Math.ceil(sorted.length * p) - 1)
-	return sorted[index] ?? 0
-}
-
-const summarize = (values: number[]): Summary => {
-	if (values.length === 0) {
-		return { min: 0, max: 0, avg: 0, median: 0, p90: 0, p95: 0, p99: 0 }
-	}
-	const sorted = [...values].sort((a, b) => a - b)
-	const total = values.reduce((acc, value) => acc + value, 0)
-	const mid = Math.floor(sorted.length / 2)
-	const median =
-		sorted.length % 2 === 0
-			? ((sorted[mid - 1] ?? 0) + (sorted[mid] ?? 0)) / 2
-			: sorted[mid] ?? 0
-
-	return {
-		min: sorted[0] ?? 0,
-		max: sorted[sorted.length - 1] ?? 0,
-		avg: total / values.length,
-		median,
-		p90: percentile(sorted, 0.9),
-		p95: percentile(sorted, 0.95),
-		p99: percentile(sorted, 0.99),
-	}
-}
-
-const normalizeRoute = (route: string) => {
-	if (!route.startsWith('/')) return `/${route}`
-	return route
-}
-
-const parseOptions = (): Options => {
-	const { values } = parseArgs({
-		options: {
-			'base-url': { type: 'string' },
-			iterations: { type: 'string', short: 'i' },
-			concurrency: { type: 'string', short: 'c' },
-			warmup: { type: 'boolean' },
-			'timeout-ms': { type: 'string' },
-			route: { type: 'string', multiple: true },
-			output: { type: 'string' },
-		},
-		allowPositionals: true,
-	})
-
-	const baseUrl = values['base-url'] ?? process.env.BENCH_BASE_URL ?? ''
-	const iterations = Math.max(
-		1,
-		Math.floor(toNumber(values.iterations, 20)),
-	)
-	const concurrency = Math.max(
-		1,
-		Math.floor(toNumber(values.concurrency, 4)),
-	)
-	const warmup = values.warmup ?? true
-	const timeoutMs = Math.max(
-		100,
-		Math.floor(toNumber(values['timeout-ms'], 15000)),
-	)
-
-	const routes =
-		values.route && values.route.length > 0
-			? values.route.map(normalizeRoute)
-			: (process.env.BENCH_ROUTES ?? '')
-					.split(',')
-					.map((route) => route.trim())
-					.filter(Boolean)
-					.map(normalizeRoute)
-
-	const defaultRoutes = [
-		'/',
-		'/login',
-		'/signup',
-		'/resources/healthcheck',
-	]
-
-	return {
-		baseUrl: baseUrl || 'http://localhost:3000',
-		iterations,
-		concurrency,
-		warmup,
-		timeoutMs,
-		routes: routes.length ? routes : defaultRoutes,
-		output: values.output ?? undefined,
-		perfRunId: `perf-${crypto.randomUUID()}`,
-	}
-}
-
-const requestOnce = async (
-	baseUrl: string,
-	route: string,
-	timeoutMs: number,
-	perfRunId: string,
-): Promise<RequestResult> => {
-	const url = new URL(route, baseUrl).toString()
-	const controller = new AbortController()
-	const timeout = setTimeout(() => controller.abort(), timeoutMs)
-	const start = performance.now()
-
-	try {
-		const response = await fetch(url, {
-			method: 'GET',
-			signal: controller.signal,
-			headers: {
-				'x-perf-run-id': perfRunId,
-				'cache-control': 'no-cache',
-			},
-		})
-		const serverTiming = response.headers.get('server-timing')
-		await response.arrayBuffer()
-		return {
-			durationMs: performance.now() - start,
-			status: response.status,
-			serverTiming,
-		}
-	} catch (error) {
-		return {
-			durationMs: performance.now() - start,
-			error: error instanceof Error ? error.message : 'Request failed',
-		}
-	} finally {
-		clearTimeout(timeout)
-	}
-}
-
-const runRoute = async (options: Options, route: string) => {
-	const results: RequestResult[] = []
-	const runBatch = async (count: number) => {
-		const batch = Array.from({ length: count }, () =>
-			requestOnce(options.baseUrl, route, options.timeoutMs, options.perfRunId),
-		)
-		results.push(...(await Promise.all(batch)))
-	}
-
-	for (let i = 0; i < options.iterations; i += options.concurrency) {
-		const batchSize = Math.min(options.concurrency, options.iterations - i)
-		await runBatch(batchSize)
-	}
-
-	const durations = results.map((result) => result.durationMs)
-	const statusCounts = results.reduce<Record<string, number>>((acc, result) => {
-		const key = result.status ? String(result.status) : 'error'
-		acc[key] = (acc[key] ?? 0) + 1
-		return acc
-	}, {})
-
-	const errorSamples = results
-		.map((result) => result.error)
-		.filter(Boolean)
-		.slice(0, 5) as string[]
-
-	const serverTimingSamples = Array.from(
-		new Set(
-			results
-				.map((result) => result.serverTiming)
-				.filter((value): value is string => Boolean(value)),
-		),
-	).slice(0, 5)
-
-	const report: RouteReport = {
-		summary: {
-			...summarize(durations),
-			min: round(summarize(durations).min, 2),
-			max: round(summarize(durations).max, 2),
-			avg: round(summarize(durations).avg, 2),
-			median: round(summarize(durations).median, 2),
-			p90: round(summarize(durations).p90, 2),
-			p95: round(summarize(durations).p95, 2),
-			p99: round(summarize(durations).p99, 2),
-		},
-		statusCounts,
-		errorCount: errorSamples.length,
-		errorSamples,
-		serverTimingSamples,
-	}
-
-	return report
-}
-
-const run = async () => {
-	const options = parseOptions()
-
-	if (options.warmup) {
-		for (const route of options.routes) {
-			await requestOnce(
-				options.baseUrl,
-				route,
-				options.timeoutMs,
-				options.perfRunId,
-			)
-		}
-	}
-
-	const routesReport: Record<string, RouteReport> = {}
-	for (const route of options.routes) {
-		routesReport[route] = await runRoute(options, route)
-	}
-
-	const report = {
-		meta: {
-			timestamp: new Date().toISOString(),
-			baseUrl: options.baseUrl,
-			iterations: options.iterations,
-			concurrency: options.concurrency,
-			warmup: options.warmup,
-			timeoutMs: options.timeoutMs,
-			perfRunId: options.perfRunId,
-		},
-		routes: routesReport,
 	}
 
 	const output = JSON.stringify(report, null, 2)
