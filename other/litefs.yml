@@ -29,7 +29,7 @@ lease:
     key: 'epic-stack-litefs/${FLY_APP_NAME}'
 
 exec:
-  - cmd: bunx prisma@7 migrate deploy
+  - cmd: /myapp/node_modules/.bin/prisma migrate deploy
     if-candidate: true
 
   # Set the journal mode for the database to WAL. This reduces concurrency deadlock issues
