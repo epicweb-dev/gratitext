@@ -10,6 +10,10 @@ import rateLimit, { ipKeyGenerator } from 'express-rate-limit'
 import getPort, { portNumbers } from 'get-port'
 import helmet from 'helmet'
 import morgan from 'morgan'
+import {
+	createPerfLogger,
+	getPerfLoggerOptionsFromEnv,
+} from './utils/perf-logger.ts'
 
 const MODE = process.env.NODE_ENV ?? 'development'
 const IS_PROD = MODE === 'production'
@@ -261,6 +265,10 @@ if (SENTRY_ENABLED) {
 }
 
 const app = express()
+const perfLogger = createPerfLogger(getPerfLoggerOptionsFromEnv())
+if (perfLogger) {
+	app.use(perfLogger)
+}
 
 const getHost = (req: { get: (key: string) => string | undefined }) =>
 	req.get('X-Forwarded-Host') ?? req.get('host') ?? ''

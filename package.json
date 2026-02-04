@@ -32,6 +32,7 @@
     "typecheck": "react-router typegen && tsc",
     "benchmark:data": "bun ./scripts/benchmark-data-load.ts",
     "benchmark:perf": "bun ./scripts/benchmark-performance.ts",
+    "benchmark:server": "bun ./scripts/benchmark-server.ts",
     "backfill:recipient-schedules": "bun ./scripts/backfill-recipient-schedules.ts",
     "validate": "run-p test lint typecheck test:e2e:run"
   },
