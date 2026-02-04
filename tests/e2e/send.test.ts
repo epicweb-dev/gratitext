@@ -34,28 +34,18 @@ test('Users can write and send a message immediately', async ({
 	await page.goto(`/recipients/${recipient.id}`)
 	await page.waitForLoadState('domcontentloaded')
 
-	const newMessageLink = page.getByRole('link', { name: /^new$/i })
-	await newMessageLink.waitFor({ state: 'visible' })
-	await newMessageLink.click()
-
-	await page.waitForLoadState('domcontentloaded')
-
 	const textMessageContent = `Test message ${faker.string.alphanumeric(8)}`
-	const messageTextbox = page.getByRole('textbox', { name: /message/i })
+	const messageTextbox = page.getByLabel(/add a new message/i)
 	await messageTextbox.waitFor({ state: 'visible' })
 	await messageTextbox.click()
 	await messageTextbox.fill(textMessageContent)
 	await expect(messageTextbox).toHaveValue(textMessageContent)
 
-	await Promise.all([
-		page.waitForURL(`/recipients/${recipient.id}`, {
-			timeout: 30000,
-			waitUntil: 'domcontentloaded',
-		}),
-		page.getByRole('button', { name: /save/i }).click(),
-	])
-	await page.waitForLoadState('domcontentloaded')
-	await expect(page.getByText(textMessageContent)).toBeVisible({
+	await page.getByRole('button', { name: /^add$/i }).click()
+	const scheduledMessageTextbox = page
+		.getByRole('textbox', { name: /message content/i })
+		.first()
+	await expect(scheduledMessageTextbox).toHaveValue(textMessageContent, {
 		timeout: 20000,
 	})
 
@@ -114,9 +104,9 @@ test('Scheduled messages go out on schedule', async ({ page, login }) => {
 
 	await page.goto(`/recipients/${recipient.id}`)
 	await page.waitForLoadState('domcontentloaded')
-	await expect(page.getByText(/no past messages yet/i)).toBeVisible({
-		timeout: 15000,
-	})
+	await expect(
+		page.getByRole('textbox', { name: /message content/i }),
+	).toHaveValue(message.content)
 
 	await prisma.$transaction(async ($prisma) => {
 		const scheduleWindow = getScheduleWindow(

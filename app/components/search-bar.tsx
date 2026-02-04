@@ -52,7 +52,7 @@ export function SearchBar({
 					id={id}
 					defaultValue={searchParams.get('search') ?? ''}
 					placeholder="Search"
-					className="w-full bg-white"
+					className="w-full"
 					autoFocus={autoFocus}
 				/>
 			</div>
@@ -67,7 +67,7 @@ export function SearchBar({
 							name="startDate"
 							id={startDateId}
 							defaultValue={startDateValue}
-							className="w-full bg-white"
+							className="w-full"
 						/>
 					</div>
 					<div className="w-full sm:w-[160px]">
@@ -79,7 +79,7 @@ export function SearchBar({
 							name="endDate"
 							id={endDateId}
 							defaultValue={endDateValue}
-							className="w-full bg-white"
+							className="w-full"
 						/>
 					</div>
 				</div>

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, type CSSProperties } from 'react'
 import {
 	Form,
 	Link,
@@ -68,11 +68,16 @@ export default function Layout() {
 	const user = useOptionalUser()
 	const requestInfo = useRequestInfo()
 	const isRecipientsRoute = requestInfo.path.startsWith('/recipients')
+	const recipientsTheme: CSSProperties | undefined = isRecipientsRoute
+		? {
+				'--background': '0 0% 100%',
+				'--card': '0 0% 100%',
+			}
+		: undefined
 	return (
 		<div
-			className={`flex h-screen flex-col justify-between ${
-				isRecipientsRoute ? 'bg-white' : 'bg-background'
-			}`}
+			className="flex h-screen flex-col justify-between bg-background"
+			style={recipientsTheme}
 		>
 			<header className="border-border border-b">
 				<div className="container py-5 md:py-6">
