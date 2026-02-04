@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, type CSSProperties } from 'react'
 import {
 	Form,
 	Link,
@@ -67,40 +67,52 @@ export default function Layout() {
 	const data = useLoaderData<typeof loader>()
 	const user = useOptionalUser()
 	const requestInfo = useRequestInfo()
+	const isRecipientsRoute = requestInfo.path.startsWith('/recipients')
+	const recipientsTheme = isRecipientsRoute
+		? ({
+				'--background': '0 0% 100%',
+				'--card': '0 0% 100%',
+			} as CSSProperties)
+		: undefined
 	return (
-		<div className="flex h-screen flex-col justify-between">
-			<header className="container py-5 md:py-6">
-				<nav className="flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8">
-					<Logo />
-					<div className="flex items-center gap-10">
-						{user ? (
-							<div className="flex gap-4">
-								{data.isSubscribed ? null : (
-									<Button variant="outline" asChild>
-										<Link to="/settings/profile/subscription">
-											Start your free trial
-										</Link>
-									</Button>
-								)}
-								<UserDropdown />
-							</div>
-						) : (
-							<>
-								<Button
-									asChild
-									variant="default"
-									size="lg"
-									className="hidden sm:inline-flex"
-								>
-									<Link to="/login">Log In</Link>
-								</Button>
-								<div className="sm:hidden">
-									<MobileMenu />
+		<div
+			className="bg-background flex h-screen flex-col justify-between"
+			style={recipientsTheme}
+		>
+			<header className="border-border border-b">
+				<div className="container py-5 md:py-6">
+					<nav className="flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8">
+						<Logo />
+						<div className="flex items-center gap-10">
+							{user ? (
+								<div className="flex gap-4">
+									{data.isSubscribed ? null : (
+										<Button variant="outline" asChild>
+											<Link to="/settings/profile/subscription">
+												Start your free trial
+											</Link>
+										</Button>
+									)}
+									<UserDropdown />
 								</div>
-							</>
-						)}
-					</div>
-				</nav>
+							) : (
+								<>
+									<Button
+										asChild
+										variant="default"
+										size="lg"
+										className="hidden sm:inline-flex"
+									>
+										<Link to="/login">Log In</Link>
+									</Button>
+									<div className="sm:hidden">
+										<MobileMenu />
+									</div>
+								</>
+							)}
+						</div>
+					</nav>
+				</div>
 			</header>
 			<div className="flex-1">
 				<Outlet />

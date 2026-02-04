@@ -20,14 +20,16 @@ export function SearchBar({
 	showDateFilter?: boolean
 }) {
 	const id = useId()
-	const dateId = `${id}-date`
+	const startDateId = `${id}-start-date`
+	const endDateId = `${id}-end-date`
 	const [searchParams] = useSearchParams()
 	const submit = useSubmit()
 	const isSubmitting = useIsPending({
 		formMethod: 'GET',
 		formAction: action,
 	})
-	const dateValue = searchParams.get('date') ?? ''
+	const startDateValue = searchParams.get('startDate') ?? ''
+	const endDateValue = searchParams.get('endDate') ?? ''
 
 	const handleFormChange = useDebounce((form: HTMLFormElement) => {
 		void submit(form)
@@ -55,17 +57,31 @@ export function SearchBar({
 				/>
 			</div>
 			{showDateFilter ? (
-				<div className="w-full sm:w-auto">
-					<Label htmlFor={dateId} className="sr-only">
-						Filter by date
-					</Label>
-					<Input
-						type="date"
-						name="date"
-						id={dateId}
-						defaultValue={dateValue}
-						className="w-full"
-					/>
+				<div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+					<div className="w-full sm:w-[160px]">
+						<Label htmlFor={startDateId} className="sr-only">
+							Start date
+						</Label>
+						<Input
+							type="date"
+							name="startDate"
+							id={startDateId}
+							defaultValue={startDateValue}
+							className="w-full"
+						/>
+					</div>
+					<div className="w-full sm:w-[160px]">
+						<Label htmlFor={endDateId} className="sr-only">
+							End date
+						</Label>
+						<Input
+							type="date"
+							name="endDate"
+							id={endDateId}
+							defaultValue={endDateValue}
+							className="w-full"
+						/>
+					</div>
 				</div>
 			) : null}
 			<div>

@@ -6,7 +6,6 @@ import {
 	type LoaderFunctionArgs,
 	type MetaFunction,
 	useLoaderData,
-	useMatches,
 } from 'react-router'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.js'
 import { ButtonLink } from '#app/components/ui/button.tsx'
@@ -84,18 +83,10 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 export default function RecipientRoute() {
 	const data = useLoaderData<typeof loader>()
 	const firstLinkRef = useRef<HTMLAnchorElement | null>(null)
-	const matches = useMatches()
-	const lastMatch = matches[matches.length - 1]
-	const idPortion = lastMatch?.id.split('.')?.at(-1) ?? '.'
-	const currentPath = idPortion === 'index' ? '.' : idPortion
 
 	useEffect(() => {
 		firstLinkRef.current?.focus()
 	}, [data.recipient.id])
-
-	useEffect(() => {
-		if (currentPath === '.') firstLinkRef.current?.focus()
-	}, [currentPath])
 
 	return (
 		<div className="grid gap-8 lg:grid-cols-[320px_1fr] lg:gap-10">
@@ -180,48 +171,8 @@ export default function RecipientRoute() {
 					</SimpleTooltip>
 				</div>
 			</aside>
-			<section className="sm:border-border sm:bg-muted min-w-0 rounded-none border-0 bg-transparent px-0 py-4 sm:rounded-[32px] sm:border sm:px-6 sm:py-8 sm:shadow-sm">
-				<nav className="mb-6 hidden grid-cols-2 gap-2 sm:grid sm:grid-cols-2 sm:gap-2 lg:flex lg:flex-wrap">
-					<Link
-						to="."
-						preventScrollReset
-						className={cn(
-							'border-border text-muted-foreground hover:bg-card hover:text-foreground flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold tracking-[0.15em] uppercase transition sm:w-auto sm:justify-start sm:tracking-[0.2em]',
-							currentPath === '.' && 'bg-card text-foreground shadow-sm',
-						)}
-					>
-						<Icon name="clock" size="sm">
-							Upcoming
-						</Icon>
-					</Link>
-					<Link
-						to="new"
-						preventScrollReset
-						className={cn(
-							'border-border text-muted-foreground hover:bg-card hover:text-foreground flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold tracking-[0.15em] uppercase transition sm:w-auto sm:justify-start sm:tracking-[0.2em]',
-							currentPath === 'new' && 'bg-card text-foreground shadow-sm',
-						)}
-					>
-						<Icon name="plus" size="sm">
-							New
-						</Icon>
-					</Link>
-					<Link
-						to="edit"
-						preventScrollReset
-						className={cn(
-							'border-border text-muted-foreground hover:bg-card hover:text-foreground flex w-full items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold tracking-[0.15em] uppercase transition sm:w-auto sm:justify-start sm:tracking-[0.2em]',
-							currentPath === 'edit' && 'bg-card text-foreground shadow-sm',
-						)}
-					>
-						<Icon name="pencil-1" size="sm">
-							Edit
-						</Icon>
-					</Link>
-				</nav>
-				<div className="overflow-y-auto">
-					<Outlet />
-				</div>
+			<section className="min-w-0 bg-white px-0 py-4 sm:px-6 sm:py-8">
+				<Outlet />
 			</section>
 		</div>
 	)
