@@ -74,38 +74,40 @@ export default function Layout() {
 				isRecipientsRoute ? 'bg-white' : 'bg-background'
 			}`}
 		>
-			<header className="border-border container border-b py-5 md:py-6">
-				<nav className="flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8">
-					<Logo />
-					<div className="flex items-center gap-10">
-						{user ? (
-							<div className="flex gap-4">
-								{data.isSubscribed ? null : (
-									<Button variant="outline" asChild>
-										<Link to="/settings/profile/subscription">
-											Start your free trial
-										</Link>
-									</Button>
-								)}
-								<UserDropdown />
-							</div>
-						) : (
-							<>
-								<Button
-									asChild
-									variant="default"
-									size="lg"
-									className="hidden sm:inline-flex"
-								>
-									<Link to="/login">Log In</Link>
-								</Button>
-								<div className="sm:hidden">
-									<MobileMenu />
+			<header className="border-border border-b">
+				<div className="container py-5 md:py-6">
+					<nav className="flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8">
+						<Logo />
+						<div className="flex items-center gap-10">
+							{user ? (
+								<div className="flex gap-4">
+									{data.isSubscribed ? null : (
+										<Button variant="outline" asChild>
+											<Link to="/settings/profile/subscription">
+												Start your free trial
+											</Link>
+										</Button>
+									)}
+									<UserDropdown />
 								</div>
-							</>
-						)}
-					</div>
-				</nav>
+							) : (
+								<>
+									<Button
+										asChild
+										variant="default"
+										size="lg"
+										className="hidden sm:inline-flex"
+									>
+										<Link to="/login">Log In</Link>
+									</Button>
+									<div className="sm:hidden">
+										<MobileMenu />
+									</div>
+								</>
+							)}
+						</div>
+					</nav>
+				</div>
 			</header>
 			<div className="flex-1">
 				<Outlet />
