@@ -68,11 +68,11 @@ export default function Layout() {
 	const user = useOptionalUser()
 	const requestInfo = useRequestInfo()
 	const isRecipientsRoute = requestInfo.path.startsWith('/recipients')
-	const recipientsTheme: CSSProperties | undefined = isRecipientsRoute
-		? {
+	const recipientsTheme = isRecipientsRoute
+		? ({
 				'--background': '0 0% 100%',
 				'--card': '0 0% 100%',
-			}
+			} as CSSProperties)
 		: undefined
 	return (
 		<div
