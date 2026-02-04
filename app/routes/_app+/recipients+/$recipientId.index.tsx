@@ -605,7 +605,7 @@ export default function RecipientRoute() {
 				{hasAnyMessages ? (
 					<div
 						ref={setScrollContainer}
-						className="border-border/60 bg-[linear-gradient(180deg,_hsl(var(--palette-cream)),_hsl(var(--palette-beige))_45%,_hsl(0_0%_100%)_100%)] max-h-[65vh] overflow-y-auto rounded-[24px] border px-4 py-5 shadow-sm sm:px-5 sm:py-6"
+						className="bg-[linear-gradient(90deg,_hsl(var(--palette-cream)),_hsl(var(--palette-beige))_45%,_hsl(0_0%_100%)_100%)] max-h-[65vh] overflow-y-auto px-4 py-5 sm:px-5 sm:py-6"
 					>
 						{hasPastMessages || pastNextCursor ? (
 							<div className="text-muted-foreground flex flex-col items-center gap-2 text-xs font-semibold tracking-[0.2em] uppercase">
@@ -632,7 +632,7 @@ export default function RecipientRoute() {
 						</ul>
 					</div>
 				) : (
-					<div className="border-border/60 bg-[linear-gradient(180deg,_hsl(var(--palette-cream)),_hsl(var(--palette-beige))_45%,_hsl(0_0%_100%)_100%)] rounded-[24px] border px-4 py-10 text-center text-sm shadow-sm sm:px-5 sm:py-12">
+					<div className="bg-[linear-gradient(90deg,_hsl(var(--palette-cream)),_hsl(var(--palette-beige))_45%,_hsl(0_0%_100%)_100%)] px-4 py-10 text-center text-sm sm:px-5 sm:py-12">
 						<p className="text-muted-foreground">{emptyThreadMessage}</p>
 						<Link
 							to="new"
