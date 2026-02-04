@@ -12,7 +12,7 @@ export default defineConfig(async (config) => ({
 
 		rollupOptions: {
 			input: config.isSsrBuild ? './server/app.ts' : undefined,
-			external: [/node:.*/, 'stream', 'crypto', 'fsevents'],
+			external: [/node:.*/, /bun:.*/, 'stream', 'crypto', 'fsevents'],
 		},
 
 		assetsInlineLimit: (source: string) => {

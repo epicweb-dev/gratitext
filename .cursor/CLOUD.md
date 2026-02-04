@@ -5,7 +5,8 @@
 | Command                | Description                                  |
 | ---------------------- | -------------------------------------------- |
 | `bun run dev`          | Start dev server with mocks (port 3000)      |
-| `bun run test`         | Run Vitest unit tests                        |
+| `bun run test`         | Run Bun backend unit tests                   |
+| `bun run test:browser` | Run Vitest browser tests                     |
 | `bun run test:e2e:run` | Run Playwright e2e tests                     |
 | `bun run lint`         | ESLint                                       |
 | `bun run typecheck`    | TypeScript type checking                     |
@@ -29,7 +30,8 @@ data.
 
 ## Testing
 
-- Unit tests: Vitest with browser testing via Playwright
+- Backend unit tests: Bun test runner
+- Browser unit tests: Vitest with Playwright
 - E2E tests: Playwright with Chromium
 - Mock services enabled via MSW
 

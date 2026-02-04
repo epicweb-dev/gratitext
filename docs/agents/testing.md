@@ -1,6 +1,9 @@
 # Testing
 
-- Unit tests use Vitest (`bun run test`); coverage via `bun run coverage`.
+- Backend unit tests use Bun (`bun run test`) for `*.test.ts`.
+- Browser unit tests use Vitest (`bun run test:browser`) for
+  `*.test.browser.tsx`.
+- Coverage via `bun run coverage` (browser tests).
 - E2E tests use Playwright (`bun run test:e2e:run` for CI,
   `bun run test:e2e:dev` for UI).
 - Playwright fixtures live in `tests/playwright-utils.ts`:

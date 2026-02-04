@@ -1,25 +1,8 @@
-import { useState, type ReactElement } from 'react'
-import { createRoot, type Root } from 'react-dom/client'
-import { afterEach, expect, test } from 'vitest'
-import { page, userEvent } from 'vitest/browser'
+import { useState } from 'react'
+import { expect, test } from 'vitest'
+import { userEvent } from 'vitest/browser'
+import { render } from 'vitest-browser-react'
 import { useDoubleCheck } from './misc.tsx'
-
-let root: Root | null = null
-let container: HTMLDivElement | null = null
-
-const render = (ui: ReactElement) => {
-	container = document.createElement('div')
-	document.body.appendChild(container)
-	root = createRoot(container)
-	root.render(ui)
-}
-
-afterEach(() => {
-	root?.unmount()
-	root = null
-	container?.remove()
-	container = null
-})
 
 function TestComponent({ safeDelayMs = 0 }: { safeDelayMs?: number }) {
 	const [defaultPrevented, setDefaultPrevented] = useState<
@@ -43,10 +26,10 @@ function TestComponent({ safeDelayMs = 0 }: { safeDelayMs?: number }) {
 
 test('prevents default on the first click, and does not on the second', async () => {
 	const user = userEvent.setup()
-	render(<TestComponent safeDelayMs={200} />)
+	const screen = await render(<TestComponent safeDelayMs={200} />)
 
-	const status = page.getByRole('status')
-	const button = page.getByRole('button')
+	const status = screen.getByRole('status')
+	const button = screen.getByRole('button')
 
 	await expect.element(status).toHaveTextContent('Default Prevented: idle')
 	await expect.element(button).toHaveTextContent('Click me')
@@ -71,10 +54,10 @@ test('prevents default on the first click, and does not on the second', async ()
 
 test('blurring the button starts things over', async () => {
 	const user = userEvent.setup()
-	render(<TestComponent />)
+	const screen = await render(<TestComponent />)
 
-	const status = page.getByRole('status')
-	const button = page.getByRole('button')
+	const status = screen.getByRole('status')
+	const button = screen.getByRole('button')
 
 	await user.click(button)
 	await expect.element(button).toHaveTextContent('You sure?')
@@ -87,12 +70,12 @@ test('blurring the button starts things over', async () => {
 	await expect.element(status).toHaveTextContent('Default Prevented: yes')
 })
 
-test('hitting "escape" on the input starts things over', async () => {
+test('hitting \"escape\" on the input starts things over', async () => {
 	const user = userEvent.setup()
-	render(<TestComponent />)
+	const screen = await render(<TestComponent />)
 
-	const status = page.getByRole('status')
-	const button = page.getByRole('button')
+	const status = screen.getByRole('status')
+	const button = screen.getByRole('button')
 
 	await user.click(button)
 	await expect.element(button).toHaveTextContent('You sure?')

@@ -1,5 +1,6 @@
+import '#tests/setup/setup-test-env.ts'
 import { faker } from '@faker-js/faker'
-import { test, expect } from 'vitest'
+import { expect, test } from 'bun:test'
 import { createMessage, createRecipient, createUser } from '#tests/db-utils.ts'
 import { getScheduleWindow, sendNextTexts } from './cron.server.ts'
 import { prisma } from './db.server.ts'

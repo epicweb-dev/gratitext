@@ -1,5 +1,5 @@
+import { expect } from 'bun:test'
 import * as setCookieParser from 'set-cookie-parser'
-import { expect } from 'vitest'
 import { sessionKey } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { authSessionStorage } from '#app/utils/session.server.ts'
@@ -11,7 +11,17 @@ import {
 import { convertSetCookieToCookie } from '#tests/utils.ts'
 
 expect.extend({
-	toHaveRedirect(response: Response, redirectTo?: string) {
+	toHaveRedirect(actual: unknown, redirectTo?: string | null) {
+		if (!(actual instanceof Response)) {
+			return {
+				pass: false,
+				message: () =>
+					`Expected a Response but received ${this.utils.printReceived(
+						actual,
+					)}`,
+			}
+		}
+		const response = actual
 		const location = response.headers.get('location')
 		const redirectToSupplied = redirectTo !== undefined
 		if (redirectToSupplied !== Boolean(location)) {
@@ -71,7 +81,17 @@ expect.extend({
 				)} but got ${this.utils.printReceived(location)}`,
 		}
 	},
-	async toHaveSessionForUser(response: Response, userId: string) {
+	async toHaveSessionForUser(actual: unknown, userId: string) {
+		if (!(actual instanceof Response)) {
+			return {
+				pass: false,
+				message: () =>
+					`Expected a Response but received ${this.utils.printReceived(
+						actual,
+					)}`,
+			}
+		}
+		const response = actual
 		const setCookies = getSetCookie(response.headers)
 		const sessionSetCookie = setCookies.find(
 			(c) => setCookieParser.parseString(c).name === 'en_session',
@@ -112,7 +132,17 @@ expect.extend({
 				} created in the database for ${userId}`,
 		}
 	},
-	async toSendToast(response: Response, toast: ToastInput) {
+	async toSendToast(actual: unknown, toast: ToastInput) {
+		if (!(actual instanceof Response)) {
+			return {
+				pass: false,
+				message: () =>
+					`Expected a Response but received ${this.utils.printReceived(
+						actual,
+					)}`,
+			}
+		}
+		const response = actual
 		const setCookies = getSetCookie(response.headers)
 		const toastSetCookie = setCookies.find(
 			(c) => setCookieParser.parseString(c).name === 'en_toast',
@@ -140,27 +170,26 @@ expect.extend({
 
 		const pass = this.equals(toastValue, toast)
 
-		const diff = pass ? null : `\n${this.utils.diff(toastValue, toast)}`
-
 		return {
 			pass,
 			message: () =>
 				`toast in the response ${
 					this.isNot ? 'does not match' : 'matches'
-				} the expected toast${diff}`,
+				} the expected toast`,
 		}
 	},
 })
 
-interface CustomMatchers<R = unknown> {
-	toHaveRedirect(redirectTo: string | null): R
-	toHaveSessionForUser(userId: string): Promise<R>
-	toSendToast(toast: ToastInput): Promise<R>
+interface CustomMatchers {
+	toHaveRedirect(redirectTo?: string | null): void
+	toHaveSessionForUser(userId: string): Promise<void>
+	toSendToast(toast: ToastInput): Promise<void>
 }
 
-declare module 'vitest' {
-	interface Assertion<T = any> extends CustomMatchers<T> {}
-	interface AsymmetricMatchersContaining extends CustomMatchers {}
+declare module 'bun:test' {
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	interface Matchers<T = unknown> extends CustomMatchers {}
+	interface AsymmetricMatchers extends CustomMatchers {}
 }
 
 function getSetCookie(headers: Headers) {

@@ -474,7 +474,7 @@ seed()
 ```bash
 bunx prisma db seed
 # Or directly:
-bunx tsx prisma/seed.ts
+bun prisma/seed.ts
 ```
 
 ### Query Optimization
