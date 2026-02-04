@@ -11,19 +11,24 @@ import {
 	type CreateReporter,
 } from '@epic-web/cachified'
 import { remember } from '@epic-web/remember'
-import { Database } from 'bun:sqlite'
 import { LRUCache } from 'lru-cache'
 import { z } from 'zod'
 import { updatePrimaryCacheValue } from '#app/routes/_app+/admin+/cache_.sqlite.server.js'
 import { getInstanceInfo, getInstanceInfoSync } from './litefs.server.ts'
 import { cachifiedTimingReporter, type Timings } from './timing.server.ts'
 
+type CacheDatabase = import('bun:sqlite').Database
+
+const isBunRuntime = typeof process.versions?.bun === 'string'
+const BunDatabase = isBunRuntime ? (await import('bun:sqlite')).Database : null
+
 const CACHE_DATABASE_PATH = process.env.CACHE_DATABASE_PATH
 
-const cacheDb = remember('cacheDb', createDatabase)
+const cacheDb = remember<CacheDatabase | null>('cacheDb', createDatabase)
 
-function createDatabase(tryAgain = true): Database {
-	const db = new Database(CACHE_DATABASE_PATH)
+function createDatabase(tryAgain = true): CacheDatabase | null {
+	if (!BunDatabase) return null
+	const db = new BunDatabase(CACHE_DATABASE_PATH)
 	const { currentIsPrimary } = getInstanceInfoSync()
 	if (!currentIsPrimary) return db
 
@@ -82,8 +87,11 @@ const cacheQueryResultSchema = z.object({
 })
 
 export const cache: CachifiedCache = {
-	name: 'SQLite cache',
+	name: cacheDb ? 'SQLite cache' : 'LRU cache',
 	get(key) {
+		if (!cacheDb) {
+			return lruCache.get(key) ?? null
+		}
 		const result = cacheDb
 			.prepare('SELECT value, metadata FROM cache WHERE key = ?')
 			.get(key)
@@ -100,6 +108,10 @@ export const cache: CachifiedCache = {
 		return { metadata, value }
 	},
 	async set(key, entry) {
+		if (!cacheDb) {
+			lruCache.set(key, entry)
+			return
+		}
 		const { currentIsPrimary, primaryInstance } = await getInstanceInfo()
 		if (currentIsPrimary) {
 			cacheDb
@@ -127,6 +139,10 @@ export const cache: CachifiedCache = {
 		}
 	},
 	async delete(key) {
+		if (!cacheDb) {
+			lruCache.delete(key)
+			return
+		}
 		const { currentIsPrimary, primaryInstance } = await getInstanceInfo()
 		if (currentIsPrimary) {
 			cacheDb.prepare('DELETE FROM cache WHERE key = ?').run(key)
@@ -148,8 +164,10 @@ export const cache: CachifiedCache = {
 
 export async function getAllCacheKeys(limit: number) {
 	const sqliteRows = cacheDb
-		.prepare('SELECT key FROM cache LIMIT ?')
-		.all(limit) as Array<{ key: string }>
+		? (cacheDb
+				.prepare('SELECT key FROM cache LIMIT ?')
+				.all(limit) as Array<{ key: string }>)
+		: []
 	return {
 		sqlite: sqliteRows.map((row) => row.key),
 		lru: [...lru.keys()],
@@ -158,8 +176,10 @@ export async function getAllCacheKeys(limit: number) {
 
 export async function searchCacheKeys(search: string, limit: number) {
 	const sqliteRows = cacheDb
-		.prepare('SELECT key FROM cache WHERE key LIKE ? LIMIT ?')
-		.all(`%${search}%`, limit) as Array<{ key: string }>
+		? (cacheDb
+				.prepare('SELECT key FROM cache WHERE key LIKE ? LIMIT ?')
+				.all(`%${search}%`, limit) as Array<{ key: string }>)
+		: []
 	return {
 		sqlite: sqliteRows.map((row) => row.key),
 		lru: [...lru.keys()].filter((key) => key.includes(search)),
