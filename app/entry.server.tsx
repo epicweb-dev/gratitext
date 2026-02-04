@@ -3,7 +3,7 @@ import { createReadableStreamFromReadable } from '@react-router/node'
 import * as Sentry from '@sentry/react-router'
 import chalk from 'chalk'
 import { isbot } from 'isbot'
-import { renderToPipeableStream } from 'react-dom/server'
+import { renderToPipeableStream } from 'react-dom/server.node'
 import {
 	type ActionFunctionArgs,
 	type HandleDocumentRequestFunction,
@@ -11,7 +11,7 @@ import {
 	ServerRouter,
 } from 'react-router'
 import { getSessionRenewal, sessionKey } from './utils/auth.server.ts'
-import { init as initCron } from './utils/cron.server.ts'
+import { init as initCron } from './utils/cron-runner.server.ts'
 import { getEnv, init as initEnv } from './utils/env.server.ts'
 import { getInstanceInfo } from './utils/litefs.server.ts'
 import { NonceProvider } from './utils/nonce-provider.ts'
@@ -75,7 +75,7 @@ export default async function handleRequest(...args: DocRequestArgs) {
 		: 'onShellReady'
 
 	const nonce = loadContext.cspNonce?.toString() ?? ''
-	return new Promise(async (resolve, reject) => {
+	return new Promise((resolve, reject) => {
 		let didError = false
 		// NOTE: this timing will only include things that are rendered in the shell
 		// and will not include suspended components and deferred loaders

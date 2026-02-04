@@ -2,7 +2,8 @@ import '#tests/setup/setup-test-env.ts'
 import { faker } from '@faker-js/faker'
 import { expect, test } from 'bun:test'
 import { createMessage, createRecipient, createUser } from '#tests/db-utils.ts'
-import { getScheduleWindow, sendNextTexts } from './cron.server.ts'
+import { getScheduleWindow } from './cron.server.ts'
+import { sendNextTexts } from './cron-runner.server.ts'
 import { prisma } from './db.server.ts'
 
 test('does not send any texts if there are none to be sent', async () => {
