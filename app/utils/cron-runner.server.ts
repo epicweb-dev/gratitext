@@ -3,6 +3,7 @@ import {
 	clearIntervalAsync,
 	setIntervalAsync,
 } from 'set-interval-async/dynamic'
+import { getScheduleWindow } from './cron.server.ts'
 import { prisma } from './db.server.ts'
 import { getrecipientsforcron } from './prisma-generated.server/sql.ts'
 import {
@@ -10,7 +11,6 @@ import {
 	PREV_SCHEDULE_SENTINEL_DATE,
 } from './schedule-constants.server.ts'
 import { sendText, sendTextToRecipient } from './text.server.ts'
-import { getScheduleWindow } from './cron.server.ts'
 
 const cronIntervalRef = remember<{
 	current: ReturnType<typeof setIntervalAsync> | null
