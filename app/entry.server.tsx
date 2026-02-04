@@ -130,6 +130,7 @@ export default async function handleRequest(...args: DocRequestArgs) {
 	let didError = false
 	const timings = makeTimings('render', 'renderToReadableStream')
 	const abortController = new AbortController()
+	setTimeout(() => abortController.abort(), ABORT_DELAY)
 	const body = await renderToReadableStream(
 		<NonceProvider value={nonce}>
 			<ServerRouter context={remixContext} url={request.url} nonce={nonce} />
@@ -149,7 +150,6 @@ export default async function handleRequest(...args: DocRequestArgs) {
 
 	responseHeaders.set('Content-Type', 'text/html')
 	responseHeaders.append('Server-Timing', timings.toString())
-	setTimeout(() => abortController.abort(), ABORT_DELAY)
 	return new Response(body, {
 		headers: responseHeaders,
 		status: didError ? 500 : responseStatusCode,
