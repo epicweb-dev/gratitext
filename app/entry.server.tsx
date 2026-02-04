@@ -3,7 +3,7 @@ import { createReadableStreamFromReadable } from '@react-router/node'
 import * as Sentry from '@sentry/react-router'
 import chalk from 'chalk'
 import { isbot } from 'isbot'
-import { renderToPipeableStream } from 'react-dom/server'
+import * as ReactDOMServer from 'react-dom/server'
 import {
 	type ActionFunctionArgs,
 	type HandleDocumentRequestFunction,
@@ -19,6 +19,16 @@ import { authSessionStorage } from './utils/session.server.ts'
 import { makeTimings } from './utils/timing.server.ts'
 
 const ABORT_DELAY = 5000
+const renderToPipeableStream = (
+	ReactDOMServer as {
+		renderToPipeableStream?: typeof import('react-dom/server').renderToPipeableStream
+	}
+).renderToPipeableStream
+const renderToReadableStream = (
+	ReactDOMServer as {
+		renderToReadableStream?: (...args: any[]) => Promise<ReadableStream>
+	}
+).renderToReadableStream
 
 initEnv()
 global.ENV = getEnv()
@@ -75,40 +85,74 @@ export default async function handleRequest(...args: DocRequestArgs) {
 		: 'onShellReady'
 
 	const nonce = loadContext.cspNonce?.toString() ?? ''
-	return new Promise(async (resolve, reject) => {
-		let didError = false
-		// NOTE: this timing will only include things that are rendered in the shell
-		// and will not include suspended components and deferred loaders
-		const timings = makeTimings('render', 'renderToPipeableStream')
+	if (renderToPipeableStream) {
+		return new Promise((resolve, reject) => {
+			let didError = false
+			// NOTE: this timing will only include things that are rendered in the shell
+			// and will not include suspended components and deferred loaders
+			const timings = makeTimings('render', 'renderToPipeableStream')
 
-		const { pipe, abort } = renderToPipeableStream(
-			<NonceProvider value={nonce}>
-				<ServerRouter context={remixContext} url={request.url} nonce={nonce} />
-			</NonceProvider>,
-			{
-				[callbackName]: () => {
-					const body = new PassThrough()
-					responseHeaders.set('Content-Type', 'text/html')
-					responseHeaders.append('Server-Timing', timings.toString())
-					resolve(
-						new Response(createReadableStreamFromReadable(body), {
-							headers: responseHeaders,
-							status: didError ? 500 : responseStatusCode,
-						}),
-					)
-					pipe(body)
+			const { pipe, abort } = renderToPipeableStream(
+				<NonceProvider value={nonce}>
+					<ServerRouter context={remixContext} url={request.url} nonce={nonce} />
+				</NonceProvider>,
+				{
+					[callbackName]: () => {
+						const body = new PassThrough()
+						responseHeaders.set('Content-Type', 'text/html')
+						responseHeaders.append('Server-Timing', timings.toString())
+						resolve(
+							new Response(createReadableStreamFromReadable(body), {
+								headers: responseHeaders,
+								status: didError ? 500 : responseStatusCode,
+							}),
+						)
+						pipe(body)
+					},
+					onShellError: (err: unknown) => {
+						reject(err)
+					},
+					onError: () => {
+						didError = true
+					},
+					nonce,
 				},
-				onShellError: (err: unknown) => {
-					reject(err)
-				},
-				onError: () => {
-					didError = true
-				},
-				nonce,
+			)
+
+			setTimeout(abort, ABORT_DELAY)
+		})
+	}
+
+	if (!renderToReadableStream) {
+		throw new Error('No compatible React DOM server renderer found.')
+	}
+
+	let didError = false
+	const timings = makeTimings('render', 'renderToReadableStream')
+	const abortController = new AbortController()
+	const body = await renderToReadableStream(
+		<NonceProvider value={nonce}>
+			<ServerRouter context={remixContext} url={request.url} nonce={nonce} />
+		</NonceProvider>,
+		{
+			nonce,
+			signal: abortController.signal,
+			onError: () => {
+				didError = true
 			},
-		)
+		},
+	)
 
-		setTimeout(abort, ABORT_DELAY)
+	if (callbackName === 'onAllReady' && 'allReady' in body) {
+		await (body as ReadableStream & { allReady?: Promise<void> }).allReady
+	}
+
+	responseHeaders.set('Content-Type', 'text/html')
+	responseHeaders.append('Server-Timing', timings.toString())
+	setTimeout(() => abortController.abort(), ABORT_DELAY)
+	return new Response(body, {
+		headers: responseHeaders,
+		status: didError ? 500 : responseStatusCode,
 	})
 }
 
