@@ -152,7 +152,8 @@ export default function LoginPage() {
 					<ErrorList errors={form.errors} id={form.errorId} />
 
 					<StatusButton
-						className="w-full bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))]"
+						variant="brand"
+						className="w-full"
 						status={isPending ? 'pending' : (form.status ?? 'idle')}
 						type="submit"
 						disabled={isPending}

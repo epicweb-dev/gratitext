@@ -233,7 +233,7 @@ export function RecipientEditor({
 							status={isPending ? 'pending' : 'idle'}
 							name="intent"
 							value={upsertRecipientActionIntent}
-							className="bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))]"
+							variant="brand"
 						>
 							<Icon name="check">{submitLabel}</Icon>
 						</StatusButton>

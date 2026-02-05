@@ -39,10 +39,11 @@ export function SearchBar({
 		<Form
 			method="GET"
 			action={action}
-			className="flex flex-wrap items-center justify-center gap-2"
+			className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between"
 			onChange={(e) => autoSubmit && handleFormChange(e.currentTarget)}
 		>
-			<div className="flex-1">
+			<div className="flex w-full items-center gap-2 sm:flex-1">
+				<div className="min-w-0 flex-1">
 				<Label htmlFor={id} className="sr-only">
 					Search
 				</Label>
@@ -54,14 +55,22 @@ export function SearchBar({
 					placeholder="Search"
 					className="w-full"
 					autoFocus={autoFocus}
-				/>
+					/>
+				</div>
+				<StatusButton
+					type="submit"
+					size="icon-lg"
+					status={isSubmitting ? 'pending' : status}
+					className="shrink-0"
+				>
+					<Icon name="magnifying-glass" size="md" />
+					<span className="sr-only">Search</span>
+				</StatusButton>
 			</div>
 			{showDateFilter ? (
-				<div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-					<div className="w-full sm:w-[160px]">
-						<Label htmlFor={startDateId} className="sr-only">
-							Start date
-						</Label>
+				<div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-end">
+					<div className="min-w-0 space-y-1 sm:w-[160px]">
+						<Label htmlFor={startDateId}>Start date</Label>
 						<Input
 							type="date"
 							name="startDate"
@@ -70,10 +79,8 @@ export function SearchBar({
 							className="w-full"
 						/>
 					</div>
-					<div className="w-full sm:w-[160px]">
-						<Label htmlFor={endDateId} className="sr-only">
-							End date
-						</Label>
+					<div className="min-w-0 space-y-1 sm:w-[160px]">
+						<Label htmlFor={endDateId}>End date</Label>
 						<Input
 							type="date"
 							name="endDate"
@@ -84,16 +91,6 @@ export function SearchBar({
 					</div>
 				</div>
 			) : null}
-			<div>
-				<StatusButton
-					type="submit"
-					status={isSubmitting ? 'pending' : status}
-					className="flex w-full items-center justify-center"
-				>
-					<Icon name="magnifying-glass" size="md" />
-					<span className="sr-only">Search</span>
-				</StatusButton>
-			</div>
 		</Form>
 	)
 }

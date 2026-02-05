@@ -289,7 +289,8 @@ function MobileMenu() {
 						<Button
 							asChild
 							size="lg"
-							className="mt-6 w-full bg-[hsl(var(--palette-orange))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-chestnut))]"
+							variant="warm"
+							className="mt-6 w-full"
 						>
 							<Link to="/login" onClick={() => setOpen(false)}>
 								<Icon name="star" size="sm" aria-hidden="true">

@@ -147,7 +147,7 @@ export default function ChangePhoneNumberIndex() {
 							<Link to="..">Cancel</Link>
 						</Button>
 						<StatusButton
-							className="bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))]"
+							variant="brand"
 							status={isPending ? 'pending' : (form.status ?? 'idle')}
 						>
 							Send Confirmation

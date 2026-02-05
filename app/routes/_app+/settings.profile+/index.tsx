@@ -260,7 +260,7 @@ function UpdateProfile() {
 					status={
 						fetcher.state !== 'idle' ? 'pending' : (form.status ?? 'idle')
 					}
-					className="bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))]"
+					variant="brand"
 				>
 					Save Changes
 				</StatusButton>
