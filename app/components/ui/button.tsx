@@ -17,6 +17,8 @@ const buttonVariants = cva(
 				outline: 'border-border bg-card text-foreground hover:bg-muted border',
 				secondary:
 					'border-border text-foreground hover:bg-muted border bg-transparent',
+				success:
+					'bg-[hsl(var(--palette-green-300))] text-[hsl(var(--palette-dark-navy))] shadow-sm hover:bg-[hsl(var(--palette-green-500))] hover:text-[hsl(var(--palette-cream))]',
 				ghost: 'text-foreground hover:bg-muted',
 				link: 'text-primary underline-offset-4 hover:underline',
 			},
@@ -27,6 +29,7 @@ const buttonVariants = cva(
 				lg: 'h-14 px-8 text-base',
 				pill: 'h-10 px-8 text-sm',
 				icon: 'h-10 w-10 p-0',
+				'icon-lg': 'h-12 w-12 p-0',
 			},
 			icon: {
 				true: 'h-10 w-10 rounded-full p-2',

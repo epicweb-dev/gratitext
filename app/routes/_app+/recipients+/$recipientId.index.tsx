@@ -665,8 +665,9 @@ export default function RecipientRoute() {
 						<StatusButton
 							status={isCreating ? 'pending' : 'idle'}
 							type="submit"
+							variant="success"
 							size="pill"
-							className="shrink-0 bg-[hsl(var(--palette-green-300))] px-6 text-[hsl(var(--palette-dark-navy))] shadow-sm hover:bg-[hsl(var(--palette-green-500))] hover:text-[hsl(var(--palette-cream))]"
+							className="shrink-0 px-6"
 						>
 							<Icon name="check">Add</Icon>
 						</StatusButton>
