@@ -643,11 +643,11 @@ export default function RecipientRoute() {
 					</div>
 				)}
 			</section>
-			<div className="flex flex-col gap-2">
+			<div className="flex flex-col gap-2 pb-6 sm:pb-8">
 				<newMessageFetcher.Form
 					method="POST"
 					action="new"
-					className="border-border/60 rounded-full border bg-white p-2 shadow-sm transition focus-within:rounded-[28px] focus-within:p-3"
+					className="border-border/50 rounded-full border bg-[hsl(var(--palette-cream))] p-2 transition focus-within:rounded-[28px] focus-within:border-border/70 focus-within:p-3"
 				>
 					<label htmlFor="new-message" className="sr-only">
 						Add a new message
