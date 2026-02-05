@@ -187,7 +187,8 @@ export default function ForgotPasswordRoute() {
 					</div>
 					<ErrorList errors={form.errors} id={form.errorId} />
 					<StatusButton
-						className="w-full bg-[hsl(var(--palette-hot-fire-red))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-fire-red))]"
+						variant="destructive"
+						className="w-full"
 						status={
 							forgotPassword.state === 'submitting'
 								? 'pending'

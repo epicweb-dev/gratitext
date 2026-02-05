@@ -665,9 +665,9 @@ export default function RecipientRoute() {
 						<StatusButton
 							status={isCreating ? 'pending' : 'idle'}
 							type="submit"
-							variant="success"
 							size="pill"
-							className="shrink-0"
+							variant="brand-soft"
+							className="shrink-0 px-6"
 						>
 							<Icon name="check">Add</Icon>
 						</StatusButton>
@@ -774,9 +774,9 @@ function MessageForms({ message }: { message: FutureMessage }) {
 							<StatusButton
 								form={updateContentForm.id}
 								status={updateIsPending ? 'pending' : 'idle'}
-								className="h-9 w-9 gap-0 text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-cream))/0.15]"
+								className="h-9 w-9 gap-0"
 								size="icon"
-								variant="ghost"
+								variant="ghost-inverse"
 								type="submit"
 								name="intent"
 								value={updateMessageContentActionIntent}
@@ -792,9 +792,9 @@ function MessageForms({ message }: { message: FutureMessage }) {
 						>
 							<DropdownMenuTrigger asChild>
 								<Button
-									variant="ghost"
+									variant="ghost-inverse"
 									size="icon"
-									className="h-9 w-9 text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-cream))/0.15]"
+									className="h-9 w-9"
 									aria-label="Message actions"
 								>
 									<Icon name="dots-horizontal" size="sm" />

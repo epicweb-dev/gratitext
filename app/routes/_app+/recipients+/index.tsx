@@ -42,7 +42,7 @@ export default function RecipientsIndexRoute() {
 					variant="outline"
 					size="icon"
 					aria-label="Add recipient"
-					className="bg-muted hover:bg-card h-14 w-14 shadow-sm"
+					className="h-14 w-14 shadow-sm"
 				>
 					<Icon name="plus" size="xl" />
 				</ButtonLink>
@@ -148,7 +148,8 @@ export default function RecipientsIndexRoute() {
 						</div>
 						<ButtonLink
 							to="new"
-							className="flex w-full items-center justify-center gap-2 bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))] sm:w-auto"
+							variant="brand"
+							className="flex w-full items-center justify-center gap-2 sm:w-auto"
 						>
 							<Icon name="plus">Add Recipient</Icon>
 						</ButtonLink>

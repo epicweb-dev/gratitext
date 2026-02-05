@@ -67,7 +67,8 @@ export default function Index() {
 						<Button
 							asChild
 							size="lg"
-							className="w-full max-w-[320px] bg-[hsl(var(--palette-chestnut))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-hot-fire-red))] sm:w-auto"
+							variant="warm"
+							className="w-full max-w-[320px] sm:w-auto"
 						>
 							{user ? (
 								<Link to="/recipients">Open dashboard</Link>
@@ -234,7 +235,7 @@ export default function Index() {
 						<div className="flex flex-col gap-3 sm:flex-row">
 							<Button
 								asChild
-								className="bg-[hsl(var(--palette-chestnut))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-hot-fire-red))]"
+								variant="warm"
 							>
 								<Link to="/login">Get started</Link>
 							</Button>
