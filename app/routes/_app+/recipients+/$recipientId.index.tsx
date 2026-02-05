@@ -643,22 +643,22 @@ export default function RecipientRoute() {
 					</div>
 				)}
 			</section>
-			<div className="flex flex-col gap-2 pb-6 sm:pb-8">
+			<div className="flex flex-col gap-2 pb-8 sm:pb-10">
 				<newMessageFetcher.Form
 					method="POST"
 					action="new"
-					className="border-border/50 rounded-full border bg-[hsl(var(--palette-cream))] p-2 transition focus-within:rounded-[28px] focus-within:border-border/70 focus-within:p-3"
+					className="border-border/40 rounded-full border bg-white p-2 shadow-sm transition focus-within:rounded-[28px] focus-within:border-border/60 focus-within:shadow-md"
 				>
 					<label htmlFor="new-message" className="sr-only">
 						Add a new message
 					</label>
-					<div className="flex items-center gap-3">
+					<div className="flex items-center gap-2">
 						<textarea
 							id="new-message"
 							name="content"
 							ref={newMessageInputRef}
 							placeholder="Aa"
-							className="text-foreground placeholder:text-muted-foreground min-h-[44px] flex-1 resize-none rounded-full bg-transparent px-4 py-2 text-sm leading-relaxed focus-visible:outline-none"
+							className="text-foreground placeholder:text-muted-foreground min-h-[48px] flex-1 resize-none rounded-full bg-transparent px-4 py-2 text-sm leading-relaxed focus-visible:outline-none"
 							rows={1}
 							required
 						/>
@@ -666,7 +666,7 @@ export default function RecipientRoute() {
 							status={isCreating ? 'pending' : 'idle'}
 							type="submit"
 							size="pill"
-							className="shrink-0 bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))]"
+							className="shrink-0 bg-[hsl(var(--palette-green-300))] px-6 text-[hsl(var(--palette-dark-navy))] shadow-sm hover:bg-[hsl(var(--palette-green-500))] hover:text-[hsl(var(--palette-cream))]"
 						>
 							<Icon name="check">Add</Icon>
 						</StatusButton>
