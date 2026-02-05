@@ -667,7 +667,7 @@ export default function RecipientRoute() {
 							type="submit"
 							variant="success"
 							size="pill"
-							className="shrink-0 px-6"
+							className="shrink-0"
 						>
 							<Icon name="check">Add</Icon>
 						</StatusButton>
