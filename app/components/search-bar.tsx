@@ -76,7 +76,6 @@ export function SearchBar({
 							name="startDate"
 							id={startDateId}
 							defaultValue={startDateValue}
-							placeholder="Start date"
 							className="w-full"
 						/>
 					</div>
@@ -87,7 +86,6 @@ export function SearchBar({
 							name="endDate"
 							id={endDateId}
 							defaultValue={endDateValue}
-							placeholder="End date"
 							className="w-full"
 						/>
 					</div>
