@@ -40,107 +40,34 @@ import {
 	getSendTime,
 } from '#app/utils/cron.server.js'
 import { prisma } from '#app/utils/db.server.ts'
+import { getPastMessagesPage } from '#app/utils/message-pagination.server.ts'
 import { sendTextToRecipient } from '#app/utils/text.server.js'
 import { createToastHeaders } from '#app/utils/toast.server.js'
 
 type LoaderData = Awaited<ReturnType<typeof loader>>['data']
 type FutureMessage = LoaderData['futureMessages'][number]
-
-const PAST_MESSAGES_PER_PAGE = 30
-
-function parseDateValue(value: string) {
-	if (!value) return null
-	const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
-	if (!match) return null
-	const year = Number(match[1])
-	const month = Number(match[2])
-	const day = Number(match[3])
-	if (!year || !month || !day) return null
-	return { year, month, day }
-}
-
-function getStartDate(value: string, timeZone: string) {
-	const parts = parseDateValue(value)
-	if (!parts) return null
-	try {
-		const start = getDateInTimeZone(
-			parts.year,
-			parts.month,
-			parts.day,
-			timeZone,
-		)
-		return Number.isNaN(start.getTime()) ? null : start
-	} catch {
-		return null
-	}
-}
-
-function getEndDate(value: string, timeZone: string) {
-	const parts = parseDateValue(value)
-	if (!parts) return null
-	try {
-		const nextDay = new Date(
-			Date.UTC(parts.year, parts.month - 1, parts.day + 1),
-		)
-		const end = getDateInTimeZone(
-			nextDay.getUTCFullYear(),
-			nextDay.getUTCMonth() + 1,
-			nextDay.getUTCDate(),
-			timeZone,
-		)
-		return Number.isNaN(end.getTime()) ? null : end
-	} catch {
-		return null
-	}
-}
-
-function getDateInTimeZone(
-	year: number,
-	month: number,
-	day: number,
-	timeZone: string,
-) {
-	const utcDate = new Date(Date.UTC(year, month - 1, day))
-	const offset = getTimeZoneOffset(utcDate, timeZone)
-	return new Date(utcDate.getTime() - offset)
-}
-
-function getTimeZoneOffset(date: Date, timeZone: string) {
-	const formatter = new Intl.DateTimeFormat('en-US', {
-		timeZone,
-		year: 'numeric',
-		month: '2-digit',
-		day: '2-digit',
-		hour: '2-digit',
-		minute: '2-digit',
-		second: '2-digit',
-		hourCycle: 'h23',
-	})
-	const parts = formatter.formatToParts(date)
-	const values = Object.fromEntries(
-		parts.map(({ type, value }) => [type, value]),
-	)
-	const asUTC = Date.UTC(
-		Number(values.year),
-		Number(values.month) - 1,
-		Number(values.day),
-		Number(values.hour),
-		Number(values.minute),
-		Number(values.second),
-	)
-	return asUTC - date.getTime()
+type PastMessage = LoaderData['pastMessages'][number]
+type PastMessagesResponse = {
+	recipientId: string
+	searchQuery: string
+	startDateFilter: string
+	endDateFilter: string
+	pastMessages: Array<PastMessage>
+	nextCursor: string | null
 }
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
 	const userId = await requireUserId(request)
 	const hints = getHints(request)
+	const recipientId = params.recipientId
+	invariantResponse(recipientId, 'Invalid recipient', { status: 400 })
 	const url = new URL(request.url)
 	const searchQuery = url.searchParams.get('search') ?? ''
 	const startDateFilter = url.searchParams.get('startDate') ?? ''
 	const endDateFilter = url.searchParams.get('endDate') ?? ''
 	const cursor = url.searchParams.get('cursor')
 	const recipient = await prisma.recipient.findUnique({
-		where: { id: params.recipientId },
+		where: { id: recipientId },
 		select: {
 			scheduleCron: true,
 			timeZone: true,
@@ -162,46 +89,22 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 		where: { phoneNumber: recipient.phoneNumber },
 	})
 
-	const startDate = getStartDate(
+	const filterTimeZone = hints.timeZone ?? recipient.timeZone
+	const { pastMessages, nextCursor } = await getPastMessagesPage({
+		recipientId,
+		searchQuery,
 		startDateFilter,
-		hints.timeZone ?? recipient.timeZone,
-	)
-	const endDate = getEndDate(
 		endDateFilter,
-		hints.timeZone ?? recipient.timeZone,
-	)
-	const sentAtFilter =
-		startDate || endDate
-			? {
-					...(startDate ? { gte: startDate } : {}),
-					...(endDate ? { lt: endDate } : {}),
-				}
-			: { not: null }
-	const pastMessageWhere = {
-		recipientId: params.recipientId,
-		sentAt: sentAtFilter,
-		...(searchQuery ? { content: { contains: searchQuery } } : {}),
-	}
-	const pastMessages = await prisma.message.findMany({
-		where: pastMessageWhere,
-		select: { id: true, content: true, sentAt: true },
-		orderBy: [{ sentAt: 'desc' }, { id: 'desc' }],
-		...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-		take: PAST_MESSAGES_PER_PAGE + 1,
+		cursor,
+		filterTimeZone,
 	})
-	const hasMorePast = pastMessages.length > PAST_MESSAGES_PER_PAGE
-	const pastPageMessages = hasMorePast
-		? pastMessages.slice(0, PAST_MESSAGES_PER_PAGE)
-		: pastMessages
-	const nextCursor = hasMorePast
-		? pastPageMessages[pastPageMessages.length - 1]?.id
-		: null
 
 	const { userId: _userId, messages, ...recipientProps } = recipient
 
 	return json({
 		optedOut: Boolean(optOut),
 		recipient: recipientProps,
+		recipientId,
 		searchQuery,
 		startDateFilter,
 		endDateFilter,
@@ -257,19 +160,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 					}
 				}
 			}),
-		pastMessages: pastPageMessages.map((m) => ({
-			id: m.id,
-			sentAtDisplay: m.sentAt!.toLocaleDateString('en-US', {
-				weekday: 'short',
-				year: 'numeric',
-				month: 'short',
-				day: 'numeric',
-				hour: 'numeric',
-				minute: 'numeric',
-			}),
-			sentAtIso: m.sentAt!.toISOString(),
-			content: m.content,
-		})),
+		pastMessages,
 	})
 }
 
@@ -454,8 +345,9 @@ export default function RecipientRoute() {
 	const newMessageInputRef = useRef<HTMLTextAreaElement | null>(null)
 	const shouldClearMessageInput = useRef(false)
 	const [searchParams] = useSearchParams()
-	const loadMoreFetcher = useFetcher<typeof loader>()
+	const loadMoreFetcher = useFetcher<PastMessagesResponse>()
 	const loadMoreData = loadMoreFetcher.data ?? null
+	const recipientId = data.recipientId
 	const [pastMessages, setPastMessages] = useState(data.pastMessages)
 	const [pastNextCursor, setPastNextCursor] = useState(data.nextCursor)
 	const [scrollContainer, setScrollContainer] = useState<HTMLDivElement | null>(
@@ -494,13 +386,13 @@ export default function RecipientRoute() {
 		data.searchQuery,
 		data.startDateFilter,
 		data.endDateFilter,
-		data.recipient.phoneNumber,
+		data.recipientId,
 	])
 
 	useEffect(() => {
 		if (!loadMoreData) return
 		if (
-			loadMoreData.recipient.phoneNumber !== data.recipient.phoneNumber ||
+			loadMoreData.recipientId !== data.recipientId ||
 			loadMoreData.searchQuery !== data.searchQuery ||
 			loadMoreData.startDateFilter !== data.startDateFilter ||
 			loadMoreData.endDateFilter !== data.endDateFilter
@@ -519,7 +411,7 @@ export default function RecipientRoute() {
 		setPastNextCursor(loadMoreData.nextCursor)
 	}, [
 		loadMoreData,
-		data.recipient.phoneNumber,
+		data.recipientId,
 		data.searchQuery,
 		data.startDateFilter,
 		data.endDateFilter,
@@ -546,17 +438,21 @@ export default function RecipientRoute() {
 			if (!pastNextCursor) return
 			if (shouldScrollToBottomRef.current) return
 			if (loadMoreFetcher.state !== 'idle') return
+			if (!recipientId) return
 
 			const params = new URLSearchParams(searchParams)
+			params.set('recipientId', recipientId)
 			params.set('cursor', pastNextCursor)
 			const queryString = params.toString()
 			pendingScrollRef.current = {
 				height: container.scrollHeight,
 				top: container.scrollTop,
 			}
-			void loadMoreFetcher.load(queryString ? `?${queryString}` : '.')
+			void loadMoreFetcher.load(
+				`/resources/recipient-messages?${queryString}`,
+			)
 		},
-		[pastNextCursor, loadMoreFetcher, searchParams],
+		[pastNextCursor, loadMoreFetcher, recipientId, searchParams],
 	)
 
 	useEffect(() => {
