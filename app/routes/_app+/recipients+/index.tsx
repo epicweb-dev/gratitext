@@ -18,7 +18,7 @@ export default function RecipientsIndexRoute() {
 	return (
 		<div className="flex flex-col gap-8">
 			{showTrialBanner ? (
-				<div className="rounded-[20px] bg-[hsl(var(--palette-sunny))] px-6 py-3 text-sm font-semibold text-[hsl(var(--palette-dark-navy))]">
+				<div className="bg-banner-trial text-banner-trial-foreground rounded-[20px] px-6 py-3 text-sm font-semibold">
 					Upgrade to text unlimited loved ones!{' '}
 					<Link className="underline" to="/settings/profile/subscription">
 						Start your free trial
@@ -26,7 +26,7 @@ export default function RecipientsIndexRoute() {
 				</div>
 			) : null}
 			{showUpgradeBanner ? (
-				<div className="rounded-[20px] bg-[hsl(var(--palette-green-300))] px-6 py-3 text-sm font-semibold text-[hsl(var(--palette-dark-navy))]">
+				<div className="bg-banner-upgrade text-banner-upgrade-foreground rounded-[20px] px-6 py-3 text-sm font-semibold">
 					Upgrade to Premium to text more loved ones.{' '}
 					<Link className="underline" to="/settings/profile/subscription">
 						Upgrade to Premium
@@ -70,9 +70,7 @@ export default function RecipientsIndexRoute() {
 							const messageText = `${messageCount} ${messageLabel}`
 							const messagePreparedText = `${messageText} prepared`
 							const messageTone =
-								messageCount === 0
-									? 'text-[hsl(var(--palette-orange))]'
-									: 'text-muted-foreground'
+								messageCount === 0 ? 'text-warning' : 'text-muted-foreground'
 							const scheduleTone = recipient.disabled
 								? 'text-muted-foreground'
 								: recipient.cronError
@@ -122,7 +120,7 @@ export default function RecipientsIndexRoute() {
 											<span className="hidden md:inline">{messageText}</span>
 										</span>
 										{messageCount === 0 ? (
-											<span className="rounded-full bg-[hsl(var(--palette-orange))]/15 p-1 text-[hsl(var(--palette-orange))] md:hidden">
+											<span className="bg-warning/15 text-warning rounded-full p-1 md:hidden">
 												<Icon name="exclamation-circle-outline" size="xs" />
 											</span>
 										) : null}

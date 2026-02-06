@@ -46,6 +46,57 @@ export const extendedTheme = {
 			DEFAULT: 'hsl(var(--card))',
 			foreground: 'hsl(var(--card-foreground))',
 		},
+		overlay: 'hsl(var(--overlay))',
+		inverse: 'hsl(var(--inverse))',
+		brand: {
+			DEFAULT: 'hsl(var(--brand))',
+			foreground: 'hsl(var(--brand-foreground))',
+		},
+		'brand-soft': {
+			DEFAULT: 'hsl(var(--brand-soft))',
+			foreground: 'hsl(var(--brand-soft-foreground))',
+		},
+		warm: {
+			DEFAULT: 'hsl(var(--warm))',
+			foreground: 'hsl(var(--warm-foreground))',
+		},
+		warning: {
+			DEFAULT: 'hsl(var(--warning))',
+			foreground: 'hsl(var(--warning-foreground))',
+		},
+		'banner-trial': {
+			DEFAULT: 'hsl(var(--banner-trial))',
+			foreground: 'hsl(var(--banner-trial-foreground))',
+		},
+		'banner-upgrade': {
+			DEFAULT: 'hsl(var(--banner-upgrade))',
+			foreground: 'hsl(var(--banner-upgrade-foreground))',
+		},
+		'price-basic': 'hsl(var(--price-basic))',
+		'price-premium': 'hsl(var(--price-premium))',
+		'hero-orb': 'hsl(var(--hero-orb))',
+		'hero-sparkle': 'hsl(var(--hero-sparkle))',
+		'marketing-feature': {
+			DEFAULT: 'hsl(var(--marketing-feature))',
+			foreground: 'hsl(var(--marketing-feature-foreground))',
+			muted: 'hsl(var(--marketing-feature-muted))',
+			accent: 'hsl(var(--marketing-feature-accent))',
+			'accent-secondary': 'hsl(var(--marketing-feature-accent-secondary))',
+		},
+		'marketing-step-index': 'hsl(var(--marketing-step-index))',
+		'marketing-cta': {
+			DEFAULT: 'hsl(var(--marketing-cta))',
+			foreground: 'hsl(var(--marketing-cta-foreground))',
+			accent: 'hsl(var(--marketing-cta-accent))',
+		},
+		'message-bubble': {
+			DEFAULT: 'hsl(var(--message-bubble))',
+			foreground: 'hsl(var(--message-bubble-foreground))',
+		},
+		'message-card': {
+			DEFAULT: 'hsl(var(--message-card))',
+			foreground: 'hsl(var(--message-card-foreground))',
+		},
 	},
 	borderRadius: {
 		lg: 'var(--radius)',

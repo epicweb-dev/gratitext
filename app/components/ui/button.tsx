@@ -12,20 +12,17 @@ const buttonVariants = cva(
 			variant: {
 				default:
 					'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm',
-				brand:
-					'bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-green-700))] shadow-sm',
+				brand: 'bg-brand text-brand-foreground hover:bg-brand/90 shadow-sm',
 				'brand-soft':
-					'bg-[hsl(var(--palette-green-300))] text-[hsl(var(--palette-dark-navy))] hover:bg-[hsl(var(--palette-green-500))] hover:text-[hsl(var(--palette-cream))] shadow-sm',
-				warm:
-					'bg-[hsl(var(--palette-chestnut))] text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-hot-fire-red))] shadow-sm',
+					'bg-brand-soft text-brand-soft-foreground hover:bg-brand hover:text-brand-foreground shadow-sm',
+				warm: 'bg-warm text-warm-foreground hover:bg-warm/90 shadow-sm',
 				destructive:
 					'bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm',
 				outline: 'border-border bg-card text-foreground hover:bg-muted border',
 				secondary:
 					'border-border text-foreground hover:bg-muted border bg-transparent',
 				ghost: 'text-foreground hover:bg-muted',
-				'ghost-inverse':
-					'text-[hsl(var(--palette-cream))] hover:bg-[hsl(var(--palette-cream))/0.15]',
+				'ghost-inverse': 'text-inverse hover:bg-inverse/15',
 				link: 'text-primary underline-offset-4 hover:underline',
 			},
 			size: {

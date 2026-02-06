@@ -44,17 +44,17 @@ export function SearchBar({
 		>
 			<div className="flex w-full items-center gap-2 sm:flex-1">
 				<div className="min-w-0 flex-1">
-				<Label htmlFor={id} className="sr-only">
-					Search
-				</Label>
-				<Input
-					type="search"
-					name="search"
-					id={id}
-					defaultValue={searchParams.get('search') ?? ''}
-					placeholder="Search"
-					className="w-full"
-					autoFocus={autoFocus}
+					<Label htmlFor={id} className="sr-only">
+						Search
+					</Label>
+					<Input
+						type="search"
+						name="search"
+						id={id}
+						defaultValue={searchParams.get('search') ?? ''}
+						placeholder="Search"
+						className="w-full"
+						autoFocus={autoFocus}
 					/>
 				</div>
 				<StatusButton

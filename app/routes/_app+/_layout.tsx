@@ -1,4 +1,4 @@
-import { useRef, useState, type CSSProperties } from 'react'
+import { useRef, useState } from 'react'
 import {
 	Form,
 	Link,
@@ -67,18 +67,8 @@ export default function Layout() {
 	const data = useLoaderData<typeof loader>()
 	const user = useOptionalUser()
 	const requestInfo = useRequestInfo()
-	const isRecipientsRoute = requestInfo.path.startsWith('/recipients')
-	const recipientsTheme = isRecipientsRoute
-		? ({
-				'--background': '0 0% 100%',
-				'--card': '0 0% 100%',
-			} as CSSProperties)
-		: undefined
 	return (
-		<div
-			className="bg-background flex h-screen flex-col justify-between"
-			style={recipientsTheme}
-		>
+		<div className="bg-background flex h-screen flex-col justify-between">
 			<header className="border-border border-b">
 				<div className="container py-5 md:py-6">
 					<nav className="flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8">
@@ -123,27 +113,33 @@ export default function Layout() {
 					<nav>
 						<ul className="flex list-none flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-4">
 							<li>
-								<Link to="/about" className="text-gray-600 hover:text-gray-900">
+								<Link
+									to="/about"
+									className="text-muted-foreground hover:text-foreground"
+								>
 									About
 								</Link>
 							</li>
 							<li>
 								<Link
 									to="/privacy"
-									className="text-gray-600 hover:text-gray-900"
+									className="text-muted-foreground hover:text-foreground"
 								>
 									Privacy
 								</Link>
 							</li>
 							<li>
-								<Link to="/tos" className="text-gray-600 hover:text-gray-900">
+								<Link
+									to="/tos"
+									className="text-muted-foreground hover:text-foreground"
+								>
 									Terms of Service
 								</Link>
 							</li>
 							<li>
 								<Link
 									to="/support"
-									className="text-gray-600 hover:text-gray-900"
+									className="text-muted-foreground hover:text-foreground"
 								>
 									Support
 								</Link>
@@ -151,7 +147,7 @@ export default function Layout() {
 							<li>
 								<Link
 									to="/contact"
-									className="text-gray-600 hover:text-gray-900"
+									className="text-muted-foreground hover:text-foreground"
 								>
 									Contact
 								</Link>
@@ -266,7 +262,7 @@ function MobileMenu() {
 				<div className="fixed inset-0 z-50 flex justify-center">
 					<button
 						type="button"
-						className="absolute inset-0 h-full w-full bg-black/20"
+						className="bg-overlay/30 absolute inset-0 h-full w-full"
 						onClick={() => setOpen(false)}
 						aria-label="Close menu"
 					/>
@@ -286,12 +282,7 @@ function MobileMenu() {
 								<Icon name="close" size="lg" aria-hidden="true" />
 							</Button>
 						</div>
-						<Button
-							asChild
-							size="lg"
-							variant="warm"
-							className="mt-6 w-full"
-						>
+						<Button asChild size="lg" variant="warm" className="mt-6 w-full">
 							<Link to="/login" onClick={() => setOpen(false)}>
 								<Icon name="star" size="sm" aria-hidden="true">
 									Start 14-day FREE Trial
@@ -307,7 +298,7 @@ function MobileMenu() {
 								<Icon
 									name="log in"
 									size="sm"
-									className="text-[hsl(var(--palette-cloud))]"
+									className="text-muted-foreground"
 									aria-hidden="true"
 								/>
 								Log In
@@ -323,7 +314,7 @@ function MobileMenu() {
 									<Icon
 										name={themeIcon}
 										size="sm"
-										className="text-[hsl(var(--palette-cloud))]"
+										className="text-muted-foreground"
 										aria-hidden="true"
 									/>
 									{themeLabel}
