@@ -132,7 +132,7 @@ export default function VerifyRoute() {
 						errors={fields[codeQueryParam].errors}
 						groupClassName="gap-2 sm:gap-3"
 						showSeparator={false}
-						slotClassName="h-11 w-11 rounded-full bg-white text-base font-semibold shadow-none dark:bg-[hsl(var(--palette-navy))] sm:h-14 sm:w-14 sm:text-lg"
+						slotClassName="bg-card text-foreground h-11 w-11 rounded-full text-base font-semibold shadow-none sm:h-14 sm:w-14 sm:text-lg"
 					/>
 					<div className="text-body-sm text-muted-foreground flex flex-wrap items-center gap-1">
 						<span>No text after 5 minutes?</span>

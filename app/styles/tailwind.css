@@ -67,6 +67,50 @@
 
 	--ring: var(--palette-green-300);
 
+	--overlay: 0 0% 0%;
+	--inverse: var(--palette-cream);
+
+	--brand: var(--palette-green-500);
+	--brand-foreground: var(--palette-cream);
+	--brand-soft: var(--palette-green-300);
+	--brand-soft-foreground: var(--palette-dark-navy);
+	--warm: var(--palette-chestnut);
+	--warm-foreground: var(--palette-cream);
+
+	--warning: var(--palette-orange);
+	--warning-foreground: var(--palette-dark-navy);
+
+	--banner-trial: var(--palette-sunny);
+	--banner-trial-foreground: var(--palette-dark-navy);
+	--banner-upgrade: var(--palette-green-300);
+	--banner-upgrade-foreground: var(--palette-dark-navy);
+
+	--price-basic: var(--palette-cloud);
+	--price-premium: var(--palette-chestnut);
+
+	--hero-orb: var(--palette-baby-blue);
+	--hero-sparkle: var(--palette-orange);
+
+	--marketing-feature: var(--palette-green-700);
+	--marketing-feature-foreground: var(--palette-cream);
+	--marketing-feature-muted: var(--palette-green-100);
+	--marketing-feature-accent: var(--palette-sunny);
+	--marketing-feature-accent-secondary: var(--palette-orange);
+	--marketing-step-index: var(--palette-chestnut);
+
+	--marketing-cta: var(--palette-dust-pink);
+	--marketing-cta-foreground: var(--palette-chocolate);
+	--marketing-cta-accent: var(--palette-chestnut);
+
+	--message-bubble: var(--palette-green-500);
+	--message-bubble-foreground: var(--palette-cream);
+	--message-card: var(--palette-blues);
+	--message-card-foreground: var(--palette-cream);
+
+	--thread-gradient-start: var(--palette-cream);
+	--thread-gradient-mid: var(--palette-beige);
+	--thread-gradient-end: 0 0% 100%;
+
 	--radius: 0.5rem;
 }
 
@@ -106,6 +150,50 @@
 	--destructive-foreground: var(--palette-cream);
 
 	--ring: var(--palette-green-300);
+
+	--overlay: 0 0% 0%;
+	--inverse: var(--palette-cream);
+
+	--brand: var(--palette-green-300);
+	--brand-foreground: var(--palette-dark-navy);
+	--brand-soft: var(--palette-green-700);
+	--brand-soft-foreground: var(--palette-cream);
+	--warm: var(--palette-orange);
+	--warm-foreground: var(--palette-dark-navy);
+
+	--warning: var(--palette-sunny);
+	--warning-foreground: var(--palette-dark-navy);
+
+	--banner-trial: var(--palette-orange);
+	--banner-trial-foreground: var(--palette-dark-navy);
+	--banner-upgrade: var(--palette-green-500);
+	--banner-upgrade-foreground: var(--palette-cream);
+
+	--price-basic: var(--palette-sunny);
+	--price-premium: var(--palette-rose-pink);
+
+	--hero-orb: var(--palette-navy);
+	--hero-sparkle: var(--palette-sunny);
+
+	--marketing-feature: var(--palette-green-900);
+	--marketing-feature-foreground: var(--palette-cream);
+	--marketing-feature-muted: var(--palette-green-300);
+	--marketing-feature-accent: var(--palette-sunny);
+	--marketing-feature-accent-secondary: var(--palette-orange);
+	--marketing-step-index: var(--palette-sunny);
+
+	--marketing-cta: var(--palette-navy);
+	--marketing-cta-foreground: var(--palette-cream);
+	--marketing-cta-accent: var(--palette-sunny);
+
+	--message-bubble: var(--palette-green-500);
+	--message-bubble-foreground: var(--palette-cream);
+	--message-card: var(--palette-blues);
+	--message-card-foreground: var(--palette-cream);
+
+	--thread-gradient-start: var(--palette-dark-navy);
+	--thread-gradient-mid: var(--palette-navy);
+	--thread-gradient-end: var(--palette-storm-grey);
 }
 
 @theme inline {
@@ -137,6 +225,39 @@
 	--color-destructive-foreground: hsl(var(--destructive-foreground));
 	--color-ring: hsl(var(--ring));
 	--color-ring-invalid: hsl(var(--foreground-destructive));
+	--color-overlay: hsl(var(--overlay));
+	--color-inverse: hsl(var(--inverse));
+	--color-brand: hsl(var(--brand));
+	--color-brand-foreground: hsl(var(--brand-foreground));
+	--color-brand-soft: hsl(var(--brand-soft));
+	--color-brand-soft-foreground: hsl(var(--brand-soft-foreground));
+	--color-warm: hsl(var(--warm));
+	--color-warm-foreground: hsl(var(--warm-foreground));
+	--color-warning: hsl(var(--warning));
+	--color-warning-foreground: hsl(var(--warning-foreground));
+	--color-banner-trial: hsl(var(--banner-trial));
+	--color-banner-trial-foreground: hsl(var(--banner-trial-foreground));
+	--color-banner-upgrade: hsl(var(--banner-upgrade));
+	--color-banner-upgrade-foreground: hsl(var(--banner-upgrade-foreground));
+	--color-price-basic: hsl(var(--price-basic));
+	--color-price-premium: hsl(var(--price-premium));
+	--color-hero-orb: hsl(var(--hero-orb));
+	--color-hero-sparkle: hsl(var(--hero-sparkle));
+	--color-marketing-feature: hsl(var(--marketing-feature));
+	--color-marketing-feature-foreground: hsl(var(--marketing-feature-foreground));
+	--color-marketing-feature-muted: hsl(var(--marketing-feature-muted));
+	--color-marketing-feature-accent: hsl(var(--marketing-feature-accent));
+	--color-marketing-feature-accent-secondary: hsl(
+		var(--marketing-feature-accent-secondary)
+	);
+	--color-marketing-step-index: hsl(var(--marketing-step-index));
+	--color-marketing-cta: hsl(var(--marketing-cta));
+	--color-marketing-cta-foreground: hsl(var(--marketing-cta-foreground));
+	--color-marketing-cta-accent: hsl(var(--marketing-cta-accent));
+	--color-message-bubble: hsl(var(--message-bubble));
+	--color-message-bubble-foreground: hsl(var(--message-bubble-foreground));
+	--color-message-card: hsl(var(--message-card));
+	--color-message-card-foreground: hsl(var(--message-card-foreground));
 }
 
 @theme {
@@ -205,6 +326,17 @@
 		& {
 			max-width: 1400px;
 		}
+	}
+}
+
+@layer utilities {
+	.thread-gradient {
+		background-image: linear-gradient(
+			90deg,
+			hsl(var(--thread-gradient-start)),
+			hsl(var(--thread-gradient-mid)) 45%,
+			hsl(var(--thread-gradient-end)) 100%
+		);
 	}
 }
 

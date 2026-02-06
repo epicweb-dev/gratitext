@@ -605,7 +605,7 @@ export default function RecipientRoute() {
 				{hasAnyMessages ? (
 					<div
 						ref={setScrollContainer}
-						className="max-h-[65vh] overflow-y-auto bg-[linear-gradient(90deg,_hsl(var(--palette-cream)),_hsl(var(--palette-beige))_45%,_hsl(0_0%_100%)_100%)] px-4 py-5 sm:px-5 sm:py-6"
+						className="thread-gradient max-h-[65vh] overflow-y-auto px-4 py-5 sm:px-5 sm:py-6"
 					>
 						{hasPastMessages || pastNextCursor ? (
 							<div className="text-muted-foreground flex flex-col items-center gap-2 text-xs font-semibold tracking-[0.2em] uppercase">
@@ -615,7 +615,7 @@ export default function RecipientRoute() {
 						<ul className="flex flex-col gap-4 sm:gap-5">
 							{pastMessagesForDisplay.map((m) => (
 								<li key={m.id} className="flex flex-col items-end gap-1">
-									<div className="max-w-[75%] rounded-[24px] bg-[hsl(var(--palette-green-500))] px-4 py-3 text-sm leading-relaxed text-[hsl(var(--palette-cream))] shadow-sm sm:max-w-[65%] sm:px-5 sm:py-4">
+									<div className="bg-message-bubble text-message-bubble-foreground max-w-[75%] rounded-[24px] px-4 py-3 text-sm leading-relaxed shadow-sm sm:max-w-[65%] sm:px-5 sm:py-4">
 										<p className="whitespace-pre-wrap">{m.content}</p>
 									</div>
 									<time
@@ -632,7 +632,7 @@ export default function RecipientRoute() {
 						</ul>
 					</div>
 				) : (
-					<div className="bg-[linear-gradient(90deg,_hsl(var(--palette-cream)),_hsl(var(--palette-beige))_45%,_hsl(0_0%_100%)_100%)] px-4 py-10 text-center text-sm sm:px-5 sm:py-12">
+					<div className="thread-gradient px-4 py-10 text-center text-sm sm:px-5 sm:py-12">
 						<p className="text-muted-foreground">{emptyThreadMessage}</p>
 						<Link
 							to="new"
@@ -647,7 +647,7 @@ export default function RecipientRoute() {
 				<newMessageFetcher.Form
 					method="POST"
 					action="new"
-					className="border-border/40 rounded-full border bg-white p-2 shadow-sm transition focus-within:rounded-[28px] focus-within:border-border/60 focus-within:shadow-md"
+					className="border-border/40 bg-card rounded-full border p-2 shadow-sm transition focus-within:rounded-[28px] focus-within:border-border/60 focus-within:shadow-md"
 				>
 					<label htmlFor="new-message" className="sr-only">
 						Add a new message
@@ -706,7 +706,7 @@ function MessageForms({ message }: { message: FutureMessage }) {
 		},
 		shouldRevalidate: 'onBlur',
 	})
-	const cardTone = 'bg-[hsl(var(--palette-blues))]'
+	const cardTone = 'bg-message-card'
 	const scheduleLabel = message.sendAtDisplay
 		? `Scheduled for ${message.sendAtDisplay}`
 		: 'Scheduled message'
@@ -762,9 +762,9 @@ function MessageForms({ message }: { message: FutureMessage }) {
 	return (
 		<li className="flex flex-col items-end gap-2">
 			<div
-				className={`max-w-[75%] rounded-[24px] px-4 py-3 text-[hsl(var(--palette-cream))] shadow-sm sm:max-w-[65%] sm:px-5 sm:py-4 ${cardTone}`}
+				className={`text-message-card-foreground max-w-[75%] rounded-[24px] px-4 py-3 shadow-sm sm:max-w-[65%] sm:px-5 sm:py-4 ${cardTone}`}
 			>
-				<div className="flex items-start justify-between gap-4 text-[0.7rem] font-semibold tracking-[0.2em] text-[hsl(var(--palette-cream))] uppercase">
+				<div className="text-message-card-foreground flex items-start justify-between gap-4 text-[0.7rem] font-semibold tracking-[0.2em] uppercase">
 					<div className="flex items-center gap-2">
 						<Icon name="clock" size="sm" />
 						<span>{scheduleLabel}</span>
@@ -846,7 +846,7 @@ function MessageForms({ message }: { message: FutureMessage }) {
 							setCurrentContent(event.currentTarget.value)
 						}}
 						ref={textareaRef}
-						className="mt-2 w-full resize-none bg-transparent text-sm leading-relaxed text-[hsl(var(--palette-cream))] placeholder:text-[hsl(var(--palette-cream))]/80 focus-visible:outline-none"
+						className="text-message-card-foreground placeholder:text-message-card-foreground/80 mt-2 w-full resize-none bg-transparent text-sm leading-relaxed focus-visible:outline-none"
 						rows={2}
 					/>
 				</updateContentFetcher.Form>

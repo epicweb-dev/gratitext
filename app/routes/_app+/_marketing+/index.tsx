@@ -12,22 +12,22 @@ export default function Index() {
 			<section className="container grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
 				<div className="order-1 flex justify-center lg:order-2">
 					<div className="relative w-full max-w-xs sm:max-w-sm">
-						<div className="absolute top-1/2 left-1/2 h-[260px] w-[260px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[hsl(var(--palette-baby-blue))] sm:h-[320px] sm:w-[320px]" />
+							<div className="bg-hero-orb absolute top-1/2 left-1/2 h-[260px] w-[260px] -translate-x-1/2 -translate-y-1/2 rounded-full sm:h-[320px] sm:w-[320px]" />
 						<Icon
 							name="star"
 							size="lg"
 							aria-hidden="true"
-							className="absolute top-2 left-2 text-[hsl(var(--palette-orange))]"
+								className="text-hero-sparkle absolute top-2 left-2"
 						/>
 						<Icon
 							name="star"
 							size="md"
 							aria-hidden="true"
-							className="absolute top-16 left-12 text-[hsl(var(--palette-orange))]"
+								className="text-hero-sparkle absolute top-16 left-12"
 						/>
-						<div className="absolute top-24 left-4 h-6 w-10 rounded-full bg-[hsl(var(--palette-orange))]" />
-						<div className="absolute bottom-6 left-6 h-12 w-12 rounded-[22px] bg-[hsl(var(--palette-orange))]" />
-						<div className="absolute top-1/2 -right-2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-[hsl(var(--palette-green-500))] text-[hsl(var(--palette-cream))] shadow-lg">
+							<div className="bg-hero-sparkle absolute top-24 left-4 h-6 w-10 rounded-full" />
+							<div className="bg-hero-sparkle absolute bottom-6 left-6 h-12 w-12 rounded-[22px]" />
+							<div className="bg-brand text-brand-foreground absolute top-1/2 -right-2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full shadow-lg">
 							<Icon name="message" size="sm" aria-hidden="true" />
 						</div>
 						<img
@@ -81,17 +81,17 @@ export default function Index() {
 			</section>
 
 			<section className="container mt-16">
-				<div className="relative overflow-hidden rounded-[48px] bg-[hsl(var(--palette-green-700))] px-6 py-12 text-[hsl(var(--palette-cream))] shadow-sm dark:bg-[hsl(var(--palette-green-900))]">
-					<div className="absolute -top-6 -left-6 hidden h-20 w-20 rounded-full bg-[hsl(var(--palette-sunny))] opacity-80 md:block" />
-					<div className="absolute right-10 -bottom-6 hidden h-24 w-24 rounded-[32px] bg-[hsl(var(--palette-orange))] opacity-70 md:block" />
+				<div className="bg-marketing-feature text-marketing-feature-foreground relative overflow-hidden rounded-[48px] px-6 py-12 shadow-sm">
+					<div className="bg-marketing-feature-accent absolute -top-6 -left-6 hidden h-20 w-20 rounded-full opacity-80 md:block" />
+					<div className="bg-marketing-feature-accent-secondary absolute right-10 -bottom-6 hidden h-24 w-24 rounded-[32px] opacity-70 md:block" />
 					<div className="mx-auto max-w-3xl text-center">
-						<p className="text-xs font-semibold tracking-[0.3em] text-[hsl(var(--palette-green-100))] uppercase">
+						<p className="text-marketing-feature-muted text-xs font-semibold tracking-[0.3em] uppercase">
 							Messages written by you
 						</p>
 						<h2 className="mt-3 text-3xl font-bold md:text-4xl">
 							Messages written by you... Not by AI.
 						</h2>
-						<p className="mx-auto mt-4 max-w-2xl text-base text-[hsl(var(--palette-green-100))]">
+						<p className="text-marketing-feature-muted mx-auto mt-4 max-w-2xl text-base">
 							Our platform schedules and delivers personal, heartfelt messages
 							on your schedule, so you can stay connected without losing your
 							voice.
@@ -150,7 +150,7 @@ export default function Index() {
 							key={step.title}
 							className="border-border bg-card rounded-[28px] border p-6 shadow-sm"
 						>
-							<p className="text-3xl font-bold text-[hsl(var(--palette-chestnut))]">
+							<p className="text-marketing-step-index text-3xl font-bold">
 								{String(index + 1).padStart(2, '0')}
 							</p>
 							<h3 className="text-foreground mt-2 text-xl font-bold">
@@ -186,7 +186,7 @@ export default function Index() {
 										1 message per day
 									</p>
 								</div>
-								<p className="text-2xl font-bold text-[hsl(var(--palette-cloud))]">
+								<p className="text-price-basic text-2xl font-bold">
 									$4.99
 								</p>
 							</div>
@@ -204,7 +204,7 @@ export default function Index() {
 										10 messages per day
 									</p>
 								</div>
-								<p className="text-2xl font-bold text-[hsl(var(--palette-chestnut))]">
+								<p className="text-price-premium text-2xl font-bold">
 									$14.99
 								</p>
 							</div>
@@ -219,16 +219,16 @@ export default function Index() {
 			</section>
 
 			<section className="container py-16">
-				<div className="rounded-[32px] bg-[hsl(var(--palette-dust-pink))] px-8 py-12 text-[hsl(var(--palette-chocolate))]">
+				<div className="bg-marketing-cta text-marketing-cta-foreground rounded-[32px] px-8 py-12">
 					<div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
 						<div className="space-y-3">
-							<p className="text-xs font-semibold tracking-[0.3em] text-[hsl(var(--palette-chestnut))] uppercase">
+							<p className="text-marketing-cta-accent text-xs font-semibold tracking-[0.3em] uppercase">
 								Ready to start
 							</p>
 							<h2 className="text-3xl font-bold md:text-4xl">
 								Create your account today and get 2 weeks for free.
 							</h2>
-							<p className="text-body-sm text-[hsl(var(--palette-chestnut))]">
+							<p className="text-marketing-cta-accent text-body-sm">
 								No credit card required to get started.
 							</p>
 						</div>
