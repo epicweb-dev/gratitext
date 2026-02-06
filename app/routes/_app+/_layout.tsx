@@ -113,7 +113,10 @@ export default function Layout() {
 					<nav>
 						<ul className="flex list-none flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-4">
 							<li>
-								<Link to="/about" className="text-muted-foreground hover:text-foreground">
+								<Link
+									to="/about"
+									className="text-muted-foreground hover:text-foreground"
+								>
 									About
 								</Link>
 							</li>
@@ -126,7 +129,10 @@ export default function Layout() {
 								</Link>
 							</li>
 							<li>
-								<Link to="/tos" className="text-muted-foreground hover:text-foreground">
+								<Link
+									to="/tos"
+									className="text-muted-foreground hover:text-foreground"
+								>
 									Terms of Service
 								</Link>
 							</li>
@@ -276,12 +282,7 @@ function MobileMenu() {
 								<Icon name="close" size="lg" aria-hidden="true" />
 							</Button>
 						</div>
-						<Button
-							asChild
-							size="lg"
-							variant="warm"
-							className="mt-6 w-full"
-						>
+						<Button asChild size="lg" variant="warm" className="mt-6 w-full">
 							<Link to="/login" onClick={() => setOpen(false)}>
 								<Icon name="star" size="sm" aria-hidden="true">
 									Start 14-day FREE Trial

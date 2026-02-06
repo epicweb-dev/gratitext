@@ -70,9 +70,7 @@ export default function RecipientsIndexRoute() {
 							const messageText = `${messageCount} ${messageLabel}`
 							const messagePreparedText = `${messageText} prepared`
 							const messageTone =
-								messageCount === 0
-									? 'text-warning'
-									: 'text-muted-foreground'
+								messageCount === 0 ? 'text-warning' : 'text-muted-foreground'
 							const scheduleTone = recipient.disabled
 								? 'text-muted-foreground'
 								: recipient.cronError

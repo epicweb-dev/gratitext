@@ -65,9 +65,7 @@ export default function Subscribe() {
 								1 message per day
 							</p>
 						</div>
-						<p className="text-price-basic text-2xl font-bold">
-							$4.99
-						</p>
+						<p className="text-price-basic text-2xl font-bold">$4.99</p>
 					</div>
 					<div className="mt-6">
 						{isBasic || isPremium ? (
@@ -89,9 +87,7 @@ export default function Subscribe() {
 								10 messages per day
 							</p>
 						</div>
-						<p className="text-price-premium text-2xl font-bold">
-							$14.99
-						</p>
+						<p className="text-price-premium text-2xl font-bold">$14.99</p>
 					</div>
 					<div className="mt-6">
 						{isPremium ? (

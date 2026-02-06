@@ -647,7 +647,7 @@ export default function RecipientRoute() {
 				<newMessageFetcher.Form
 					method="POST"
 					action="new"
-					className="border-border/40 bg-card rounded-full border p-2 shadow-sm transition focus-within:rounded-[28px] focus-within:border-border/60 focus-within:shadow-md"
+					className="border-border/40 bg-card focus-within:border-border/60 rounded-full border p-2 shadow-sm transition focus-within:rounded-[28px] focus-within:shadow-md"
 				>
 					<label htmlFor="new-message" className="sr-only">
 						Add a new message

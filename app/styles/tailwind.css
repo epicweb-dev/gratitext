@@ -244,7 +244,9 @@
 	--color-hero-orb: hsl(var(--hero-orb));
 	--color-hero-sparkle: hsl(var(--hero-sparkle));
 	--color-marketing-feature: hsl(var(--marketing-feature));
-	--color-marketing-feature-foreground: hsl(var(--marketing-feature-foreground));
+	--color-marketing-feature-foreground: hsl(
+		var(--marketing-feature-foreground)
+	);
 	--color-marketing-feature-muted: hsl(var(--marketing-feature-muted));
 	--color-marketing-feature-accent: hsl(var(--marketing-feature-accent));
 	--color-marketing-feature-accent-secondary: hsl(

@@ -12,22 +12,22 @@ export default function Index() {
 			<section className="container grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
 				<div className="order-1 flex justify-center lg:order-2">
 					<div className="relative w-full max-w-xs sm:max-w-sm">
-							<div className="bg-hero-orb absolute top-1/2 left-1/2 h-[260px] w-[260px] -translate-x-1/2 -translate-y-1/2 rounded-full sm:h-[320px] sm:w-[320px]" />
+						<div className="bg-hero-orb absolute top-1/2 left-1/2 h-[260px] w-[260px] -translate-x-1/2 -translate-y-1/2 rounded-full sm:h-[320px] sm:w-[320px]" />
 						<Icon
 							name="star"
 							size="lg"
 							aria-hidden="true"
-								className="text-hero-sparkle absolute top-2 left-2"
+							className="text-hero-sparkle absolute top-2 left-2"
 						/>
 						<Icon
 							name="star"
 							size="md"
 							aria-hidden="true"
-								className="text-hero-sparkle absolute top-16 left-12"
+							className="text-hero-sparkle absolute top-16 left-12"
 						/>
-							<div className="bg-hero-sparkle absolute top-24 left-4 h-6 w-10 rounded-full" />
-							<div className="bg-hero-sparkle absolute bottom-6 left-6 h-12 w-12 rounded-[22px]" />
-							<div className="bg-brand text-brand-foreground absolute top-1/2 -right-2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full shadow-lg">
+						<div className="bg-hero-sparkle absolute top-24 left-4 h-6 w-10 rounded-full" />
+						<div className="bg-hero-sparkle absolute bottom-6 left-6 h-12 w-12 rounded-[22px]" />
+						<div className="bg-brand text-brand-foreground absolute top-1/2 -right-2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full shadow-lg">
 							<Icon name="message" size="sm" aria-hidden="true" />
 						</div>
 						<img
@@ -186,9 +186,7 @@ export default function Index() {
 										1 message per day
 									</p>
 								</div>
-								<p className="text-price-basic text-2xl font-bold">
-									$4.99
-								</p>
+								<p className="text-price-basic text-2xl font-bold">$4.99</p>
 							</div>
 							<div className="mt-6">
 								<Button asChild variant="secondary">
@@ -204,9 +202,7 @@ export default function Index() {
 										10 messages per day
 									</p>
 								</div>
-								<p className="text-price-premium text-2xl font-bold">
-									$14.99
-								</p>
+								<p className="text-price-premium text-2xl font-bold">$14.99</p>
 							</div>
 							<div className="mt-6">
 								<Button asChild>
@@ -233,10 +229,7 @@ export default function Index() {
 							</p>
 						</div>
 						<div className="flex flex-col gap-3 sm:flex-row">
-							<Button
-								asChild
-								variant="warm"
-							>
+							<Button asChild variant="warm">
 								<Link to="/login">Get started</Link>
 							</Button>
 						</div>
