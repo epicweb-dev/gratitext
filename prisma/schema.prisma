@@ -148,6 +148,7 @@ model Recipient {
   // non-unique foreign key
   @@index([userId])
   @@index([userId, id], name: "recipient_by_user")
+  @@index([phoneNumber], name: "recipient_by_phone")
   // Optimized composite index for cron query: equality cols first, then range, then join
   @@index([verified, disabled, nextScheduledAt, userId], name: "Recipient_cron_query_idx")
 }
@@ -168,6 +169,7 @@ model Message {
   // non-unique foreign key
   @@index([recipientId])
   @@index([recipientId, sentAt, order])
+  @@index([recipientId, sentAt, id], name: "message_history_by_recipient")
 }
 
 model SourceNumber {
