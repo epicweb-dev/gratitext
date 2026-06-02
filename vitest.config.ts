@@ -4,6 +4,8 @@ import react from '@vitejs/plugin-react'
 import { playwright } from '@vitest/browser-playwright'
 import { defineConfig } from 'vitest/config'
 
+const browserChannel = process.env.GITHUB_ACTIONS ? 'chrome' : undefined
+
 export default defineConfig({
 	plugins: [react()],
 	css: { postcss: { plugins: [] } },
@@ -18,7 +20,9 @@ export default defineConfig({
 		restoreMocks: true,
 		browser: {
 			enabled: true,
-			provider: playwright(),
+			provider: playwright({
+				launchOptions: { channel: browserChannel },
+			}),
 			instances: [{ browser: 'chromium' }],
 			headless: true,
 			ui: false,

@@ -113,17 +113,6 @@ jobs:
       - name: 📥 Download deps
         run: bun install --frozen-lockfile
 
-      - name: 🎭 Cache Playwright browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-          restore-keys: |
-            playwright-${{ runner.os }}-
-
-      - name: 🎭 Install Playwright browsers
-        run: bun run test:e2e:install
-
       - name: 🧰 Setup env
         run: bun run setup:env
 
@@ -150,17 +139,6 @@ jobs:
 
       - name: 📥 Download deps
         run: bun install --frozen-lockfile
-
-      - name: 🎭 Cache Playwright browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-          restore-keys: |
-            playwright-${{ runner.os }}-
-
-      - name: 📥 Install Playwright Browsers
-        run: bun run test:e2e:install
 
       - name: 🧰 Setup env
         run: bun run setup:env
