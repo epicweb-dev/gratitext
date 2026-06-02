@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 import { playwright } from '@vitest/browser-playwright'
 import { defineConfig } from 'vitest/config'
 
-const browserChannel = process.env.CI ? 'chrome' : undefined
+const browserChannel = process.env.GITHUB_ACTIONS ? 'chrome' : undefined
 
 export default defineConfig({
 	plugins: [react()],

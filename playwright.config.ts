@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test'
 import 'dotenv/config'
 
 const PORT = process.env.PORT || '3000'
-const browserChannel = process.env.CI ? 'chrome' : undefined
+const browserChannel = process.env.GITHUB_ACTIONS ? 'chrome' : undefined
 
 export default defineConfig({
 	testDir: './tests/e2e',
