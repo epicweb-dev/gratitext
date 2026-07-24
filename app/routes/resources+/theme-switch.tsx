@@ -3,6 +3,7 @@ import { parseWithZod } from '@conform-to/zod/v4'
 import { invariantResponse } from '@epic-web/invariant'
 import {
 	data as json,
+	redirect,
 	type ActionFunctionArgs,
 	useFetcher,
 	useFetchers,
@@ -16,6 +17,12 @@ import { type Theme, setTheme } from '#app/utils/theme.server.ts'
 const ThemeFormSchema = z.object({
 	theme: z.enum(['system', 'light', 'dark']),
 })
+
+// Action-only resource route: a bare GET (bookmark, bot, refresh) has no
+// loader otherwise and becomes a React Router RouteErrorResponse.
+export function loader() {
+	return redirect('/')
+}
 
 export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData()

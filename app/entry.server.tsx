@@ -13,6 +13,7 @@ import {
 import { getSessionRenewal, sessionKey } from './utils/auth.server.ts'
 import { init as initCron } from './utils/cron-runner.server.ts'
 import { getEnv, init as initEnv } from './utils/env.server.ts'
+import { shouldReportToSentry } from './utils/error-reporting.server.ts'
 import { getInstanceInfo } from './utils/litefs.server.ts'
 import { NonceProvider } from './utils/nonce-provider.ts'
 import { authSessionStorage } from './utils/session.server.ts'
@@ -134,6 +135,11 @@ export function handleError(
 ): void {
 	// Skip capturing if the request is aborted as docs suggest
 	if (request.signal.aborted) {
+		return
+	}
+	// RouteErrorResponses (405 missing action, OPTIONS, intentional 404s, etc.)
+	// are expected outcomes — same policy as GeneralErrorBoundary on the client.
+	if (!shouldReportToSentry(error)) {
 		return
 	}
 	const requestContext = {
