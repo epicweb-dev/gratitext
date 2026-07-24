@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/react-router'
+import { shouldDropSentryEvent } from '#app/utils/error-reporting.server.ts'
 
 export function init() {
 	Sentry.init({
@@ -22,6 +23,14 @@ export function init() {
 				return 0
 			}
 			return 1
+		},
+		beforeSend(event) {
+			// Defense in depth for bot/scanner traffic that hits routes without a
+			// matching loader/action (grouped in Sentry as getInternalRouterError).
+			if (shouldDropSentryEvent(event)) {
+				return null
+			}
+			return event
 		},
 		beforeSendTransaction(event) {
 			// ignore all healthcheck related transactions

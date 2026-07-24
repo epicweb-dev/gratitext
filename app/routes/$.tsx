@@ -13,6 +13,13 @@ export async function loader() {
 	throw new Response('Not found', { status: 404 })
 }
 
+// Scanners often POST to probe paths (/graphql, /api/gql, …). Without an
+// action, React Router surfaces a 405 RouteErrorResponse; mirror the loader so
+// unknown mutations get a normal 404 instead.
+export async function action() {
+	throw new Response('Not found', { status: 404 })
+}
+
 export default function NotFound() {
 	// due to the loader, this component will never be rendered, but we'll return
 	// the error boundary just in case.
