@@ -140,7 +140,7 @@ export default function ForgotPasswordRoute() {
 
 	return (
 		<AuthPage
-			title="Forgot your password?"
+			title="Forgot password?"
 			description="No worries. Enter the phone number on your account and we'll text you a reset code."
 			footer={
 				<p>

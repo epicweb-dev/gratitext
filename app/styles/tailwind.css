@@ -362,16 +362,14 @@
 		border-color: hsl(var(--border));
 	}
 
+	/*
+	 * No global `scroll-behavior: smooth`: it makes React Router's
+	 * ScrollRestoration animate scroll-to-top on every navigation.
+	 */
 	html {
 		scroll-padding-top: 6rem;
 		-webkit-font-smoothing: antialiased;
 		text-rendering: optimizeLegibility;
-	}
-
-	@media (prefers-reduced-motion: no-preference) {
-		html {
-			scroll-behavior: smooth;
-		}
 	}
 
 	/* Links and native controls that lack their own ring still get a visible focus indicator. */
