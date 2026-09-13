@@ -105,7 +105,7 @@ export function GeneralErrorBoundary({
 	}
 
 	return (
-		<div className="container flex flex-1 items-center justify-center py-16 md:py-24">
+		<div className="container flex min-h-[60vh] flex-1 items-center justify-center py-16 md:py-24">
 			<div className="border-border bg-card text-foreground w-full max-w-xl rounded-[32px] border px-6 py-10 text-center shadow-sm sm:px-10">
 				{isRouteErrorResponse(error)
 					? (statusHandlers?.[error.status] ?? defaultStatusHandler)({
