@@ -82,7 +82,7 @@ export function SearchBar({
 				</StatusButton>
 			</div>
 			{showDateFilter ? (
-				<div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-end">
+				<div className="grid w-full gap-2 min-[420px]:grid-cols-2 sm:flex sm:w-auto sm:items-end">
 					<div className="min-w-0 sm:w-[160px]">
 						<Label htmlFor={startDateId}>From</Label>
 						<Input
@@ -90,7 +90,7 @@ export function SearchBar({
 							name="startDate"
 							id={startDateId}
 							defaultValue={startDateValue}
-							className="mt-2 w-full"
+							className="mt-2 w-full min-w-0 px-3 text-sm"
 						/>
 					</div>
 					<div className="min-w-0 sm:w-[160px]">
@@ -100,7 +100,7 @@ export function SearchBar({
 							name="endDate"
 							id={endDateId}
 							defaultValue={endDateValue}
-							className="mt-2 w-full"
+							className="mt-2 w-full min-w-0 px-3 text-sm"
 						/>
 					</div>
 				</div>

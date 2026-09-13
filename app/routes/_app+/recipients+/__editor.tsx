@@ -116,7 +116,8 @@ export function RecipientEditor({
 			? 'America/New_York'
 			: supportedTimeZones[0]) ??
 		'UTC'
-	const [cronValue, setCronValue] = useState(recipient?.scheduleCron ?? '')
+	const defaultCron = recipient?.scheduleCron ?? schedulePresets[0]?.cron ?? ''
+	const [cronValue, setCronValue] = useState(defaultCron)
 	const [timeZoneValue, setTimeZoneValue] = useState(defaultTimeZone)
 	const cronInputRef = useRef<HTMLInputElement>(null)
 	const nextSendPreview = describeNextSend(cronValue, timeZoneValue)
@@ -137,7 +138,7 @@ export function RecipientEditor({
 					timeZone: recipient.timeZone,
 					disabled: recipient.disabled ? 'on' : undefined,
 				}
-			: { timeZone: defaultTimeZone },
+			: { timeZone: defaultTimeZone, scheduleCron: defaultCron },
 		shouldRevalidate: 'onBlur',
 	})
 

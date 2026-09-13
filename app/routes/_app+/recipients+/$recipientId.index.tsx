@@ -623,12 +623,12 @@ export default function RecipientRoute() {
 						<ul className="flex flex-col gap-4 sm:gap-5">
 							{pastMessagesForDisplay.map((m) => (
 								<li key={m.id} className="flex flex-col items-end gap-1">
-									<div className="bg-message-bubble text-message-bubble-foreground max-w-[75%] rounded-[24px] px-4 py-3 text-sm leading-relaxed shadow-sm sm:max-w-[65%] sm:px-5 sm:py-4">
+									<div className="bg-message-bubble text-message-bubble-foreground max-w-[92%] rounded-[24px] px-4 py-3 text-sm leading-relaxed shadow-sm sm:max-w-[70%] sm:px-5 sm:py-4">
 										<p className="whitespace-pre-wrap">{m.content}</p>
 									</div>
 									<time
 										dateTime={m.sentAtIso}
-										className="text-muted-foreground text-[0.7rem] font-semibold tracking-[0.2em] uppercase"
+										className="text-muted-foreground text-xs font-medium"
 									>
 										{m.sentAtDisplay}
 									</time>
@@ -796,12 +796,17 @@ function MessageForms({ message }: { message: FutureMessage }) {
 	return (
 		<li className="flex flex-col items-end gap-2">
 			<div
-				className={`text-message-card-foreground max-w-[75%] rounded-[24px] px-4 py-3 shadow-sm sm:max-w-[65%] sm:px-5 sm:py-4 ${cardTone}`}
+				className={`text-message-card-foreground max-w-[92%] rounded-[24px] px-4 py-3 shadow-sm sm:max-w-[70%] sm:px-5 sm:py-4 ${cardTone}`}
 			>
-				<div className="text-message-card-foreground flex items-start justify-between gap-4 text-[0.7rem] font-semibold tracking-[0.2em] uppercase">
-					<div className="flex items-center gap-2">
-						<Icon name="clock" size="sm" />
-						<span>{scheduleLabel}</span>
+				<div className="text-message-card-foreground flex items-start justify-between gap-3 text-xs font-semibold">
+					<div className="flex min-w-0 items-center gap-2 pt-1.5">
+						<Icon
+							name="clock"
+							size="sm"
+							className="shrink-0"
+							aria-hidden="true"
+						/>
+						<span className="opacity-90">{scheduleLabel}</span>
 					</div>
 					<div className="flex items-center gap-1">
 						{showSaveButton ? (

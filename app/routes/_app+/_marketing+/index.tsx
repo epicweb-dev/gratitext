@@ -85,7 +85,7 @@ export default function Index() {
 	return (
 		<main className="bg-background pt-8 pb-20 md:pt-14">
 			<section className="container grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16">
-				<div className="order-2 space-y-6 text-center lg:order-1 lg:text-left">
+				<div className="space-y-6 text-center lg:text-left">
 					<p className="text-brand text-xs font-semibold tracking-[0.3em] uppercase">
 						Gratitude, delivered by text
 					</p>
@@ -124,24 +124,23 @@ export default function Index() {
 						</p>
 					)}
 				</div>
-				<div className="order-1 flex justify-center lg:order-2">
+				<div className="flex justify-center">
 					<div className="relative w-full max-w-xs sm:max-w-sm">
 						<div className="bg-hero-orb absolute top-1/2 left-1/2 h-[260px] w-[260px] -translate-x-1/2 -translate-y-1/2 rounded-full sm:h-[320px] sm:w-[320px]" />
 						<Icon
 							name="star"
 							size="lg"
 							aria-hidden="true"
-							className="text-hero-sparkle absolute top-2 left-2"
+							className="text-hero-sparkle absolute -top-4 -left-3 z-20"
 						/>
 						<Icon
 							name="star"
 							size="md"
 							aria-hidden="true"
-							className="text-hero-sparkle absolute top-16 left-12"
+							className="text-hero-sparkle absolute top-8 -left-8 z-20"
 						/>
-						<div className="bg-hero-sparkle absolute top-24 left-4 h-6 w-10 rounded-full" />
-						<div className="bg-hero-sparkle absolute bottom-6 left-6 h-12 w-12 rounded-[22px]" />
-						<div className="bg-brand text-brand-foreground absolute top-1/2 -right-2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full shadow-lg">
+						<div className="bg-hero-sparkle absolute -bottom-4 -left-4 z-20 h-12 w-12 rounded-[22px] shadow-sm" />
+						<div className="bg-brand text-brand-foreground absolute top-1/2 -right-5 z-20 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full shadow-lg">
 							<Icon name="message" size="sm" aria-hidden="true" />
 						</div>
 						<img
