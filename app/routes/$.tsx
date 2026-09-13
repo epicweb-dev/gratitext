@@ -32,15 +32,22 @@ export function ErrorBoundary() {
 		<GeneralErrorBoundary
 			statusHandlers={{
 				404: () => (
-					<div className="flex flex-col gap-6">
-						<div className="flex flex-col gap-3">
-							<h1>We can't find this page:</h1>
-							<pre className="text-body-lg break-all whitespace-pre-wrap">
-								{location.pathname}
-							</pre>
-						</div>
-						<Link to="/" className="text-body-md underline">
-							<Icon name="arrow-left">Back to home</Icon>
+					<div className="flex flex-col items-center gap-3 text-center">
+						<p className="text-muted-foreground text-xs font-semibold tracking-[0.3em] uppercase">
+							Error 404
+						</p>
+						<h1 className="text-foreground text-2xl font-bold sm:text-3xl">
+							We can't find this page
+						</h1>
+						<pre className="bg-muted text-muted-foreground max-w-full rounded-full px-4 py-2 font-mono text-sm break-all whitespace-pre-wrap">
+							{location.pathname}
+						</pre>
+						<Link
+							to="/"
+							className="text-foreground mt-3 inline-flex items-center gap-2 text-sm font-semibold underline-offset-4 hover:underline"
+						>
+							<Icon name="arrow-left" size="sm" aria-hidden="true" />
+							Back to home
 						</Link>
 					</div>
 				),

@@ -1,12 +1,11 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/lora';
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-	/* --font-sans: here if you have one */
-	/* --font-mono: here if you got it... */
-
 	--palette-dark-navy: 210 33.3% 14.1%;
 	--palette-navy: 210 25% 25.1%;
 	--palette-storm-grey: 211 16.4% 39.4%;
@@ -263,6 +262,11 @@
 }
 
 @theme {
+	--font-sans:
+		'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
+		Roboto, 'Helvetica Neue', Arial, sans-serif;
+	--font-serif:
+		'Lora Variable', ui-serif, Georgia, Cambria, 'Times New Roman', serif;
 	--text-mega: 5rem;
 	--text-mega--line-height: 5.25rem;
 	--text-mega--font-weight: 700;
@@ -322,7 +326,14 @@
 
 @utility container {
 	margin-inline: auto;
-	padding-inline: 2rem;
+	width: 100%;
+	padding-inline: 1.25rem;
+
+	@media (width >= 640px) {
+		& {
+			padding-inline: 2rem;
+		}
+	}
 
 	@media (width >= 1536px) {
 		& {
@@ -349,6 +360,25 @@
 	::backdrop,
 	::file-selector-button {
 		border-color: hsl(var(--border));
+	}
+
+	/*
+	 * No global `scroll-behavior: smooth`: it makes React Router's
+	 * ScrollRestoration animate scroll-to-top on every navigation.
+	 */
+	html {
+		scroll-padding-top: 6rem;
+		-webkit-font-smoothing: antialiased;
+		text-rendering: optimizeLegibility;
+	}
+
+	/* Links and native controls that lack their own ring still get a visible focus indicator. */
+	a:focus-visible,
+	summary:focus-visible,
+	[tabindex]:focus-visible {
+		outline: 2px solid hsl(var(--ring));
+		outline-offset: 2px;
+		border-radius: 0.25rem;
 	}
 
 	@media (width <= 768px) {

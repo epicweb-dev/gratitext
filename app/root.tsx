@@ -55,7 +55,11 @@ export const links: LinksFunction = () => {
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
 	return [
 		{ title: data ? 'GratiText' : 'Error | GratiText' },
-		{ name: 'description', content: `Your own captain's log` },
+		{
+			name: 'description',
+			content:
+				'GratiText helps you send thoughtful, personal gratitude texts to the people you love on a schedule you choose.',
+		},
 	]
 }
 

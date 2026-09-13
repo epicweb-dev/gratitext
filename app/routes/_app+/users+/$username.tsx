@@ -4,7 +4,10 @@ import {
 	type LoaderFunctionArgs,
 	type MetaFunction,
 } from 'react-router'
-import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
+import {
+	ErrorMessage,
+	GeneralErrorBoundary,
+} from '#app/components/error-boundary.tsx'
 import UserProfile, {
 	type UserProfileLoaderData,
 } from '#app/components/user-profile.tsx'
@@ -55,7 +58,11 @@ export function ErrorBoundary() {
 		<GeneralErrorBoundary
 			statusHandlers={{
 				404: ({ params }) => (
-					<p>No user with the username "{params.username}" exists</p>
+					<ErrorMessage
+						eyebrow="Error 404"
+						title="We can't find that person"
+						description={`No user with the username "${params.username}" exists.`}
+					/>
 				),
 			}}
 		/>

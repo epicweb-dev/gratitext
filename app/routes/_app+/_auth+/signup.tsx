@@ -11,10 +11,12 @@ import {
 	type ActionFunctionArgs,
 	type MetaFunction,
 	Form,
+	Link,
 	useActionData,
 } from 'react-router'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
+import { AuthPage } from '#app/components/auth-page.tsx'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { ErrorList, Field, SelectField } from '#app/components/forms.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
@@ -128,63 +130,55 @@ export default function SignupRoute() {
 	})
 
 	return (
-		<div className="container flex flex-col items-center justify-center pt-20 pb-32">
-			<div className="text-center">
-				<p className="text-muted-foreground text-xs font-semibold tracking-[0.3em] uppercase">
-					GratiText
+		<AuthPage
+			title="Create your account"
+			description="Enter your mobile number and we'll text you a code to get started. Your first 14 days are free."
+			footer={
+				<p>
+					Already have an account? <Link to="/login">Log in</Link>
 				</p>
-				<h1 className="text-h1 mt-3">
-					Create and Nurture Lasting Bonds With Your Loved Ones
-				</h1>
-				<p className="text-body-md text-muted-foreground mt-3">
-					Please enter your phone number along with your country code.
-				</p>
-			</div>
-			<div className="border-border bg-card mt-8 w-full max-w-lg rounded-[32px] border px-6 py-8 shadow-sm">
-				<Form method="POST" {...getFormProps(form)} className="space-y-6">
-					<HoneypotInputs />
-					<div className="grid gap-4 md:grid-cols-[200px_1fr]">
-						<SelectField
-							labelProps={{ children: 'Country Code' }}
-							selectProps={{
-								...getSelectProps(fields.countryCode),
-								children: countryCodes.map((code) => (
-									<option
-										key={`${code.value}-${code.label}`}
-										value={code.value}
-									>
-										{code.label}
-									</option>
-								)),
-							}}
-							errors={fields.countryCode.errors}
-						/>
-						<Field
-							labelProps={{
-								htmlFor: fields.phoneNumber.id,
-								children: 'Phone Number',
-							}}
-							inputProps={{
-								...getInputProps(fields.phoneNumber, { type: 'tel' }),
-								autoFocus: true,
-								autoComplete: 'tel',
-							}}
-							errors={fields.phoneNumber.errors}
-						/>
-					</div>
-					<ErrorList errors={form.errors} id={form.errorId} />
-					<StatusButton
-						variant="brand"
-						className="w-full"
-						status={isPending ? 'pending' : (form.status ?? 'idle')}
-						type="submit"
-						disabled={isPending}
-					>
-						Continue
-					</StatusButton>
-				</Form>
-			</div>
-		</div>
+			}
+		>
+			<Form method="POST" {...getFormProps(form)} className="space-y-6">
+				<HoneypotInputs />
+				<div className="grid gap-4 sm:grid-cols-[200px_1fr]">
+					<SelectField
+						labelProps={{ children: 'Country Code' }}
+						selectProps={{
+							...getSelectProps(fields.countryCode),
+							children: countryCodes.map((code) => (
+								<option key={`${code.value}-${code.label}`} value={code.value}>
+									{code.label}
+								</option>
+							)),
+						}}
+						errors={fields.countryCode.errors}
+					/>
+					<Field
+						labelProps={{
+							htmlFor: fields.phoneNumber.id,
+							children: 'Phone Number',
+						}}
+						inputProps={{
+							...getInputProps(fields.phoneNumber, { type: 'tel' }),
+							autoFocus: true,
+							autoComplete: 'tel',
+						}}
+						errors={fields.phoneNumber.errors}
+					/>
+				</div>
+				<ErrorList errors={form.errors} id={form.errorId} />
+				<StatusButton
+					variant="brand"
+					className="w-full"
+					status={isPending ? 'pending' : (form.status ?? 'idle')}
+					type="submit"
+					disabled={isPending}
+				>
+					Continue
+				</StatusButton>
+			</Form>
+		</AuthPage>
 	)
 }
 

@@ -1,6 +1,5 @@
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import {
-	Link,
 	data as json,
 	redirect,
 	type ActionFunctionArgs,
@@ -8,6 +7,8 @@ import {
 	useFetcher,
 	useLoaderData,
 } from 'react-router'
+import { SettingsCard } from '#app/components/settings-card.tsx'
+import { ButtonLink } from '#app/components/ui/button.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
@@ -52,47 +53,74 @@ export default function TwoFactorRoute() {
 	const enable2FAFetcher = useFetcher<typeof action>()
 
 	return (
-		<div className="flex flex-col gap-4">
+		<SettingsCard
+			title="Two-factor authentication"
+			description="Protect your account with a code from an authenticator app every time you log in."
+		>
 			{data.is2FAEnabled ? (
-				<>
-					<p className="text-lg">
-						<Icon name="check">
+				<div className="flex flex-col gap-5">
+					<div className="bg-brand-soft text-brand-soft-foreground flex items-start gap-3 rounded-2xl px-4 py-3 text-sm">
+						<Icon
+							name="check"
+							size="sm"
+							className="mt-0.5 shrink-0"
+							aria-hidden="true"
+						/>
+						<p className="font-medium">
 							You have enabled two-factor authentication.
-						</Icon>
+						</p>
+					</div>
+					<p className="text-muted-foreground text-sm">
+						Keep your authenticator app safe. If you lose access to it, you will
+						not be able to log in.
 					</p>
-					<Link to="disable">
-						<Icon name="lock-open-1">Disable 2FA</Icon>
-					</Link>
-				</>
+					<div>
+						<ButtonLink variant="secondary" to="disable">
+							<Icon name="lock-open-1" size="sm" aria-hidden="true" />
+							Disable 2FA
+						</ButtonLink>
+					</div>
+				</div>
 			) : (
-				<>
-					<p>
-						<Icon name="lock-open-1">
+				<div className="flex flex-col gap-5">
+					<div className="bg-muted text-muted-foreground flex items-start gap-3 rounded-2xl px-4 py-3 text-sm">
+						<Icon
+							name="lock-open-1"
+							size="sm"
+							className="mt-0.5 shrink-0"
+							aria-hidden="true"
+						/>
+						<p className="font-medium">
 							You have not enabled two-factor authentication yet.
-						</Icon>
-					</p>
-					<p className="text-sm">
-						Two factor authentication adds an extra layer of security to your
-						account. You will need to enter a code from an authenticator app
-						like{' '}
-						<a className="underline" href="https://1password.com/">
+						</p>
+					</div>
+					<p className="text-muted-foreground text-sm">
+						Two-factor authentication adds an extra layer of security. You will
+						need to enter a code from an authenticator app like{' '}
+						<a
+							className="text-foreground underline underline-offset-4"
+							href="https://1password.com/"
+							target="_blank"
+							rel="noreferrer"
+						>
 							1Password
 						</a>{' '}
-						to log in.
+						or Google Authenticator to log in.
 					</p>
 					<enable2FAFetcher.Form method="POST">
 						<StatusButton
 							type="submit"
 							name="intent"
 							value="enable"
-							status={enable2FAFetcher.state === 'loading' ? 'pending' : 'idle'}
-							className="mx-auto"
+							variant="brand"
+							status={enable2FAFetcher.state !== 'idle' ? 'pending' : 'idle'}
 						>
+							<Icon name="lock-closed" size="sm" aria-hidden="true" />
 							Enable 2FA
 						</StatusButton>
 					</enable2FAFetcher.Form>
-				</>
+				</div>
 			)}
-		</div>
+		</SettingsCard>
 	)
 }

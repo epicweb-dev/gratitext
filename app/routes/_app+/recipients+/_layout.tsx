@@ -4,7 +4,10 @@ import {
 	Outlet,
 	useLoaderData,
 } from 'react-router'
-import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
+import {
+	ErrorMessage,
+	GeneralErrorBoundary,
+} from '#app/components/error-boundary.tsx'
 import { requireUserId } from '#app/utils/auth.server.js'
 import { CronParseError, getScheduleWindow } from '#app/utils/cron.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
@@ -201,7 +204,7 @@ export default function RecipientsLayout() {
 	const { recipients, subscriptionStatus } = useLoaderData<typeof loader>()
 
 	return (
-		<div className="container mx-auto flex min-h-0 flex-grow flex-col px-4 pt-10 pb-16 md:px-8">
+		<div className="container flex min-h-0 flex-grow flex-col pt-8 pb-16 md:pt-10">
 			<Outlet context={{ recipients, subscriptionStatus }} />
 		</div>
 	)
@@ -212,9 +215,11 @@ export function ErrorBoundary() {
 		<GeneralErrorBoundary
 			statusHandlers={{
 				404: ({ params }) => (
-					<p>
-						No user with the recipient with the id "{params.recipientId}" exists
-					</p>
+					<ErrorMessage
+						eyebrow="Error 404"
+						title="Recipient not found"
+						description={`No recipient with the id "${params.recipientId}" exists.`}
+					/>
 				),
 			}}
 		/>

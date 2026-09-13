@@ -38,9 +38,11 @@ test('The user profile when not logged in as self', async () => {
 	await expect
 		.element(screen.getByRole('heading', { level: 1, name: user.name }))
 		.toBeVisible()
-	await expect
-		.element(screen.getByRole('link', { name: `${user.name}'s recipients` }))
-		.toBeVisible()
+	await expect.element(screen.getByText(`@${user.username}`)).toBeVisible()
+	await expect.element(screen.getByText(/joined jan 1, 2024/i)).toBeVisible()
+	// Other people's profiles do not expose account actions.
+	expect(screen.container.querySelector('a[href="/recipients"]')).toBeNull()
+	expect(screen.container.querySelector('button[type="submit"]')).toBeNull()
 })
 
 test('The user profile when logged in as self', async () => {
@@ -66,6 +68,6 @@ test('The user profile when logged in as self', async () => {
 		.element(screen.getByRole('link', { name: /my recipients/i }))
 		.toBeVisible()
 	await expect
-		.element(screen.getByRole('link', { name: /edit profile/i }))
+		.element(screen.getByRole('link', { name: /settings/i }))
 		.toBeVisible()
 })

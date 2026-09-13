@@ -8,7 +8,6 @@ import {
 	useMatches,
 } from 'react-router'
 import { z } from 'zod'
-import { Spacer } from '#app/components/spacer.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
@@ -19,7 +18,7 @@ export const BreadcrumbHandle = z.object({ breadcrumb: z.any() })
 export type BreadcrumbHandle = z.infer<typeof BreadcrumbHandle>
 
 export const handle: BreadcrumbHandle & SEOHandle = {
-	breadcrumb: <Icon name="file-text">Edit Profile</Icon>,
+	breadcrumb: <Icon name="settings">Settings</Icon>,
 	getSitemapEntries: () => null,
 }
 
@@ -53,12 +52,12 @@ export default function EditUserProfile() {
 		.filter(Boolean)
 
 	return (
-		<div className="m-auto mt-16 mb-24 max-w-3xl">
-			<div className="container">
-				<ul className="flex gap-3">
+		<div className="container max-w-3xl pt-8 pb-20 md:pt-10">
+			<nav aria-label="Breadcrumb">
+				<ol className="text-muted-foreground flex flex-wrap items-center gap-2 text-sm font-medium">
 					<li>
 						<Link
-							className="text-muted-foreground"
+							className="hover:text-foreground transition-colors"
 							to={`/users/${user.username}`}
 						>
 							Profile
@@ -67,17 +66,23 @@ export default function EditUserProfile() {
 					{breadcrumbs.map((breadcrumb, i, arr) => (
 						<li
 							key={i}
-							className={cn('flex items-center gap-3', {
-								'text-muted-foreground': i < arr.length - 1,
+							className={cn('flex items-center gap-2', {
+								'text-foreground': i === arr.length - 1,
 							})}
+							aria-current={i === arr.length - 1 ? 'page' : undefined}
 						>
-							▶️ {breadcrumb}
+							<Icon
+								name="chevron-right"
+								size="xs"
+								aria-hidden="true"
+								className="text-muted-foreground"
+							/>
+							{breadcrumb}
 						</li>
 					))}
-				</ul>
-			</div>
-			<Spacer size="xs" />
-			<main className="bg-muted mx-auto px-6 py-8 md:container md:rounded-3xl">
+				</ol>
+			</nav>
+			<main className="mt-6">
 				<Outlet />
 			</main>
 		</div>

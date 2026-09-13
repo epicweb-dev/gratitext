@@ -5,6 +5,8 @@ import {
 	type LoaderFunctionArgs,
 	useFetcher,
 } from 'react-router'
+import { SettingsCard } from '#app/components/settings-card.tsx'
+import { ButtonLink } from '#app/components/ui/button.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { requireRecentVerification } from '#app/routes/_app+/_auth+/verify.server.ts'
@@ -42,25 +44,30 @@ export default function TwoFactorDisableRoute() {
 	const dc = useDoubleCheck()
 
 	return (
-		<div className="mx-auto max-w-sm">
-			<disable2FAFetcher.Form method="POST">
-				<p>
-					Disabling two factor authentication is not recommended. However, if
-					you would like to do so, click here:
-				</p>
+		<SettingsCard
+			title="Disable two-factor authentication"
+			description="We do not recommend this. Without 2FA, anyone who learns your password can log in to your account."
+		>
+			<disable2FAFetcher.Form
+				method="POST"
+				className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-start"
+			>
+				<ButtonLink variant="secondary" to="..">
+					Keep 2FA on
+				</ButtonLink>
 				<StatusButton
 					variant="destructive"
-					status={disable2FAFetcher.state === 'loading' ? 'pending' : 'idle'}
+					status={disable2FAFetcher.state !== 'idle' ? 'pending' : 'idle'}
 					{...dc.getButtonProps({
-						className: 'mx-auto',
 						name: 'intent',
 						value: 'disable',
 						type: 'submit',
 					})}
 				>
+					<Icon name="lock-open-1" size="sm" aria-hidden="true" />
 					{dc.doubleCheck ? 'Are you sure?' : 'Disable 2FA'}
 				</StatusButton>
 			</disable2FAFetcher.Form>
-		</div>
+		</SettingsCard>
 	)
 }
