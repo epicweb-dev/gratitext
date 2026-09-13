@@ -190,29 +190,31 @@ export default function SignupRoute() {
 				<CheckboxField
 					labelProps={{
 						htmlFor: fields.agreeToTermsOfServiceAndPrivacyPolicy.id,
-						children: (
-							<>
-								I agree to the{' '}
-								<Link
-									to="/tos"
-									target="_blank"
-									rel="noreferrer"
-									className="font-semibold underline underline-offset-4"
-								>
-									Terms of Service
-								</Link>{' '}
-								and{' '}
-								<Link
-									to="/privacy"
-									target="_blank"
-									rel="noreferrer"
-									className="font-semibold underline underline-offset-4"
-								>
-									Privacy Policy
-								</Link>
-							</>
-						),
+						children: 'I agree to the Terms of Service and Privacy Policy',
 					}}
+					description={
+						<>
+							Read the{' '}
+							<Link
+								to="/tos"
+								target="_blank"
+								rel="noreferrer"
+								className="text-foreground font-semibold underline underline-offset-4"
+							>
+								Terms of Service
+							</Link>{' '}
+							and{' '}
+							<Link
+								to="/privacy"
+								target="_blank"
+								rel="noreferrer"
+								className="text-foreground font-semibold underline underline-offset-4"
+							>
+								Privacy Policy
+							</Link>
+							.
+						</>
+					}
 					buttonProps={getInputProps(
 						fields.agreeToTermsOfServiceAndPrivacyPolicy,
 						{ type: 'checkbox' },

@@ -35,6 +35,15 @@ import { useOptionalUser, useUser } from '#app/utils/user.ts'
 const siteDescription =
 	'GratiText helps you send thoughtful, personal gratitude texts to the people you love on a schedule you choose.'
 
+const focusableSelector = [
+	'a[href]',
+	'button:not([disabled])',
+	'input:not([disabled]):not([type="hidden"])',
+	'select:not([disabled])',
+	'textarea:not([disabled])',
+	'[tabindex]:not([tabindex="-1"])',
+].join(',')
+
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
 	return [
 		{ title: data ? 'GratiText' : 'Error | GratiText' },
@@ -351,19 +360,61 @@ function MobileMenu() {
 		theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'
 	const themeIcon = theme === 'dark' ? 'sun' : 'moon'
 	const close = () => setOpen(false)
+	const triggerRef = useRef<HTMLButtonElement>(null)
+	const panelRef = useRef<HTMLDivElement>(null)
 
+	// The panel is announced as a modal dialog, so it has to behave like one:
+	// move focus into it on open, keep Tab cycling inside it, and hand focus
+	// back to the trigger when it closes.
 	useEffect(() => {
 		if (!open) return
+		const panel = panelRef.current
+		const trigger = triggerRef.current
+		if (!panel) return
+		const getFocusable = () =>
+			Array.from(panel.querySelectorAll<HTMLElement>(focusableSelector)).filter(
+				(element) => !element.hasAttribute('disabled'),
+			)
+
+		panel.focus({ preventScroll: true })
+
 		const onKeyDown = (event: KeyboardEvent) => {
-			if (event.key === 'Escape') setOpen(false)
+			if (event.key === 'Escape') {
+				event.preventDefault()
+				setOpen(false)
+				return
+			}
+			if (event.key !== 'Tab') return
+			const focusable = getFocusable()
+			if (focusable.length === 0) {
+				event.preventDefault()
+				return
+			}
+			const first = focusable[0]!
+			const last = focusable[focusable.length - 1]!
+			const active = document.activeElement
+			const activeIndex = focusable.findIndex((element) => element === active)
+			if (event.shiftKey) {
+				if (activeIndex <= 0) {
+					event.preventDefault()
+					last.focus()
+				}
+			} else if (activeIndex === -1 || activeIndex === focusable.length - 1) {
+				event.preventDefault()
+				first.focus()
+			}
 		}
 		document.addEventListener('keydown', onKeyDown)
-		return () => document.removeEventListener('keydown', onKeyDown)
+		return () => {
+			document.removeEventListener('keydown', onKeyDown)
+			if (trigger?.isConnected) trigger.focus({ preventScroll: true })
+		}
 	}, [open])
 
 	return (
 		<>
 			<Button
+				ref={triggerRef}
 				type="button"
 				variant="ghost"
 				size="icon"
@@ -378,16 +429,19 @@ function MobileMenu() {
 				<div className="fixed inset-0 z-50 flex justify-center">
 					<button
 						type="button"
+						tabIndex={-1}
 						className="bg-overlay/40 absolute inset-0 h-full w-full"
 						onClick={close}
 						aria-label="Close menu"
 					/>
 					<div
+						ref={panelRef}
 						id="mobile-menu-panel"
 						role="dialog"
 						aria-modal="true"
 						aria-label="Menu"
-						className="bg-card border-border relative mx-4 mt-3 h-fit w-full max-w-[420px] rounded-[28px] border px-5 pt-4 pb-5 shadow-2xl"
+						tabIndex={-1}
+						className="bg-card border-border relative mx-4 mt-3 h-fit w-full max-w-[420px] rounded-[28px] border px-5 pt-4 pb-5 shadow-2xl outline-none"
 					>
 						<div className="flex items-center justify-between">
 							<Logo onClick={close} />

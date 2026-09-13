@@ -203,6 +203,7 @@ export function TextareaField({
 export function CheckboxField({
 	labelProps,
 	buttonProps,
+	description,
 	errors,
 	className,
 }: {
@@ -212,6 +213,11 @@ export function CheckboxField({
 		form: string
 		value?: string
 	}
+	/**
+	 * Rendered next to the label but outside of it, so it is the right place
+	 * for links and other interactive content that must not toggle the box.
+	 */
+	description?: React.ReactNode
 	errors?: ListOfErrors
 	className?: string
 }) {
@@ -226,6 +232,9 @@ export function CheckboxField({
 	})
 	const id = buttonProps.id ?? fallbackId
 	const errorId = errors?.length ? `${id}-error` : undefined
+	const descriptionId = description ? `${id}-description` : undefined
+	const describedBy =
+		[descriptionId, errorId].filter(Boolean).join(' ') || undefined
 
 	return (
 		<div className={className}>
@@ -234,7 +243,7 @@ export function CheckboxField({
 					{...checkboxProps}
 					id={id}
 					aria-invalid={errorId ? true : undefined}
-					aria-describedby={errorId}
+					aria-describedby={describedBy}
 					checked={input.value === checkedValue}
 					onCheckedChange={(state) => {
 						input.change(state.valueOf() ? checkedValue : '')
@@ -251,11 +260,21 @@ export function CheckboxField({
 					type="button"
 					className="mt-0.5"
 				/>
-				<label
-					htmlFor={id}
-					{...labelProps}
-					className="text-foreground cursor-pointer text-sm leading-snug"
-				/>
+				<div className="grid gap-1">
+					<label
+						htmlFor={id}
+						{...labelProps}
+						className="text-foreground cursor-pointer text-sm leading-snug"
+					/>
+					{description ? (
+						<div
+							id={descriptionId}
+							className="text-muted-foreground text-sm leading-snug"
+						>
+							{description}
+						</div>
+					) : null}
+				</div>
 			</div>
 			{errorId ? (
 				<div className="pt-2 pl-8">
