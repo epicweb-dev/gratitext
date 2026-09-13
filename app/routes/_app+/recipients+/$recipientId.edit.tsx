@@ -4,7 +4,10 @@ import {
 	type MetaFunction,
 	useLoaderData,
 } from 'react-router'
-import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
+import {
+	ErrorMessage,
+	GeneralErrorBoundary,
+} from '#app/components/error-boundary.tsx'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { RecipientEditor } from './__editor.tsx'
@@ -47,7 +50,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 	]
 }
 
-export default function NoteEdit() {
+export default function RecipientEdit() {
 	const data = useLoaderData<typeof loader>()
 
 	return (
@@ -63,7 +66,11 @@ export function ErrorBoundary() {
 		<GeneralErrorBoundary
 			statusHandlers={{
 				404: ({ params }) => (
-					<p>No note with the id "{params.recipientId}" exists</p>
+					<ErrorMessage
+						eyebrow="Error 404"
+						title="Recipient not found"
+						description={`No recipient with the id "${params.recipientId}" exists.`}
+					/>
 				),
 			}}
 		/>

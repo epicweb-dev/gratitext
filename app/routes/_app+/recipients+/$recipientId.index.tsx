@@ -19,7 +19,10 @@ import {
 	useSearchParams,
 } from 'react-router'
 import { z } from 'zod'
-import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
+import {
+	ErrorMessage,
+	GeneralErrorBoundary,
+} from '#app/components/error-boundary.tsx'
 import { ErrorList } from '#app/components/forms.js'
 import { SearchBar } from '#app/components/search-bar.tsx'
 import { Button } from '#app/components/ui/button.tsx'
@@ -596,16 +599,21 @@ export default function RecipientRoute() {
 				</div>
 			) : null}
 			<section className="space-y-4">
-				<div className="flex flex-wrap items-center justify-between gap-2">
-					<h3 className="text-foreground text-xs font-semibold tracking-[0.2em] uppercase">
-						Messages
-					</h3>
+				<div className="flex flex-wrap items-end justify-between gap-2">
+					<div>
+						<h2 className="text-foreground text-xl font-bold">Messages</h2>
+						<p className="text-muted-foreground text-sm">
+							{hasFutureMessages
+								? `${data.futureMessages.length} ${data.futureMessages.length === 1 ? 'message' : 'messages'} queued to send${hasPastMessages ? ', with your history above.' : '.'}`
+								: 'Nothing queued yet. Add a note below and it will go out on the next scheduled send.'}
+						</p>
+					</div>
 				</div>
 				<SearchBar status="idle" autoSubmit showDateFilter />
 				{hasAnyMessages ? (
 					<div
 						ref={setScrollContainer}
-						className="thread-gradient max-h-[65vh] overflow-y-auto px-4 py-5 sm:px-5 sm:py-6"
+						className="thread-gradient border-border max-h-[65vh] overflow-y-auto rounded-[24px] border px-4 py-5 sm:px-5 sm:py-6"
 					>
 						{hasPastMessages || pastNextCursor ? (
 							<div className="text-muted-foreground flex flex-col items-center gap-2 text-xs font-semibold tracking-[0.2em] uppercase">
@@ -632,47 +640,73 @@ export default function RecipientRoute() {
 						</ul>
 					</div>
 				) : (
-					<div className="thread-gradient px-4 py-10 text-center text-sm sm:px-5 sm:py-12">
-						<p className="text-muted-foreground">{emptyThreadMessage}</p>
-						<Link
-							to="new"
-							className="text-foreground text-sm font-semibold underline"
-						>
-							Create a new message
-						</Link>
+					<div className="thread-gradient border-border flex flex-col items-center gap-3 rounded-[24px] border px-4 py-10 text-center text-sm sm:px-5 sm:py-12">
+						<span className="bg-card text-muted-foreground flex h-12 w-12 items-center justify-center rounded-2xl shadow-sm">
+							<Icon name="message" size="md" aria-hidden="true" />
+						</span>
+						<p className="text-foreground font-semibold">
+							{emptyThreadMessage}
+						</p>
+						{isPastFiltered ? (
+							<p className="text-muted-foreground max-w-sm">
+								Try a different search or clear the filters to see everything.
+							</p>
+						) : (
+							<>
+								<p className="text-muted-foreground max-w-sm">
+									Write a short note of thanks below. It will be sent at the
+									next scheduled time.
+								</p>
+								<Button
+									type="button"
+									variant="secondary"
+									size="sm"
+									onClick={() => newMessageInputRef.current?.focus()}
+								>
+									<Icon name="pencil-1" size="sm">
+										Write your first message
+									</Icon>
+								</Button>
+							</>
+						)}
 					</div>
 				)}
 			</section>
-			<div className="flex flex-col gap-2 pb-8 sm:pb-10">
+			<div className="flex flex-col gap-2">
 				<newMessageFetcher.Form
 					method="POST"
 					action="new"
-					className="border-border/40 bg-card focus-within:border-border/60 rounded-full border p-2 shadow-sm transition focus-within:rounded-[28px] focus-within:shadow-md"
+					className="border-border bg-card focus-within:border-ring focus-within:ring-ring rounded-[28px] border p-2 shadow-sm transition focus-within:ring-2"
 				>
 					<label htmlFor="new-message" className="sr-only">
 						Add a new message
 					</label>
-					<div className="flex items-center gap-2">
+					<div className="flex items-end gap-2">
 						<textarea
 							id="new-message"
 							name="content"
 							ref={newMessageInputRef}
-							placeholder="Aa"
-							className="text-foreground placeholder:text-muted-foreground min-h-[48px] flex-1 resize-none rounded-full bg-transparent px-4 py-2 text-sm leading-relaxed focus-visible:outline-none"
+							placeholder="Write a note of gratitude…"
+							className="text-foreground placeholder:text-muted-foreground min-h-[48px] flex-1 resize-none bg-transparent px-4 py-3 text-sm leading-relaxed focus-visible:outline-none"
 							rows={1}
 							required
 						/>
 						<StatusButton
 							status={isCreating ? 'pending' : 'idle'}
 							type="submit"
-							size="pill"
-							variant="brand-soft"
+							variant="brand"
 							className="shrink-0 px-6"
 						>
-							<Icon name="check">Add</Icon>
+							<Icon name="send" size="sm">
+								Add
+							</Icon>
 						</StatusButton>
 					</div>
 				</newMessageFetcher.Form>
+				<p className="text-muted-foreground px-2 text-xs">
+					The newest message goes out first at the next scheduled send. You can
+					edit or send any queued message early from its menu.
+				</p>
 				{newMessageFetcher.data?.result?.error ? (
 					<ErrorList
 						errors={
@@ -846,7 +880,7 @@ function MessageForms({ message }: { message: FutureMessage }) {
 							setCurrentContent(event.currentTarget.value)
 						}}
 						ref={textareaRef}
-						className="text-message-card-foreground placeholder:text-message-card-foreground/80 mt-2 w-full resize-none bg-transparent text-sm leading-relaxed focus-visible:outline-none"
+						className="text-message-card-foreground placeholder:text-message-card-foreground/80 focus-visible:ring-message-card-foreground/70 mt-2 w-full resize-none rounded-lg bg-transparent px-1 text-sm leading-relaxed focus-visible:ring-2 focus-visible:outline-none"
 						rows={2}
 					/>
 				</updateContentFetcher.Form>
@@ -881,9 +915,18 @@ export function ErrorBoundary() {
 	return (
 		<GeneralErrorBoundary
 			statusHandlers={{
-				403: () => <p>You are not allowed to do that</p>,
+				403: () => (
+					<ErrorMessage
+						eyebrow="Error 403"
+						title="You are not allowed to do that"
+					/>
+				),
 				404: ({ params }) => (
-					<p>No recipient with the id "{params.recipientId}" exists</p>
+					<ErrorMessage
+						eyebrow="Error 404"
+						title="Recipient not found"
+						description={`No recipient with the id "${params.recipientId}" exists.`}
+					/>
 				),
 			}}
 		/>

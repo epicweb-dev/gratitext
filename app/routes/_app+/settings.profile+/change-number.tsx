@@ -3,7 +3,6 @@ import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4'
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import {
 	Form,
-	Link,
 	data as json,
 	redirect,
 	type ActionFunctionArgs,
@@ -13,7 +12,8 @@ import {
 } from 'react-router'
 import { z } from 'zod'
 import { ErrorList, Field } from '#app/components/forms.tsx'
-import { Button } from '#app/components/ui/button.tsx'
+import { SettingsCard } from '#app/components/settings-card.tsx'
+import { ButtonLink } from '#app/components/ui/button.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import {
@@ -121,40 +121,42 @@ export default function ChangePhoneNumberIndex() {
 
 	const isPending = useIsPending()
 	return (
-		<div className="container flex min-h-full items-center justify-center pt-16 pb-24">
-			<div className="border-border bg-card w-full max-w-lg rounded-[32px] border px-6 py-8 shadow-sm">
-				<h1 className="text-foreground text-2xl font-bold">
-					Change Phone Number
-				</h1>
-				<p className="text-muted-foreground mt-2 text-sm">
-					You will receive a text at the new phone number to confirm.
-				</p>
-				<p className="text-muted-foreground mt-2 text-sm">
-					A notice will also be sent to your old number {data.user.phoneNumber}.
-				</p>
-				<Form method="POST" {...getFormProps(form)} className="mt-6 space-y-6">
-					<Field
-						labelProps={{ children: 'New Phone Number' }}
-						inputProps={{
-							...getInputProps(fields.phoneNumber, { type: 'tel' }),
-							autoComplete: 'tel',
-						}}
-						errors={fields.phoneNumber.errors}
-					/>
-					<ErrorList id={form.errorId} errors={form.errors} />
-					<div className="flex flex-wrap gap-3">
-						<Button variant="secondary" asChild>
-							<Link to="..">Cancel</Link>
-						</Button>
-						<StatusButton
-							variant="brand"
-							status={isPending ? 'pending' : (form.status ?? 'idle')}
-						>
-							Send Confirmation
-						</StatusButton>
-					</div>
-				</Form>
-			</div>
-		</div>
+		<SettingsCard
+			title="Change your phone number"
+			description={
+				<>
+					<p>
+						We will text a confirmation code to the new number. Your current
+						number,{' '}
+						<strong className="text-foreground">{data.user.phoneNumber}</strong>
+						, will also get a heads-up that the change happened.
+					</p>
+				</>
+			}
+		>
+			<Form method="POST" {...getFormProps(form)} className="space-y-6">
+				<Field
+					labelProps={{ children: 'New Phone Number' }}
+					inputProps={{
+						...getInputProps(fields.phoneNumber, { type: 'tel' }),
+						autoComplete: 'tel',
+						placeholder: '+1 555 123 4567',
+					}}
+					errors={fields.phoneNumber.errors}
+				/>
+				<ErrorList id={form.errorId} errors={form.errors} />
+				<div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+					<ButtonLink variant="secondary" to="..">
+						Cancel
+					</ButtonLink>
+					<StatusButton
+						variant="brand"
+						status={isPending ? 'pending' : (form.status ?? 'idle')}
+					>
+						Send Confirmation
+					</StatusButton>
+				</div>
+			</Form>
+		</SettingsCard>
 	)
 }

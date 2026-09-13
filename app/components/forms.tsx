@@ -5,6 +5,7 @@ import {
 	type OTPInputProps,
 } from 'input-otp'
 import React, { useId } from 'react'
+import { cn } from '#app/utils/misc.tsx'
 import { Checkbox, type CheckboxProps } from './ui/checkbox.tsx'
 import { Icon } from './ui/icon.tsx'
 import {
@@ -46,7 +47,7 @@ export function Field({
 	className,
 }: {
 	labelProps: React.LabelHTMLAttributes<HTMLLabelElement>
-	inputProps: React.InputHTMLAttributes<HTMLInputElement>
+	inputProps: React.ComponentProps<'input'>
 	errors?: ListOfErrors
 	className?: string
 }) {
@@ -61,6 +62,7 @@ export function Field({
 				aria-invalid={errorId ? true : undefined}
 				aria-describedby={errorId}
 				{...inputProps}
+				className={cn('mt-2', inputProps.className)}
 			/>
 			<div className="min-h-[24px] px-4 pt-2 pb-2">
 				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
@@ -76,7 +78,7 @@ export function SelectField({
 	className,
 }: {
 	labelProps: React.LabelHTMLAttributes<HTMLLabelElement>
-	selectProps: React.SelectHTMLAttributes<HTMLSelectElement>
+	selectProps: React.ComponentProps<'select'>
 	errors?: ListOfErrors
 	className?: string
 }) {
@@ -86,7 +88,7 @@ export function SelectField({
 	return (
 		<div className={className}>
 			<Label htmlFor={id} {...labelProps} />
-			<div className="relative">
+			<div className="relative mt-2">
 				<select
 					id={id}
 					aria-invalid={errorId ? true : undefined}
@@ -174,7 +176,7 @@ export function TextareaField({
 	className,
 }: {
 	labelProps: React.LabelHTMLAttributes<HTMLLabelElement>
-	textareaProps: React.TextareaHTMLAttributes<HTMLTextAreaElement>
+	textareaProps: React.ComponentProps<'textarea'>
 	errors?: ListOfErrors
 	className?: string
 }) {
@@ -189,6 +191,7 @@ export function TextareaField({
 				aria-invalid={errorId ? true : undefined}
 				aria-describedby={errorId}
 				{...textareaProps}
+				className={cn('mt-2', textareaProps.className)}
 			/>
 			<div className="min-h-[24px] px-4 pt-2 pb-2">
 				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
@@ -226,7 +229,7 @@ export function CheckboxField({
 
 	return (
 		<div className={className}>
-			<div className="flex gap-2">
+			<div className="flex items-start gap-3">
 				<Checkbox
 					{...checkboxProps}
 					id={id}
@@ -246,16 +249,19 @@ export function CheckboxField({
 						buttonProps.onBlur?.(event)
 					}}
 					type="button"
+					className="mt-0.5"
 				/>
 				<label
 					htmlFor={id}
 					{...labelProps}
-					className="text-body-xs text-muted-foreground self-center"
+					className="text-foreground cursor-pointer text-sm leading-snug"
 				/>
 			</div>
-			<div className="px-4 pt-2 pb-2">
-				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
-			</div>
+			{errorId ? (
+				<div className="pt-2 pl-8">
+					<ErrorList id={errorId} errors={errors} />
+				</div>
+			) : null}
 		</div>
 	)
 }

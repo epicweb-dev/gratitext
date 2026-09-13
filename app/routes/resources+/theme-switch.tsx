@@ -56,23 +56,14 @@ export function ThemeSwitch({
 	const mode = optimisticMode ?? userPreference ?? 'system'
 	const nextMode =
 		mode === 'system' ? 'light' : mode === 'light' ? 'dark' : 'system'
-	const modeLabel = {
-		light: (
-			<Icon name="sun">
-				<span className="sr-only">Light</span>
-			</Icon>
-		),
-		dark: (
-			<Icon name="moon">
-				<span className="sr-only">Dark</span>
-			</Icon>
-		),
-		system: (
-			<Icon name="laptop">
-				<span className="sr-only">System</span>
-			</Icon>
-		),
-	}
+	const modeMeta = {
+		light: { icon: 'sun', label: 'Light' },
+		dark: { icon: 'moon', label: 'Dark' },
+		system: { icon: 'laptop', label: 'System' },
+	} as const
+	const current = modeMeta[mode]
+	const next = modeMeta[nextMode]
+	const description = `Theme: ${current.label}. Switch to ${next.label.toLowerCase()} theme`
 
 	return (
 		<fetcher.Form
@@ -81,14 +72,14 @@ export function ThemeSwitch({
 			action="/resources/theme-switch"
 		>
 			<input type="hidden" name="theme" value={nextMode} />
-			<div className="flex gap-2">
-				<button
-					type="submit"
-					className="flex h-8 w-8 cursor-pointer items-center justify-center"
-				>
-					{modeLabel[mode]}
-				</button>
-			</div>
+			<button
+				type="submit"
+				title={description}
+				aria-label={description}
+				className="border-border bg-card text-foreground hover:bg-muted focus-visible:ring-ring inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border shadow-sm transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+			>
+				<Icon name={current.icon} size="sm" aria-hidden="true" />
+			</button>
 		</fetcher.Form>
 	)
 }

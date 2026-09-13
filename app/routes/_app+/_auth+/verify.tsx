@@ -9,6 +9,7 @@ import {
 } from 'react-router'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
+import { AuthPage } from '#app/components/auth-page.tsx'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { ErrorList, OTPField } from '#app/components/forms.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
@@ -53,32 +54,34 @@ export default function VerifyRoute() {
 	)
 	const type = parseWithZoddType.success ? parseWithZoddType.data : null
 
-	const headingClasses = 'text-h2 sm:text-h1'
-	const bodyClasses = 'text-body-md text-muted-foreground mt-4'
-	const buildHeading = (title: string, description: string) => (
-		<>
-			<h1 className={headingClasses}>{title}</h1>
-			<p className={bodyClasses}>{description}</p>
-		</>
-	)
-	const checkPhoneNumber = buildHeading(
-		'Check Your Texts',
-		"We've texted you a code to verify your phone number",
-	)
+	const checkPhoneNumber = {
+		title: 'Check your texts',
+		description: "We've texted you a code to verify your phone number.",
+	}
 
-	const headings: Record<VerificationTypes, React.ReactNode> = {
+	const headings: Record<
+		VerificationTypes,
+		{ title: string; description: string }
+	> = {
 		onboarding: checkPhoneNumber,
 		'reset-password': checkPhoneNumber,
 		'change-phone-number': checkPhoneNumber,
-		'validate-recipient': buildHeading(
-			'Check Your Texts',
-			"We've texted you a code to verify the phone number you gave us. Please inform your recipient of what you're up to and ask your recipient to provide you with that code.",
-		),
-		'2fa': buildHeading(
-			'Check Your 2FA App',
-			'Please enter your 2FA code to verify your identity.',
-		),
+		'validate-recipient': {
+			title: 'Ask your recipient for the code',
+			description:
+				"We've texted a verification code to the number you gave us. Let your recipient know what you're up to and ask them to share the code with you.",
+		},
+		'2fa': {
+			title: 'Check your authenticator app',
+			description: 'Enter the 6-digit code from your 2FA app to continue.',
+		},
 	}
+	const heading = type
+		? headings[type]
+		: {
+				title: 'Invalid verification link',
+				description: 'This link is missing a verification type.',
+			}
 
 	const resendRoutes: Record<VerificationTypes, string> = {
 		onboarding: '/signup',
@@ -104,72 +107,64 @@ export default function VerifyRoute() {
 	})
 
 	return (
-		<main className="container flex flex-col items-center justify-start pt-12 pb-24 sm:pt-16">
-			<div className="max-w-lg text-center">
-				{type ? headings[type] : 'Invalid Verification Type'}
-			</div>
-
-			<div className="mt-10 w-full max-w-md">
-				<Form method="POST" {...getFormProps(form)} className="space-y-8">
-					<HoneypotInputs />
-					<ErrorList errors={form.errors} id={form.errorId} />
-					<OTPField
-						type="digits-and-characters"
-						className="w-full"
-						labelProps={{
-							htmlFor: fields[codeQueryParam].id,
-							children: 'Verification Code',
-							className:
-								'text-body-sm font-semibold tracking-normal normal-case text-foreground block mb-3',
-						}}
-						inputProps={{
-							...getInputProps(fields[codeQueryParam], { type: 'text' }),
-							autoComplete: 'one-time-code',
-							autoFocus: true,
-							containerClassName:
-								'justify-center gap-2 sm:justify-start sm:gap-3',
-						}}
-						errors={fields[codeQueryParam].errors}
-						groupClassName="gap-2 sm:gap-3"
-						showSeparator={false}
-						slotClassName="bg-card text-foreground h-11 w-11 rounded-full text-base font-semibold shadow-none sm:h-14 sm:w-14 sm:text-lg"
-					/>
-					<div className="text-body-sm text-muted-foreground flex flex-wrap items-center gap-1">
-						<span>No text after 5 minutes?</span>
-						<Link
-							to={type ? resendRoutes[type] : '.'}
-							className="text-foreground hover:text-foreground/90 font-semibold"
-						>
-							Resend the Code
-						</Link>
-					</div>
-					<input
-						{...getInputProps(fields[typeQueryParam], { type: 'hidden' })}
-					/>
-					<input
-						{...getInputProps(fields[targetQueryParam], { type: 'hidden' })}
-					/>
-					<input
-						{...getInputProps(fields[redirectToQueryParam], {
-							type: 'hidden',
-						})}
-					/>
-					<StatusButton
-						size="lg"
-						variant="brand"
-						className="w-full"
-						status={isPending ? 'pending' : (form.status ?? 'idle')}
-						type="submit"
-						disabled={isPending}
-					>
-						<span className="inline-flex items-center gap-3">
-							Continue
-							<Icon name="arrow-right" size="sm" aria-hidden="true" />
-						</span>
-					</StatusButton>
-				</Form>
-			</div>
-		</main>
+		<AuthPage
+			title={heading.title}
+			description={heading.description}
+			footer={
+				<p>
+					{type === '2fa' ? 'Having trouble?' : 'No text after 5 minutes?'}{' '}
+					<Link to={type ? resendRoutes[type] : '.'}>
+						{type === '2fa' ? 'Back to login' : 'Resend the code'}
+					</Link>
+				</p>
+			}
+		>
+			<Form method="POST" {...getFormProps(form)} className="space-y-8">
+				<HoneypotInputs />
+				<ErrorList errors={form.errors} id={form.errorId} />
+				<OTPField
+					type="digits-and-characters"
+					className="w-full"
+					labelProps={{
+						htmlFor: fields[codeQueryParam].id,
+						children: 'Verification Code',
+						className: 'block mb-3',
+					}}
+					inputProps={{
+						...getInputProps(fields[codeQueryParam], { type: 'text' }),
+						autoComplete: 'one-time-code',
+						autoFocus: true,
+						containerClassName: 'justify-center gap-2 sm:gap-3',
+					}}
+					errors={fields[codeQueryParam].errors}
+					groupClassName="gap-2 sm:gap-3"
+					showSeparator={false}
+					slotClassName="bg-card text-foreground h-11 w-11 rounded-full text-base font-semibold shadow-none sm:h-14 sm:w-14 sm:text-lg"
+				/>
+				<input {...getInputProps(fields[typeQueryParam], { type: 'hidden' })} />
+				<input
+					{...getInputProps(fields[targetQueryParam], { type: 'hidden' })}
+				/>
+				<input
+					{...getInputProps(fields[redirectToQueryParam], {
+						type: 'hidden',
+					})}
+				/>
+				<StatusButton
+					size="lg"
+					variant="brand"
+					className="w-full"
+					status={isPending ? 'pending' : (form.status ?? 'idle')}
+					type="submit"
+					disabled={isPending}
+				>
+					<span className="inline-flex items-center gap-3">
+						Continue
+						<Icon name="arrow-right" size="sm" aria-hidden="true" />
+					</span>
+				</StatusButton>
+			</Form>
+		</AuthPage>
 	)
 }
 

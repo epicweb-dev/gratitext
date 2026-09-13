@@ -7,7 +7,10 @@ import {
 	type MetaFunction,
 	useLoaderData,
 } from 'react-router'
-import { GeneralErrorBoundary } from '#app/components/error-boundary.js'
+import {
+	ErrorMessage,
+	GeneralErrorBoundary,
+} from '#app/components/error-boundary.js'
 import { ButtonLink } from '#app/components/ui/button.tsx'
 import { Icon } from '#app/components/ui/icon.js'
 import { SimpleTooltip } from '#app/components/ui/tooltip.js'
@@ -88,90 +91,97 @@ export default function RecipientRoute() {
 		firstLinkRef.current?.focus()
 	}, [data.recipient.id])
 
+	const hasBadges = data.optedOut || !data.recipient.verified
+
 	return (
-		<div className="grid gap-8 lg:grid-cols-[320px_1fr] lg:gap-10">
-			<aside className="space-y-6">
-				<div className="flex items-center justify-between">
-					<Link
-						to="/recipients"
-						className="text-foreground hover:text-foreground sm:text-muted-foreground inline-flex items-center gap-2 text-base font-semibold transition sm:text-xs sm:font-semibold sm:tracking-[0.2em] sm:uppercase"
-						ref={firstLinkRef}
-					>
-						<Icon name="arrow-left" size="sm" />
-						<span className="sm:hidden">{data.recipient.name}</span>
-						<span className="hidden sm:inline">All Recipients</span>
-					</Link>
-					<ButtonLink
-						variant="secondary"
-						size="pill"
-						to="edit"
-						className="gap-2 sm:hidden"
-					>
-						<Icon name="settings">Settings</Icon>
-					</ButtonLink>
-				</div>
-				<div className="hidden flex-wrap items-start justify-between gap-4 sm:flex">
-					<div>
-						<h2 className="text-foreground text-2xl font-bold sm:text-3xl">
+		<div className="flex flex-col gap-6 lg:grid lg:grid-cols-[300px_1fr] lg:items-start lg:gap-10">
+			<aside className="flex flex-col gap-5 lg:sticky lg:top-28">
+				<Link
+					to="/recipients"
+					className="text-muted-foreground hover:text-foreground inline-flex w-fit items-center gap-2 text-sm font-semibold transition-colors"
+					ref={firstLinkRef}
+				>
+					<Icon name="arrow-left" size="sm" aria-hidden="true" />
+					All recipients
+				</Link>
+				<div className="flex flex-wrap items-start justify-between gap-3">
+					<div className="min-w-0">
+						<h1 className="text-foreground font-serif text-3xl font-semibold break-words sm:text-4xl">
 							{data.recipient.name}
-						</h2>
-						<div className="text-muted-foreground mt-2 flex flex-wrap items-center gap-2 text-xs font-semibold tracking-[0.2em] uppercase">
-							{data.optedOut ? (
-								<span className="bg-destructive/10 text-foreground-destructive rounded-full px-3 py-1">
-									Opted out
-								</span>
-							) : null}
-							{data.recipient.verified ? null : (
-								<Link
-									preventScrollReset
-									to="edit"
-									className="border-destructive/40 text-foreground-destructive rounded-full border px-3 py-1"
-								>
-									Unverified
-								</Link>
-							)}
-						</div>
+						</h1>
+						{hasBadges ? (
+							<div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-semibold tracking-[0.15em] uppercase">
+								{data.optedOut ? (
+									<SimpleTooltip content="This person replied STOP. Messages will not be sent until they reply START.">
+										<span className="bg-destructive/10 text-foreground-destructive rounded-full px-3 py-1">
+											Opted out
+										</span>
+									</SimpleTooltip>
+								) : null}
+								{data.recipient.verified ? null : (
+									<Link
+										preventScrollReset
+										to="edit"
+										className="border-destructive/40 text-foreground-destructive hover:bg-destructive/10 rounded-full border px-3 py-1 transition-colors"
+									>
+										Unverified · Fix
+									</Link>
+								)}
+							</div>
+						) : null}
 					</div>
 					<ButtonLink
 						variant="secondary"
-						size="pill"
+						size="sm"
 						to="edit"
 						className="gap-2"
+						aria-label={`Edit ${data.recipient.name}`}
 					>
-						<Icon name="settings">Settings</Icon>
+						<Icon name="settings" size="sm" aria-hidden="true" />
+						Edit
 					</ButtonLink>
 				</div>
-				<div className="hidden space-y-3 sm:block">
+				<dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
 					<div className="border-border bg-card flex items-center gap-3 rounded-2xl border px-4 py-3 shadow-sm">
 						<span className="bg-muted text-muted-foreground rounded-xl p-2">
-							<Icon name="phone" size="sm" />
+							<Icon name="phone" size="sm" aria-hidden="true" />
 						</span>
-						<span className="text-foreground text-sm font-medium">
-							{data.recipient.phoneNumber}
-						</span>
-					</div>
-					<SimpleTooltip
-						content={
-							data.cronError
-								? `Cron error: ${data.cronError}`
-								: 'Next send time'
-						}
-					>
-						<div
-							className={cn(
-								'border-border bg-card text-foreground flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-medium shadow-sm',
-								data.cronError && 'text-foreground-destructive',
-							)}
-						>
-							<span className="bg-muted text-muted-foreground rounded-xl p-2">
-								<Icon name="clock" size="sm" />
-							</span>
-							<span>{data.formattedNextSendTime}</span>
+						<div className="min-w-0">
+							<dt className="text-muted-foreground text-[0.7rem] font-semibold tracking-[0.15em] uppercase">
+								Phone
+							</dt>
+							<dd className="text-foreground truncate text-sm font-medium">
+								{data.recipient.phoneNumber}
+							</dd>
 						</div>
-					</SimpleTooltip>
-				</div>
+					</div>
+					<div
+						className={cn(
+							'border-border bg-card flex items-center gap-3 rounded-2xl border px-4 py-3 shadow-sm',
+							data.cronError && 'border-destructive/40',
+						)}
+					>
+						<span className="bg-muted text-muted-foreground rounded-xl p-2">
+							<Icon name="clock" size="sm" aria-hidden="true" />
+						</span>
+						<div className="min-w-0">
+							<dt className="text-muted-foreground text-[0.7rem] font-semibold tracking-[0.15em] uppercase">
+								{data.cronError ? 'Schedule issue' : 'Next send'}
+							</dt>
+							<dd
+								className={cn(
+									'text-foreground truncate text-sm font-medium',
+									data.cronError && 'text-foreground-destructive',
+								)}
+								title={data.cronError ?? undefined}
+							>
+								{data.formattedNextSendTime}
+							</dd>
+						</div>
+					</div>
+				</dl>
 			</aside>
-			<section className="bg-card min-w-0 px-0 py-4 sm:px-6 sm:py-8">
+			<section className="border-border bg-card min-w-0 rounded-[28px] border p-4 shadow-sm sm:p-6 lg:p-8">
 				<Outlet />
 			</section>
 		</div>
@@ -182,9 +192,18 @@ export function ErrorBoundary() {
 	return (
 		<GeneralErrorBoundary
 			statusHandlers={{
-				403: () => <p>You are not allowed to do that</p>,
+				403: () => (
+					<ErrorMessage
+						eyebrow="Error 403"
+						title="You are not allowed to do that"
+					/>
+				),
 				404: ({ params }) => (
-					<p>No recipient with the id "{params.recipientId}" exists</p>
+					<ErrorMessage
+						eyebrow="Error 404"
+						title="Recipient not found"
+						description={`No recipient with the id "${params.recipientId}" exists.`}
+					/>
 				),
 			}}
 		/>

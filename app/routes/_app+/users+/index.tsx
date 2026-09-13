@@ -65,12 +65,14 @@ export default function UsersRoute() {
 	}
 
 	return (
-		<div className="container mt-36 mb-48 flex flex-col items-center justify-center gap-6">
-			<h1 className="text-h1">GratiText Users</h1>
+		<div className="container flex flex-col items-center gap-6 pt-10 pb-20">
+			<h1 className="text-foreground font-serif text-3xl font-semibold sm:text-4xl">
+				GratiText Users
+			</h1>
 			<div className="w-full max-w-[700px]">
 				<SearchBar status={data.status} autoFocus autoSubmit />
 			</div>
-			<main>
+			<main className="w-full">
 				{data.status === 'idle' ? (
 					data.users.length ? (
 						<ul
@@ -83,15 +85,15 @@ export default function UsersRoute() {
 								<li key={user.id}>
 									<Link
 										to={user.username}
-										className="bg-muted flex h-36 w-44 flex-col items-center justify-center rounded-lg px-5 py-3"
+										className="border-border bg-card hover:bg-muted flex h-32 w-44 flex-col items-center justify-center gap-1 rounded-[24px] border px-5 py-3 shadow-sm transition-colors"
 									>
 										{user.name ? (
-											<span className="text-body-md w-full overflow-hidden text-center text-ellipsis whitespace-nowrap">
+											<span className="text-foreground w-full overflow-hidden text-center font-semibold text-ellipsis whitespace-nowrap">
 												{user.name}
 											</span>
 										) : null}
-										<span className="text-body-sm text-muted-foreground w-full overflow-hidden text-center text-ellipsis">
-											{user.username}
+										<span className="text-muted-foreground w-full overflow-hidden text-center text-sm text-ellipsis">
+											@{user.username}
 										</span>
 									</Link>
 								</li>

@@ -2,6 +2,7 @@ import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu'
 import * as React from 'react'
 
 import { cn } from '#app/utils/misc.tsx'
+import { Icon } from './icon.tsx'
 
 const DropdownMenu = DropdownMenuPrimitive.Root
 
@@ -31,7 +32,12 @@ const DropdownMenuSubTrigger = React.forwardRef<
 		{...props}
 	>
 		{children}
-		<span className="ml-auto h-4 w-4">▶️</span>
+		<Icon
+			name="chevron-right"
+			size="sm"
+			className="ml-auto"
+			aria-hidden="true"
+		/>
 	</DropdownMenuPrimitive.SubTrigger>
 ))
 DropdownMenuSubTrigger.displayName =
@@ -62,7 +68,7 @@ const DropdownMenuContent = React.forwardRef<
 			ref={ref}
 			sideOffset={sideOffset}
 			className={cn(
-				'bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 min-w-[8rem] overflow-hidden rounded-md border p-1 shadow-md',
+				'bg-popover text-popover-foreground border-border data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 min-w-[10rem] overflow-hidden rounded-2xl border p-1.5 shadow-lg',
 				className,
 			)}
 			{...props}
@@ -80,7 +86,7 @@ const DropdownMenuItem = React.forwardRef<
 	<DropdownMenuPrimitive.Item
 		ref={ref}
 		className={cn(
-			'focus:bg-accent focus:text-accent-foreground relative flex items-center rounded-sm px-2 py-1.5 text-sm transition-colors outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+			'focus:bg-accent focus:text-accent-foreground relative flex cursor-pointer items-center rounded-xl px-3 py-2 text-sm font-medium transition-colors outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
 			inset && 'pl-8',
 			className,
 		)}
@@ -104,16 +110,7 @@ const DropdownMenuCheckboxItem = React.forwardRef<
 	>
 		<span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
 			<DropdownMenuPrimitive.ItemIndicator>
-				<span className="h-4 w-4">
-					<svg viewBox="0 0 8 8">
-						<path
-							d="M1,4 L3,6 L7,2"
-							stroke="black"
-							strokeWidth="1"
-							fill="none"
-						/>
-					</svg>
-				</span>
+				<Icon name="check" size="sm" aria-hidden="true" />
 			</DropdownMenuPrimitive.ItemIndicator>
 		</span>
 		{children}
@@ -136,7 +133,10 @@ const DropdownMenuRadioItem = React.forwardRef<
 	>
 		<span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
 			<DropdownMenuPrimitive.ItemIndicator>
-				<span className="h-2 w-2">⚪</span>
+				<span
+					className="block h-2 w-2 rounded-full bg-current"
+					aria-hidden="true"
+				/>
 			</DropdownMenuPrimitive.ItemIndicator>
 		</span>
 		{children}

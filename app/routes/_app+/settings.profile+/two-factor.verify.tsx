@@ -14,6 +14,7 @@ import {
 } from 'react-router'
 import { z } from 'zod'
 import { ErrorList, OTPField } from '#app/components/forms.tsx'
+import { SettingsCard } from '#app/components/settings-card.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { isCodeValid } from '#app/routes/_app+/_auth+/verify.server.ts'
@@ -148,32 +149,55 @@ export default function TwoFactorRoute() {
 	const lastSubmissionIntent = fields.intent.value
 
 	return (
-		<div>
-			<div className="flex flex-col items-center gap-4">
-				<img alt="qr code" src={data.qrCode} className="h-56 w-56" />
-				<p>Scan this QR code with your authenticator app.</p>
-				<p className="text-sm">
-					If you cannot scan the QR code, you can manually add this account to
-					your authenticator app using this code:
-				</p>
-				<div className="p-3">
-					<pre
-						className="text-sm break-all whitespace-pre-wrap"
-						aria-label="One-time Password URI"
-					>
-						{data.otpUri}
-					</pre>
-				</div>
-				<p className="text-sm">
-					Once you've added the account, enter the code from your authenticator
-					app below. Once you enable 2FA, you will need to enter a code from
-					your authenticator app every time you log in or perform important
-					actions. Do not lose access to your authenticator app, or you will
-					lose access to your account.
-				</p>
-				<div className="flex w-full max-w-xs flex-col justify-center gap-4">
-					<Form method="POST" {...getFormProps(form)} className="flex-1">
-						<div className="flex items-center justify-center">
+		<SettingsCard
+			title="Set up your authenticator app"
+			description="Follow these steps to finish enabling two-factor authentication."
+		>
+			<ol className="flex flex-col gap-8">
+				<li className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
+					<StepNumber n={1} />
+					<div className="flex flex-1 flex-col gap-4">
+						<div>
+							<h2 className="text-foreground font-semibold">
+								Scan this QR code with your authenticator app
+							</h2>
+							<p className="text-muted-foreground mt-1 text-sm">
+								Any TOTP app works, such as 1Password, Google Authenticator, or
+								Authy.
+							</p>
+						</div>
+						<img
+							alt="QR code for your authenticator app"
+							src={data.qrCode}
+							className="border-border h-48 w-48 rounded-2xl border bg-white p-2"
+						/>
+						<div>
+							<p className="text-muted-foreground text-sm">
+								Can't scan it? Add the account manually with this setup key:
+							</p>
+							<pre
+								className="bg-muted text-muted-foreground mt-2 rounded-2xl px-4 py-3 font-mono text-xs break-all whitespace-pre-wrap"
+								aria-label="One-time Password URI"
+							>
+								{data.otpUri}
+							</pre>
+						</div>
+					</div>
+				</li>
+				<li className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-6">
+					<StepNumber n={2} />
+					<div className="flex flex-1 flex-col gap-4">
+						<div>
+							<h2 className="text-foreground font-semibold">
+								Enter the 6-digit code from the app
+							</h2>
+							<p className="text-muted-foreground mt-1 text-sm">
+								After this, you will need a code from your authenticator app
+								every time you log in. Do not lose access to it, or you will
+								lose access to your account.
+							</p>
+						</div>
+						<Form method="POST" {...getFormProps(form)}>
 							<OTPField
 								type="digits"
 								labelProps={{
@@ -187,49 +211,55 @@ export default function TwoFactorRoute() {
 								}}
 								errors={fields.code.errors}
 							/>
-						</div>
-
-						<div className="min-h-[32px] px-4 pt-1 pb-3">
 							<ErrorList id={form.errorId} errors={form.errors} />
-						</div>
+							<div className="mt-4 flex flex-col-reverse gap-3 sm:flex-row sm:justify-start">
+								<StatusButton
+									variant="secondary"
+									status={
+										pendingIntent === 'cancel'
+											? 'pending'
+											: lastSubmissionIntent === 'cancel'
+												? (form.status ?? 'idle')
+												: 'idle'
+									}
+									type="submit"
+									name="intent"
+									value="cancel"
+									disabled={isPending}
+								>
+									Cancel
+								</StatusButton>
+								<StatusButton
+									variant="brand"
+									status={
+										pendingIntent === 'verify'
+											? 'pending'
+											: lastSubmissionIntent === 'verify'
+												? (form.status ?? 'idle')
+												: 'idle'
+									}
+									type="submit"
+									name="intent"
+									value="verify"
+								>
+									Submit
+								</StatusButton>
+							</div>
+						</Form>
+					</div>
+				</li>
+			</ol>
+		</SettingsCard>
+	)
+}
 
-						<div className="flex justify-between gap-4">
-							<StatusButton
-								className="w-full"
-								status={
-									pendingIntent === 'verify'
-										? 'pending'
-										: lastSubmissionIntent === 'verify'
-											? (form.status ?? 'idle')
-											: 'idle'
-								}
-								type="submit"
-								name="intent"
-								value="verify"
-							>
-								Submit
-							</StatusButton>
-							<StatusButton
-								className="w-full"
-								variant="secondary"
-								status={
-									pendingIntent === 'cancel'
-										? 'pending'
-										: lastSubmissionIntent === 'cancel'
-											? (form.status ?? 'idle')
-											: 'idle'
-								}
-								type="submit"
-								name="intent"
-								value="cancel"
-								disabled={isPending}
-							>
-								Cancel
-							</StatusButton>
-						</div>
-					</Form>
-				</div>
-			</div>
-		</div>
+function StepNumber({ n }: { n: number }) {
+	return (
+		<span
+			aria-hidden="true"
+			className="bg-brand text-brand-foreground flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold"
+		>
+			{n}
+		</span>
 	)
 }

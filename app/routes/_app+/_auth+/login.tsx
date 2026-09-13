@@ -12,9 +12,9 @@ import {
 } from 'react-router'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
+import { AuthPage } from '#app/components/auth-page.tsx'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { CheckboxField, ErrorList, Field } from '#app/components/forms.tsx'
-import { Spacer } from '#app/components/spacer.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { login, requireAnonymous } from '#app/utils/auth.server.ts'
 import { checkHoneypot } from '#app/utils/honeypot.server.ts'
@@ -96,85 +96,76 @@ export default function LoginPage() {
 		shouldRevalidate: 'onBlur',
 	})
 
+	const signupTo = redirectTo
+		? `/signup?redirectTo=${encodeURIComponent(redirectTo)}`
+		: '/signup'
+
 	return (
-		<div className="container flex flex-col items-center justify-center pt-20 pb-32">
-			<div className="text-center">
-				<p className="text-muted-foreground text-xs font-semibold tracking-[0.3em] uppercase">
-					GratiText
+		<AuthPage
+			title="Welcome back"
+			description="Log in to keep the gratitude flowing."
+			footer={
+				<p>
+					New here? <Link to={signupTo}>Create an account</Link>
 				</p>
-				<h1 className="text-h1 mt-3">Stay Close, Even When Apart</h1>
-				<p className="text-body-md text-muted-foreground mt-3">
-					Please enter your account details.
-				</p>
-			</div>
-			<Spacer size="xs" />
-			<div className="border-border bg-card mt-8 w-full max-w-lg rounded-[32px] border px-6 py-8 shadow-sm">
-				<Form method="POST" {...getFormProps(form)} className="space-y-6">
-					<HoneypotInputs />
-					<Field
-						labelProps={{ children: 'Username' }}
-						inputProps={{
-							...getInputProps(fields.username, { type: 'text' }),
-							autoFocus: true,
-							autoComplete: 'username',
+			}
+		>
+			<Form method="POST" {...getFormProps(form)} className="space-y-6">
+				<HoneypotInputs />
+				<Field
+					labelProps={{ children: 'Username' }}
+					inputProps={{
+						...getInputProps(fields.username, { type: 'text' }),
+						autoFocus: true,
+						autoComplete: 'username',
+					}}
+					errors={fields.username.errors}
+				/>
+
+				<Field
+					labelProps={{ children: 'Password' }}
+					inputProps={{
+						...getInputProps(fields.password, {
+							type: 'password',
+						}),
+						autoComplete: 'current-password',
+					}}
+					errors={fields.password.errors}
+				/>
+
+				<div className="flex flex-wrap items-center justify-between gap-3">
+					<CheckboxField
+						labelProps={{
+							htmlFor: fields.remember.id,
+							children: 'Remember me',
 						}}
-						errors={fields.username.errors}
+						buttonProps={getInputProps(fields.remember, {
+							type: 'checkbox',
+						})}
+						errors={fields.remember.errors}
 					/>
-
-					<Field
-						labelProps={{ children: 'Password' }}
-						inputProps={{
-							...getInputProps(fields.password, {
-								type: 'password',
-							}),
-							autoComplete: 'current-password',
-						}}
-						errors={fields.password.errors}
-					/>
-
-					<div className="flex flex-wrap items-center justify-between gap-3">
-						<CheckboxField
-							labelProps={{
-								htmlFor: fields.remember.id,
-								children: 'Remember me',
-							}}
-							buttonProps={getInputProps(fields.remember, {
-								type: 'checkbox',
-							})}
-							errors={fields.remember.errors}
-						/>
-						<Link to="/forgot-password" className="text-body-xs font-semibold">
-							Forgot password?
-						</Link>
-					</div>
-
-					<input {...getInputProps(fields.redirectTo, { type: 'hidden' })} />
-					<ErrorList errors={form.errors} id={form.errorId} />
-
-					<StatusButton
-						variant="brand"
-						className="w-full"
-						status={isPending ? 'pending' : (form.status ?? 'idle')}
-						type="submit"
-						disabled={isPending}
-					>
-						Log in
-					</StatusButton>
-				</Form>
-				<div className="flex items-center justify-center gap-2 pt-6">
-					<span className="text-muted-foreground">New here?</span>
 					<Link
-						to={
-							redirectTo
-								? `/signup?${encodeURIComponent(redirectTo)}`
-								: '/signup'
-						}
+						to="/forgot-password"
+						className="text-foreground text-sm font-semibold underline-offset-4 hover:underline"
 					>
-						Create an account
+						Forgot password?
 					</Link>
 				</div>
-			</div>
-		</div>
+
+				<input {...getInputProps(fields.redirectTo, { type: 'hidden' })} />
+				<ErrorList errors={form.errors} id={form.errorId} />
+
+				<StatusButton
+					variant="brand"
+					className="w-full"
+					status={isPending ? 'pending' : (form.status ?? 'idle')}
+					type="submit"
+					disabled={isPending}
+				>
+					Log in
+				</StatusButton>
+			</Form>
+		</AuthPage>
 	)
 }
 

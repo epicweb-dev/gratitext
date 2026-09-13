@@ -3,7 +3,6 @@ import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4'
 import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import {
 	Form,
-	Link,
 	data as json,
 	type ActionFunctionArgs,
 	type LoaderFunctionArgs,
@@ -11,7 +10,8 @@ import {
 } from 'react-router'
 import { z } from 'zod'
 import { ErrorList, Field } from '#app/components/forms.tsx'
-import { Button } from '#app/components/ui/button.tsx'
+import { SettingsCard } from '#app/components/settings-card.tsx'
+import { ButtonLink } from '#app/components/ui/button.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import {
@@ -26,7 +26,7 @@ import { PasswordSchema } from '#app/utils/user-validation.ts'
 import { type BreadcrumbHandle } from './_layout.tsx'
 
 export const handle: BreadcrumbHandle & SEOHandle = {
-	breadcrumb: <Icon name="dots-horizontal">Password</Icon>,
+	breadcrumb: <Icon name="password">Password</Icon>,
 	getSitemapEntries: () => null,
 }
 
@@ -123,19 +123,12 @@ export default function ChangePasswordRoute() {
 	})
 
 	return (
-		<div className="container flex min-h-full items-center justify-center pt-16 pb-24">
-			<Form
-				method="POST"
-				{...getFormProps(form)}
-				className="border-border bg-card w-full max-w-lg rounded-[32px] border px-6 py-8 shadow-sm"
-			>
-				<h1 className="text-foreground text-2xl font-bold">
-					Change Your Password
-				</h1>
-				<p className="text-muted-foreground mt-2 text-sm">
-					Update your password to keep your account secure.
-				</p>
-				<div className="mt-6 space-y-6">
+		<SettingsCard
+			title="Change your password"
+			description="Choose something long and unique. You will stay signed in on this device."
+		>
+			<Form method="POST" {...getFormProps(form)}>
+				<div className="space-y-6">
 					<Field
 						labelProps={{ children: 'Current Password' }}
 						inputProps={{
@@ -163,20 +156,20 @@ export default function ChangePasswordRoute() {
 						errors={fields.confirmNewPassword.errors}
 					/>
 					<ErrorList id={form.errorId} errors={form.errors} />
-					<div className="grid w-full grid-cols-2 gap-6">
-						<Button variant="secondary" asChild>
-							<Link to="..">Cancel</Link>
-						</Button>
+					<div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+						<ButtonLink variant="secondary" to="..">
+							Cancel
+						</ButtonLink>
 						<StatusButton
 							type="submit"
 							status={isPending ? 'pending' : (form.status ?? 'idle')}
 							variant="brand"
 						>
-							Save
+							Save password
 						</StatusButton>
 					</div>
 				</div>
 			</Form>
-		</div>
+		</SettingsCard>
 	)
 }

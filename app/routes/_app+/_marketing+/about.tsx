@@ -1,7 +1,15 @@
 import { Link, type MetaFunction } from 'react-router'
+import { ProsePage, ProseSection } from '#app/components/prose-page.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 
-export const meta: MetaFunction = () => [{ title: 'About | GratiText' }]
+export const meta: MetaFunction = () => [
+	{ title: 'About | GratiText' },
+	{
+		name: 'description',
+		content:
+			'Why gratitude matters, and how GratiText helps you build a habit of thanking the people you love.',
+	},
+]
 
 const gratitudeBenefits = [
 	{
@@ -50,106 +58,86 @@ const faqItems = [
 
 export default function AboutRoute() {
 	return (
-		<main className="bg-background pb-16">
-			<section className="container pt-10">
-				<Link
-					to="/"
-					className="text-body-xs text-muted-foreground inline-flex items-center gap-2"
-				>
-					<Icon name="arrow-left" size="sm" />
-					Back Home
-				</Link>
-				<div className="mx-auto mt-6 max-w-2xl space-y-4 text-center">
-					<h1 className="text-h3 text-foreground md:text-h2 leading-tight">
-						Create and Nurture Lasting Bonds With Your Loved Ones
-					</h1>
-					<p className="text-body-sm text-muted-foreground">
-						GratiText helps you express gratitude with thoughtful messages to
-						the people who matter most. Learn why gratitude matters and how the
-						app makes it easier to build the habit.
-					</p>
-				</div>
-			</section>
-
-			<section className="container mt-12" aria-labelledby="gratitude-benefits">
-				<div className="max-w-3xl space-y-4">
-					<h2 id="gratitude-benefits" className="text-h4 md:text-h3">
-						Why Should You Practice Gratitude?
-					</h2>
-					<p className="text-body-sm text-muted-foreground">
-						Practicing gratitude and thanking others offers numerous benefits
-						for both the individual and those around them. Here are some key
-						reasons why it is beneficial:
-					</p>
-					<ol className="text-body-sm text-muted-foreground space-y-5">
-						{gratitudeBenefits.map((benefit, index) => (
-							<li key={benefit.title} className="leading-relaxed">
-								<span className="text-foreground font-semibold">
-									{index + 1}. {benefit.title}:{' '}
-								</span>
-								{benefit.description}
-							</li>
-						))}
-					</ol>
-				</div>
-			</section>
-
-			<section className="container mt-12" aria-labelledby="gratitude-faq">
-				<div className="max-w-3xl space-y-6">
-					<h2 id="gratitude-faq" className="text-h4 md:text-h3">
-						Frequently Asked Questions
-					</h2>
-					<div className="border-border bg-muted rounded-[28px] border p-4 shadow-sm sm:p-6">
-						<div className="space-y-4">
-							{faqItems.map((item) => (
-								<details
-									key={item.question}
-									open={item.defaultOpen}
-									className="border-border bg-card rounded-2xl border px-5 py-4 shadow-sm"
-								>
-									<summary className="text-body-sm text-foreground flex cursor-pointer list-none items-center justify-between gap-4 font-semibold">
-										<span>{item.question}</span>
-										<Icon
-											name="chevron-down"
-											size="sm"
-											className="text-muted-foreground"
-										/>
-									</summary>
-									<div className="text-body-xs text-muted-foreground mt-3 space-y-3">
-										<p className="leading-relaxed">{item.answer}</p>
-										{item.details ? (
-											<ol className="list-decimal space-y-2 pl-4">
-												{item.details.map((detail) => (
-													<li key={detail} className="leading-relaxed">
-														{detail}
-													</li>
-												))}
-											</ol>
-										) : null}
-									</div>
-								</details>
-							))}
-						</div>
-					</div>
-				</div>
-			</section>
-
-			<section className="container mt-12 pb-8">
-				<div className="text-center">
-					<p className="text-body-xs text-muted-foreground">
-						Have Questions/Need to Report an Issue?
-					</p>
-					<p className="text-body-sm text-foreground">
-						Contact us at{' '}
-						<a
-							className="font-semibold underline"
-							href="mailto:support@gratitext.app"
+		<ProsePage
+			eyebrow="About GratiText"
+			title="Create and nurture lasting bonds with the people you love"
+			intro="GratiText helps you express gratitude with thoughtful messages to the people who matter most. Here is why gratitude matters, and how the app makes the habit stick."
+		>
+			<ProseSection id="why-gratitude" title="Why practice gratitude?">
+				<p>
+					Practicing gratitude and thanking others offers real benefits, both
+					for you and for the people around you.
+				</p>
+				<ol className="mt-4 grid gap-4 sm:grid-cols-3">
+					{gratitudeBenefits.map((benefit, index) => (
+						<li
+							key={benefit.title}
+							className="border-border bg-card flex flex-col gap-2 rounded-[24px] border p-5 shadow-sm"
 						>
-							support@gratitext.app
-						</a>
-					</p>
+							<span className="bg-brand text-brand-foreground flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold">
+								{index + 1}
+							</span>
+							<h3 className="text-foreground font-semibold">{benefit.title}</h3>
+							<p className="text-sm leading-relaxed">{benefit.description}</p>
+						</li>
+					))}
+				</ol>
+			</ProseSection>
+
+			<ProseSection id="how-it-works" title="How GratiText fits in">
+				<p>
+					You write short notes of thanks for each person, in your own words.
+					GratiText keeps them in a queue and texts one out on the schedule you
+					pick, so your appreciation shows up reliably even on the busiest
+					weeks.
+				</p>
+				<p>
+					<Link to="/#how-it-works">See how it works</Link> or{' '}
+					<Link to="/signup">start your free trial</Link>.
+				</p>
+			</ProseSection>
+
+			<ProseSection id="faq" title="Frequently asked questions">
+				<div className="space-y-3">
+					{faqItems.map((item) => (
+						<details
+							key={item.question}
+							open={item.defaultOpen}
+							className="group border-border bg-card rounded-2xl border px-5 py-4 shadow-sm"
+						>
+							<summary className="text-foreground flex cursor-pointer list-none items-center justify-between gap-4 font-semibold">
+								<span>{item.question}</span>
+								<Icon
+									name="chevron-down"
+									size="sm"
+									aria-hidden="true"
+									className="text-muted-foreground shrink-0 transition-transform group-open:rotate-180"
+								/>
+							</summary>
+							<div className="mt-3 space-y-3 text-sm">
+								<p className="leading-relaxed">{item.answer}</p>
+								{item.details ? (
+									<ol className="list-decimal space-y-2 pl-5">
+										{item.details.map((detail) => (
+											<li key={detail} className="leading-relaxed">
+												{detail}
+											</li>
+										))}
+									</ol>
+								) : null}
+							</div>
+						</details>
+					))}
 				</div>
-			</section>
-		</main>
+			</ProseSection>
+
+			<ProseSection id="contact" title="Questions or feedback?">
+				<p>
+					Visit the <Link to="/support">support page</Link> or email us at{' '}
+					<a href="mailto:support@gratitext.app">support@gratitext.app</a>. We
+					read every message.
+				</p>
+			</ProseSection>
+		</ProsePage>
 	)
 }
