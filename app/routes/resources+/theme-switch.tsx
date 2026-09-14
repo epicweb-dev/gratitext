@@ -40,10 +40,15 @@ export async function action({ request }: ActionFunctionArgs) {
 	return json({ result: submission.reply() }, responseInit)
 }
 
+/**
+ * Round outline toggle from the design's navigation: a moon while the page is
+ * light (switch to dark), a sun while it is dark (switch to light).
+ */
 export function ThemeSwitch({
-	userPreference,
+	className,
 }: {
 	userPreference?: Theme | null
+	className?: string
 }) {
 	const fetcher = useFetcher<typeof action>()
 
@@ -52,33 +57,30 @@ export function ThemeSwitch({
 		lastResult: fetcher.data?.result,
 	})
 
-	const optimisticMode = useOptimisticThemeMode()
-	const mode = optimisticMode ?? userPreference ?? 'system'
-	const nextMode =
-		mode === 'system' ? 'light' : mode === 'light' ? 'dark' : 'system'
-	const modeMeta = {
-		light: { icon: 'sun', label: 'Light' },
-		dark: { icon: 'moon', label: 'Dark' },
-		system: { icon: 'laptop', label: 'System' },
-	} as const
-	const current = modeMeta[mode]
-	const next = modeMeta[nextMode]
-	const description = `Theme: ${current.label}. Switch to ${next.label.toLowerCase()} theme`
+	const theme = useTheme()
+	const nextMode: Theme = theme === 'dark' ? 'light' : 'dark'
+	const description =
+		theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
 
 	return (
 		<fetcher.Form
 			method="POST"
 			{...getFormProps(form)}
 			action="/resources/theme-switch"
+			className={className}
 		>
 			<input type="hidden" name="theme" value={nextMode} />
 			<button
 				type="submit"
 				title={description}
 				aria-label={description}
-				className="border-border bg-card text-foreground hover:bg-muted focus-visible:ring-ring inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border shadow-sm transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+				className="border-input bg-card text-card-foreground hover:bg-muted/60 focus-visible:ring-ring inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
 			>
-				<Icon name={current.icon} size="sm" aria-hidden="true" />
+				<Icon
+					name={theme === 'dark' ? 'sun' : 'moon'}
+					size="sm"
+					aria-hidden="true"
+				/>
 			</button>
 		</fetcher.Form>
 	)

@@ -1,352 +1,397 @@
-import { Link, type MetaFunction } from 'react-router'
+import { Form, Link, type MetaFunction } from 'react-router'
+import { FlowerSticker } from '#app/components/marketing/sticker.tsx'
+import { WaveEdge } from '#app/components/marketing/wave.tsx'
 import { Button } from '#app/components/ui/button.js'
-import { Icon, type IconName } from '#app/components/ui/icon.tsx'
+import { Icon } from '#app/components/ui/icon.tsx'
+import { inputClassName } from '#app/components/ui/input.tsx'
+import { cn } from '#app/utils/misc.tsx'
 import { useOptionalUser } from '#app/utils/user.js'
 
 export const meta: MetaFunction = () => [
-	{ title: 'GratiText | Thoughtful gratitude texts, on your schedule' },
+	{ title: 'GratiText | Thoughtful Connections Made Simple' },
 ]
 
-const steps: Array<{ title: string; description: string; icon: IconName }> = [
+const steps = [
 	{
-		title: 'Create your account',
+		title: 'Sign Up',
 		description:
-			'Sign up with your phone number. Your first 14 days are free, no credit card needed.',
-		icon: 'avatar',
+			'Create an account and start sending thoughtful messages to your loved ones.',
 	},
 	{
-		title: 'Add a loved one',
-		description:
-			'Enter the name and phone number of someone you want to stay close to.',
-		icon: 'phone',
+		title: 'Add a Loved One',
+		description: 'Add the phone number of your loved one to get started.',
 	},
 	{
-		title: 'Pick a schedule',
-		description:
-			'Choose the day and time your notes should arrive, in their time zone.',
-		icon: 'clock',
+		title: 'Select a Schedule',
+		description: 'Choose how often you want to send messages.',
 	},
 	{
-		title: 'Write in your own words',
-		description:
-			'Queue up personal notes of thanks whenever inspiration strikes.',
-		icon: 'pencil-1',
+		title: 'Write a Personal Message',
+		description: 'Craft meaningful messages that will be sent to your loved ones.',
 	},
 	{
-		title: 'We deliver on time',
+		title: 'Message Sent',
 		description:
-			'Each note is texted automatically at the moment you scheduled it.',
-		icon: 'send',
+			'Our system sends your messages to your loved ones automatically on the schedule.',
 	},
 	{
-		title: 'Never run dry',
+		title: 'Reminders',
 		description:
-			'We remind you when a recipient has no message waiting, so no send date is missed.',
-		icon: 'exclamation-circle-outline',
+			'We remind you when a loved one has no message waiting, so no send date is missed.',
 	},
 ]
 
 const plans = [
 	{
 		name: 'Basic',
-		price: '$4.99',
-		cadence: 'per month',
-		summary: 'One heartfelt note a day.',
-		features: [
-			'1 message per day',
-			'As many recipients as you like',
-			'Reminders when a queue runs empty',
-		],
-		priceClassName: 'text-price-basic',
-		variant: 'secondary' as const,
+		summary: '1 message per day',
+		dollars: '4',
+		cents: '99',
+		featured: false,
 	},
 	{
 		name: 'Premium',
-		price: '$14.99',
-		cadence: 'per month',
-		summary: 'Room for the whole family and your closest friends.',
-		features: [
-			'Up to 10 messages per day',
-			'As many recipients as you like',
-			'Reminders when a queue runs empty',
-		],
-		priceClassName: 'text-price-premium',
-		variant: 'default' as const,
-		highlighted: true,
+		summary: '10 messages per day',
+		dollars: '14',
+		cents: '99',
+		featured: true,
+	},
+]
+
+const smileys = [
+	{
+		src: '/images/smiley-pink.png',
+		className: 'top-2 left-[14%] w-14 md:top-6 md:left-[22%] md:w-[6.25rem]',
+	},
+	{
+		src: '/images/smiley-lilac.png',
+		className: 'top-0 right-[10%] w-11 md:-top-1 md:right-[26%] md:w-20',
+	},
+	{
+		src: '/images/smiley-blue.png',
+		className: 'top-12 left-0 w-14 md:top-40 md:left-[9%] md:w-24',
+	},
+	{
+		src: '/images/smiley-orange.png',
+		className: 'top-2 right-0 w-14 md:top-32 md:right-[7%] md:w-24',
 	},
 ]
 
 export default function Index() {
 	const user = useOptionalUser()
-	const primaryCta = user
-		? { to: '/recipients', label: 'Open your recipients' }
-		: { to: '/signup', label: 'Start your 14-day free trial' }
-	const planCta = user ? '/settings/profile/subscription' : '/signup'
+	const getStartedTo = user ? '/recipients' : '/signup'
+	const planTo = user ? '/settings/profile/subscription' : '/signup'
 	return (
-		<main className="bg-background pt-8 pb-20 md:pt-14">
-			<section className="container grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16">
-				<div className="space-y-6 text-center lg:text-left">
-					<p className="text-brand text-xs font-semibold tracking-[0.3em] uppercase">
-						Gratitude, delivered by text
-					</p>
-					<h1 className="text-foreground font-serif text-4xl leading-[1.1] font-semibold text-balance sm:text-5xl lg:text-6xl">
-						Thoughtful connections, made simple
-					</h1>
-					<p className="text-muted-foreground mx-auto max-w-xl text-lg leading-relaxed text-pretty lg:mx-0">
-						Write heartfelt notes to the people you love and GratiText texts
-						them on the schedule you choose. Your words, in your voice, arriving
-						right on time.
-					</p>
-					<div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start">
+		<main className="overflow-x-clip">
+			<section
+				aria-labelledby="hero-heading"
+				className="bg-hero relative pt-6 pb-24 md:pt-20 md:pb-36"
+			>
+				<div className="container grid items-center gap-8 md:grid-cols-[1fr_1.05fr] md:gap-12">
+					<div className="order-2 text-center md:order-1 md:text-left">
+						<h1
+							id="hero-heading"
+							className="font-display text-foreground text-[2.625rem] leading-[1.08] md:text-h1"
+						>
+							Thoughtful
+							<br />
+							Connections
+							<br />
+							Made Simple
+						</h1>
+						<p className="text-muted-foreground mx-auto mt-5 max-w-md text-base leading-relaxed md:mx-0 md:mt-6 md:max-w-sm md:text-[0.9375rem]">
+							Strengthen your relationships with regular personalized messages
+							of love and gratitude.
+						</p>
 						<Button
 							asChild
-							size="lg"
 							variant="warm"
-							className="w-full sm:w-auto"
-						>
-							<Link to={primaryCta.to}>{primaryCta.label}</Link>
-						</Button>
-						<Button
-							asChild
 							size="lg"
-							variant="ghost"
-							className="w-full sm:w-auto"
+							className="mt-7 w-full md:mt-8 md:w-auto md:px-9"
 						>
-							<a href="#how-it-works">
-								See how it works
-								<Icon name="arrow-right" size="sm" aria-hidden="true" />
-							</a>
+							<Link to={getStartedTo}>
+								<span className="md:hidden">Start 14-day FREE trial</span>
+								<span className="hidden md:inline">Get started</span>
+							</Link>
 						</Button>
 					</div>
-					{user ? null : (
-						<p className="text-muted-foreground text-sm">
-							No credit card required. Cancel anytime.
-						</p>
-					)}
-				</div>
-				<div className="flex justify-center">
-					<div className="relative w-full max-w-xs sm:max-w-sm">
-						<div className="bg-hero-orb absolute top-1/2 left-1/2 h-[260px] w-[260px] -translate-x-1/2 -translate-y-1/2 rounded-full sm:h-[320px] sm:w-[320px]" />
-						<Icon
-							name="star"
-							size="lg"
-							aria-hidden="true"
-							className="text-hero-sparkle absolute -top-4 -left-3 z-20"
-						/>
-						<Icon
-							name="star"
-							size="md"
-							aria-hidden="true"
-							className="text-hero-sparkle absolute top-8 -left-8 z-20"
-						/>
-						<div className="bg-hero-sparkle absolute -bottom-4 -left-4 z-20 h-12 w-12 rounded-[22px] shadow-sm" />
-						<div className="bg-brand text-brand-foreground absolute top-1/2 -right-5 z-20 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full shadow-lg">
-							<Icon name="message" size="sm" aria-hidden="true" />
-						</div>
+					<div className="order-1 flex justify-center md:order-2 md:justify-end">
 						<img
-							src="/images/smiling-phone-flowers.jpg"
-							alt="Smiling person holding flowers and reading a text message"
-							width={2560}
-							height={2560}
+							src="/images/hero-illustration.webp"
+							alt="Smiling woman holding a bouquet while reading a text, surrounded by stars, a tulip and a heart"
+							width={1254}
+							height={1234}
 							fetchPriority="high"
-							className="relative z-10 aspect-square w-full rounded-[36px] object-cover shadow-lg"
+							className="w-full max-w-[19rem] md:max-w-[36rem]"
 						/>
-						<p className="text-muted-secondary-foreground mt-3 text-center text-xs">
-							Photo by{' '}
-							<a
-								className="underline"
-								href="https://unsplash.com/@goodfacesagency?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
-							>
-								Good Faces
-							</a>{' '}
-							on{' '}
-							<a
-								className="underline"
-								href="https://unsplash.com/photos/a-woman-walking-down-the-street-looking-at-her-cell-phone-58xYWBSr0aQ?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
-							>
-								Unsplash
-							</a>
-						</p>
 					</div>
 				</div>
 			</section>
 
-			<section className="container mt-16 md:mt-24" aria-labelledby="own-words">
-				<div className="bg-marketing-feature text-marketing-feature-foreground relative overflow-hidden rounded-[40px] px-6 py-12 shadow-sm md:px-12 md:py-16">
-					<div className="bg-marketing-feature-accent absolute -top-6 -left-6 hidden h-20 w-20 rounded-full opacity-80 md:block" />
-					<div className="bg-marketing-feature-accent-secondary absolute right-10 -bottom-6 hidden h-24 w-24 rounded-[32px] opacity-70 md:block" />
-					<div className="mx-auto max-w-3xl text-center">
-						<p className="text-marketing-feature-muted text-xs font-semibold tracking-[0.3em] uppercase">
-							Your voice, not a robot's
-						</p>
-						<h2
-							id="own-words"
-							className="mt-3 font-serif text-3xl font-semibold text-balance md:text-4xl"
-						>
-							Every message is written by you. Never by AI.
-						</h2>
-						<p className="text-marketing-feature-muted mx-auto mt-4 max-w-2xl text-base leading-relaxed text-pretty md:text-lg">
-							GratiText handles the scheduling and delivery so you can stay
-							connected without losing what makes your notes special: they come
-							from you.
-						</p>
-					</div>
+			<section
+				aria-labelledby="own-words-heading"
+				className="bg-feature text-feature-foreground relative mt-6 pt-20 pb-32 md:mt-10 md:pt-28 md:pb-40"
+			>
+				<WaveEdge edge="top" className="text-feature" />
+				<WaveEdge edge="bottom" className="text-feature" />
+				<FlowerSticker
+					lobes={7}
+					rotate={-12}
+					className="absolute -top-16 left-[7%] z-10 w-[9.5rem] md:-top-24 md:left-[13%] md:w-[15rem]"
+					shapeClassName="fill-card drop-shadow-[0_6px_12px_rgba(24,36,48,0.06)]"
+				>
+					<span className="text-palette-green-500 text-[1.1rem] md:text-[1.75rem]">
+						you are all
+					</span>
+					<span className="text-palette-blues text-[1.1rem] md:text-[1.75rem]">
+						kinds of
+					</span>
+					<span className="text-palette-rose-pink text-[1.1rem] md:text-[1.75rem]">
+						awesome
+					</span>
+				</FlowerSticker>
+				<FlowerSticker
+					lobes={6}
+					rotate={-8}
+					className="absolute right-[6%] -bottom-24 z-10 w-[8.5rem] md:right-[11%] md:-bottom-24 md:w-[14rem]"
+					shapeClassName="fill-palette-dust-pink dark:fill-palette-chestnut"
+				>
+					<span className="text-palette-chestnut dark:text-palette-dust-pink text-[1.35rem] md:text-[2.1rem]">
+						create
+						<br />
+						smiles
+					</span>
+				</FlowerSticker>
+				<div className="container relative text-center">
+					<h2
+						id="own-words-heading"
+						className="font-display mx-auto max-w-2xl text-[2rem] leading-[1.15] md:text-h2"
+					>
+						Messages written
+						<br />
+						by you… Not by AI.
+					</h2>
+					<p className="mx-auto mt-6 max-w-md text-base leading-relaxed md:max-w-lg md:text-[0.9375rem]">
+						Our platform schedules and delivers personal heartfelt messages
+						from you, making it easy to stay connected and nurture your most
+						important relationships.
+					</p>
 				</div>
 			</section>
 
 			<section
 				id="how-it-works"
-				className="container scroll-mt-24 py-16 md:py-24"
 				aria-labelledby="how-it-works-heading"
+				className="bg-background relative scroll-mt-24 pt-28 pb-28 md:pt-40 md:pb-44"
 			>
-				<div className="mx-auto max-w-2xl text-center">
-					<p className="text-muted-foreground text-xs font-semibold tracking-[0.3em] uppercase">
-						How it works
-					</p>
-					<h2
-						id="how-it-works-heading"
-						className="text-foreground mt-3 font-serif text-3xl font-semibold text-balance md:text-4xl"
+				<div className="container relative">
+					<img
+						src="/images/paper-plane.png"
+						alt=""
+						width={397}
+						height={184}
+						className="pointer-events-none absolute top-24 right-0 hidden w-[15rem] lg:block"
+					/>
+					<svg
+						aria-hidden="true"
+						viewBox="0 0 1200 760"
+						fill="none"
+						className="text-palette-beige dark:text-muted pointer-events-none absolute top-40 -left-[10%] hidden w-[120%] lg:block"
 					>
-						Six small steps to a lasting habit
-					</h2>
-					<p className="text-muted-foreground mt-4 text-base text-pretty">
-						Whether it is a simple thank you or a meaningful reminder of your
-						affection, GratiText helps you make a lasting impact on the people
-						you care about.
-					</p>
-				</div>
-				<ol className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-					{steps.map((step, index) => (
-						<li
-							key={step.title}
-							className="border-border bg-card flex flex-col gap-4 rounded-[28px] border p-6 shadow-sm"
+						<path
+							d="M1085 30C990 150 900 240 790 300C680 360 620 440 660 510C700 580 780 520 740 440C700 360 560 380 480 480C400 580 300 700 60 745"
+							stroke="currentColor"
+							strokeWidth="2.5"
+							strokeDasharray="12 10"
+							strokeLinecap="round"
+						/>
+					</svg>
+					<div className="relative mx-auto max-w-2xl text-center">
+						<h2
+							id="how-it-works-heading"
+							className="font-display text-foreground text-[2rem] leading-[1.15] md:text-h2"
 						>
-							<div className="flex items-center justify-between">
-								<span className="bg-accent text-accent-foreground flex h-11 w-11 items-center justify-center rounded-2xl">
-									<Icon name={step.icon} size="md" aria-hidden="true" />
-								</span>
-								<span className="text-marketing-step-index font-serif text-2xl font-semibold">
+							How does
+							<br />
+							gratitext work?
+						</h2>
+						<p className="text-muted-foreground mx-auto mt-5 max-w-xs text-base leading-relaxed md:max-w-lg md:text-[0.9375rem]">
+							Whether it's a simple thank you or a meaningful reminder of your
+							affection, GratiText helps you make a lasting impact on the
+							people you care about.
+						</p>
+					</div>
+					<ol className="relative mt-16 grid gap-14 md:mt-28 md:grid-cols-3 md:gap-x-10 md:gap-y-20">
+						{steps.map((step, index) => (
+							<li
+								key={step.title}
+								className={cn(
+									'mx-auto flex max-w-[17rem] flex-col items-center text-center',
+									index % 3 === 1 && 'md:-mt-24',
+								)}
+							>
+								<span className="font-display text-accent text-[2.75rem] leading-none md:text-[3.25rem]">
 									{String(index + 1).padStart(2, '0')}
 								</span>
-							</div>
-							<div>
-								<h3 className="text-foreground text-lg font-bold">
+								<h3 className="font-display text-foreground mt-4 text-[1.375rem] leading-[1.15] md:text-[1.75rem]">
 									{step.title}
 								</h3>
-								<p className="text-muted-foreground mt-1.5 text-sm leading-relaxed">
+								<p className="text-muted-foreground mt-2.5 text-[0.9375rem] leading-relaxed md:text-sm">
 									{step.description}
 								</p>
-							</div>
-						</li>
-					))}
-				</ol>
+							</li>
+						))}
+					</ol>
+				</div>
 			</section>
 
 			<section
 				id="pricing"
-				className="bg-muted scroll-mt-24 py-16 md:py-24"
 				aria-labelledby="pricing-heading"
+				className="bg-pricing relative scroll-mt-24 pt-14 pb-16 md:pt-24 md:pb-24"
 			>
+				<WaveEdge edge="top" className="text-pricing" />
 				<div className="container">
-					<div className="mx-auto max-w-2xl text-center">
-						<p className="text-muted-foreground text-xs font-semibold tracking-[0.3em] uppercase">
-							Pricing
-						</p>
-						<h2
-							id="pricing-heading"
-							className="text-foreground mt-3 font-serif text-3xl font-semibold text-balance md:text-4xl"
-						>
-							Simple plans, 14 days free
-						</h2>
-						<p className="text-muted-foreground mt-4 text-base text-pretty">
-							Pick the plan that matches how many people you want to reach.
-							Every plan starts with a free two-week trial.
-						</p>
-					</div>
-					<div className="mx-auto mt-10 grid max-w-4xl gap-6 md:grid-cols-2">
-						{plans.map((plan) => (
-							<div
-								key={plan.name}
-								className={
-									plan.highlighted
-										? 'border-brand bg-card relative flex flex-col rounded-[28px] border-2 p-6 shadow-md md:p-8'
-										: 'border-border bg-card flex flex-col rounded-[28px] border p-6 shadow-sm md:p-8'
-								}
-							>
-								{plan.highlighted ? (
-									<span className="bg-brand text-brand-foreground absolute -top-3 left-6 rounded-full px-3 py-1 text-xs font-semibold tracking-wide uppercase">
-										Most popular
-									</span>
-								) : null}
-								<div className="flex items-start justify-between gap-4">
-									<div>
-										<h3 className="text-foreground text-xl font-bold">
-											{plan.name}
-										</h3>
-										<p className="text-muted-foreground mt-1 text-sm">
-											{plan.summary}
-										</p>
-									</div>
-									<div className="text-right">
-										<p
-											className={`${plan.priceClassName} text-3xl font-bold tracking-tight`}
-										>
-											{plan.price}
-										</p>
-										<p className="text-muted-foreground text-xs">
-											{plan.cadence}
-										</p>
-									</div>
-								</div>
-								<ul className="mt-6 space-y-2.5">
-									{plan.features.map((feature) => (
-										<li
-											key={feature}
-											className="text-foreground flex items-center gap-2.5 text-sm"
-										>
-											<span className="bg-accent text-accent-foreground flex h-5 w-5 shrink-0 items-center justify-center rounded-full">
-												<Icon name="check" size="xs" aria-hidden="true" />
-											</span>
-											{feature}
-										</li>
-									))}
-								</ul>
-								<div className="mt-8">
-									<Button asChild variant={plan.variant} className="w-full">
-										<Link to={planCta}>
-											{user ? `Choose ${plan.name}` : 'Start free trial'}
-										</Link>
-									</Button>
-								</div>
-							</div>
+					<div className="relative mx-auto max-w-4xl">
+						{smileys.map((smiley) => (
+							<img
+								key={smiley.src}
+								src={smiley.src}
+								alt=""
+								className={cn(
+									'pointer-events-none absolute select-none',
+									smiley.className,
+								)}
+							/>
 						))}
+						<div className="relative mx-auto max-w-xl pt-8 text-center md:pt-4">
+							<h2
+								id="pricing-heading"
+								className="font-display text-foreground text-[2rem] leading-[1.15] md:text-h2"
+							>
+								Affordable
+								<br />
+								pricing plans
+							</h2>
+							<p className="text-muted-foreground mx-auto mt-5 max-w-xs text-base leading-relaxed md:max-w-lg md:text-[0.9375rem]">
+								Whether it's a simple thank you or a meaningful reminder of
+								your affection, GratiText helps you make a lasting impact on
+								the people you care about.
+							</p>
+						</div>
 					</div>
+					<ul className="mx-auto mt-10 grid max-w-[68rem] gap-4 md:mt-16 md:gap-3">
+						{plans.map((plan) => (
+							<li
+								key={plan.name}
+								className={cn(
+									'grid grid-cols-2 items-center gap-x-4 gap-y-3 px-5 py-5 md:grid-cols-[1fr_1.3fr_0.9fr_auto] md:items-center md:gap-6 md:px-12 md:py-6',
+									plan.featured
+										? 'bg-card text-card-foreground rounded-[1.75rem] shadow-[0_18px_40px_-24px_rgba(24,36,48,0.25)] md:rounded-[2rem]'
+										: 'text-foreground',
+								)}
+							>
+								<h3 className="font-display text-[1.375rem] leading-none md:text-[1.625rem]">
+									{plan.name}
+								</h3>
+								<p
+									className={cn(
+										'col-start-1 row-start-2 text-sm md:col-start-2 md:row-start-1 md:text-[0.9375rem]',
+										plan.featured ? 'text-card-foreground' : 'text-foreground',
+									)}
+								>
+									{plan.summary}
+								</p>
+								<p className="col-start-2 row-start-1 flex items-start justify-end leading-none md:col-start-3 md:justify-start">
+									<span className="font-display text-base md:text-lg">
+										$
+									</span>
+									<span className="font-display text-[1.75rem] md:text-[2.25rem]">
+										{plan.dollars}
+									</span>
+									<span className="font-display ml-0.5 text-sm md:text-base">
+										{plan.cents}
+									</span>
+								</p>
+								<Button
+									asChild
+									variant={plan.featured ? 'brand' : 'outline'}
+									className="col-span-2 mt-2 w-full md:col-span-1 md:col-start-4 md:mt-0 md:w-auto md:px-8"
+								>
+									<Link to={planTo}>Get started</Link>
+								</Button>
+							</li>
+						))}
+					</ul>
 				</div>
 			</section>
 
-			<section
-				className="container py-16 md:py-24"
-				aria-labelledby="cta-heading"
-			>
-				<div className="bg-marketing-cta text-marketing-cta-foreground rounded-[32px] px-6 py-12 md:px-12">
-					<div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
-						<div className="max-w-2xl space-y-3">
-							<p className="text-marketing-cta-accent text-xs font-semibold tracking-[0.3em] uppercase">
-								Ready when you are
-							</p>
+			<section aria-labelledby="cta-heading" className="bg-pricing pb-14 md:pb-16">
+				<div className="container">
+					<div className="bg-cta text-cta-foreground relative isolate overflow-hidden rounded-[1.75rem] px-6 py-24 md:min-h-[30rem] md:rounded-[2rem] md:px-12 md:py-28">
+						<img
+							src="/images/cta-sun.png"
+							alt=""
+							className="pointer-events-none absolute top-0 -left-6 w-[9.5rem] md:left-[5%] md:w-[13rem]"
+						/>
+						<img
+							src="/images/cta-flower.png"
+							alt=""
+							className="pointer-events-none absolute right-[4%] -bottom-14 w-[10rem] md:top-[8%] md:right-[3%] md:bottom-auto md:w-[14.5rem]"
+						/>
+						<img
+							src="/images/cta-heart.png"
+							alt=""
+							className="pointer-events-none absolute -bottom-4 -left-6 w-[8rem] md:bottom-0 md:left-[3%] md:w-[13rem]"
+						/>
+						<img
+							src="/images/cta-leaves.png"
+							alt=""
+							className="pointer-events-none absolute right-0 -bottom-6 hidden w-[15rem] md:block md:w-[27rem]"
+						/>
+						<div className="relative mx-auto max-w-2xl text-center">
 							<h2
 								id="cta-heading"
-								className="font-serif text-3xl font-semibold text-balance md:text-4xl"
+								className="font-display text-[1.875rem] leading-[1.15] md:text-[2.25rem]"
 							>
-								Send your first note of thanks today.
+								Create your account today and
+								<br className="hidden md:block" /> get 2 weeks for free!
 							</h2>
-							<p className="text-marketing-cta-accent text-base">
-								Your first 14 days are on us. No credit card required.
-							</p>
+							<Form
+								method="GET"
+								action="/signup"
+								className="relative mx-auto mt-8 max-w-[26rem]"
+							>
+								<label htmlFor="cta-phone" className="sr-only">
+									Your Phone Number
+								</label>
+								<input
+									id="cta-phone"
+									name="phoneNumber"
+									type="tel"
+									autoComplete="tel"
+									placeholder="Your Phone Number"
+									className={cn(
+										inputClassName,
+										'bg-inverse text-foreground dark:bg-card h-14 border-transparent pr-16 md:h-[3.75rem] md:pr-36',
+									)}
+								/>
+								<Button
+									type="submit"
+									variant="brand"
+									className="absolute top-1/2 right-2 h-10 w-10 -translate-y-1/2 px-0 md:h-11 md:w-auto md:px-6"
+								>
+									<span className="hidden md:inline">Get Started</span>
+									<Icon
+										name="arrow-right"
+										size="sm"
+										aria-hidden="true"
+										className="md:hidden"
+									/>
+									<span className="sr-only md:hidden">Get Started</span>
+								</Button>
+							</Form>
 						</div>
-						<Button asChild size="lg" variant="warm" className="shrink-0">
-							<Link to={primaryCta.to}>{primaryCta.label}</Link>
-						</Button>
 					</div>
 				</div>
 			</section>
