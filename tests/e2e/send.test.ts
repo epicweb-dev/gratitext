@@ -41,7 +41,7 @@ test('Users can write and send a message immediately', async ({
 	await messageTextbox.fill(textMessageContent)
 	await expect(messageTextbox).toHaveValue(textMessageContent)
 
-	await page.getByRole('button', { name: /^add$/i }).click()
+	await page.getByRole('button', { name: /^add( to queue)?$/i }).click()
 	const scheduledMessageTextbox = page
 		.getByRole('textbox', { name: /message content/i })
 		.first()

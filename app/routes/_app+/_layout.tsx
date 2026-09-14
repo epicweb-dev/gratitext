@@ -92,10 +92,14 @@ export default function Layout() {
 	// so the header and footer follow the page colour.
 	const pageTint = handles.find((handle) => handle.pageTint)?.pageTint
 	const minimalChrome = handles.some((handle) => handle.chrome === 'minimal')
+	// Chat-style pages fill the viewport and scroll internally, so the footer
+	// is dropped and the height is pinned instead of allowed to grow.
+	const fillViewport = handles.some((handle) => handle.layout === 'fill')
 	return (
 		<div
 			className={cn(
-				'text-foreground flex min-h-screen flex-col',
+				'text-foreground flex flex-col',
+				fillViewport ? 'h-dvh' : 'min-h-screen',
 				pageTint === 'hero'
 					? 'bg-hero md:bg-background'
 					: pageTint === 'surface'
@@ -109,7 +113,7 @@ export default function Layout() {
 			>
 				Skip to content
 			</a>
-			<header className="border-border relative z-40 border-b">
+			<header className="border-border relative z-40 shrink-0 border-b">
 				<div className="container flex h-[4.5rem] items-center justify-between gap-4 md:h-[5.5rem]">
 					<Wordmark />
 					<div className="hidden items-center gap-3 md:flex">
@@ -142,59 +146,65 @@ export default function Layout() {
 					</div>
 				</div>
 			</header>
-			<div id="main-content" className="flex flex-1 flex-col">
+			<div id="main-content" className="flex min-h-0 flex-1 flex-col">
 				<Outlet />
 			</div>
-			<footer className="mt-auto">
-				<div className="container flex flex-col items-center gap-6 py-10 text-center md:flex-row md:items-center md:justify-between md:text-left">
-					<div className="flex flex-col items-center gap-6 md:flex-row md:gap-10">
-						<Wordmark className="text-xl" />
-						<nav aria-label="Footer">
-							<ul className="flex flex-col items-center gap-5 text-sm font-semibold md:flex-row md:gap-8">
-								<li>
-									<a
-										href={`mailto:${supportEmail}`}
-										className="text-foreground hover:text-brand transition-colors"
-									>
-										Contact
-									</a>
-								</li>
-								<li>
-									<Link
-										to="/about"
-										prefetch="intent"
-										className="text-foreground hover:text-brand transition-colors"
-									>
-										About
-									</Link>
-								</li>
-							</ul>
-						</nav>
-					</div>
-					<ul className="text-muted-foreground flex flex-col items-center gap-5 text-sm md:flex-row md:gap-8">
-						<li>All Rights Reserved</li>
-						<li>
-							<Link
-								to="/tos"
-								prefetch="intent"
-								className="hover:text-foreground transition-colors"
-							>
-								Terms and Conditions
-							</Link>
-						</li>
-						<li>
-							<Link
-								to="/privacy"
-								prefetch="intent"
-								className="hover:text-foreground transition-colors"
-							>
-								Privacy Policy
-							</Link>
-						</li>
-					</ul>
-				</div>
-			</footer>
+			{fillViewport ? null : <Footer />}
 		</div>
+	)
+}
+
+function Footer() {
+	return (
+		<footer className="mt-auto">
+			<div className="container flex flex-col items-center gap-6 py-10 text-center md:flex-row md:items-center md:justify-between md:text-left">
+				<div className="flex flex-col items-center gap-6 md:flex-row md:gap-10">
+					<Wordmark className="text-xl" />
+					<nav aria-label="Footer">
+						<ul className="flex flex-col items-center gap-5 text-sm font-semibold md:flex-row md:gap-8">
+							<li>
+								<a
+									href={`mailto:${supportEmail}`}
+									className="text-foreground hover:text-brand transition-colors"
+								>
+									Contact
+								</a>
+							</li>
+							<li>
+								<Link
+									to="/about"
+									prefetch="intent"
+									className="text-foreground hover:text-brand transition-colors"
+								>
+									About
+								</Link>
+							</li>
+						</ul>
+					</nav>
+				</div>
+				<ul className="text-muted-foreground flex flex-col items-center gap-5 text-sm md:flex-row md:gap-8">
+					<li>All Rights Reserved</li>
+					<li>
+						<Link
+							to="/tos"
+							prefetch="intent"
+							className="hover:text-foreground transition-colors"
+						>
+							Terms and Conditions
+						</Link>
+					</li>
+					<li>
+						<Link
+							to="/privacy"
+							prefetch="intent"
+							className="hover:text-foreground transition-colors"
+						>
+							Privacy Policy
+						</Link>
+					</li>
+				</ul>
+			</div>
+		</footer>
 	)
 }
 

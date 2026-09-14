@@ -2,6 +2,7 @@ import { getFormProps, getTextareaProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4'
 import { invariantResponse } from '@epic-web/invariant'
 import {
+	type ReactNode,
 	useCallback,
 	useEffect,
 	useLayoutEffect,
@@ -24,25 +25,22 @@ import {
 	GeneralErrorBoundary,
 } from '#app/components/error-boundary.tsx'
 import { ErrorList } from '#app/components/forms.js'
-import { SearchBar } from '#app/components/search-bar.tsx'
 import { Button } from '#app/components/ui/button.tsx'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
-	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '#app/components/ui/dropdown-menu.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.js'
 import { requireUserId } from '#app/utils/auth.server.ts'
 import { getHints } from '#app/utils/client-hints.js'
-import {
-	CronParseError,
-	formatSendTime,
-	getSendTime,
-} from '#app/utils/cron.server.js'
+import { CronParseError, getSendTime } from '#app/utils/cron.server.js'
 import { prisma } from '#app/utils/db.server.ts'
+import { formatThreadDate, formatThreadTime } from '#app/utils/format-date.ts'
+import { cn } from '#app/utils/misc.tsx'
+import { getSubscriptionTier } from '#app/utils/stripe.server.ts'
 import { sendTextToRecipient } from '#app/utils/text.server.js'
 import { createToastHeaders } from '#app/utils/toast.server.js'
 
@@ -50,6 +48,8 @@ type LoaderData = Awaited<ReturnType<typeof loader>>['data']
 type FutureMessage = LoaderData['futureMessages'][number]
 
 const PAST_MESSAGES_PER_PAGE = 30
+/** Mirrors the per-day send allowance enforced in `sendTextToRecipient`. */
+const DAILY_SEND_LIMIT = { none: 0, basic: 1, premium: 10 } as const
 
 function parseDateValue(value: string) {
 	if (!value) return null
@@ -161,9 +161,31 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 		throw new Response('Not found', { status: 404 })
 	}
 
-	const optOut = await prisma.optOut.findUnique({
-		where: { phoneNumber: recipient.phoneNumber },
-	})
+	const [optOut, user] = await Promise.all([
+		prisma.optOut.findUnique({
+			where: { phoneNumber: recipient.phoneNumber },
+		}),
+		prisma.user.findUniqueOrThrow({
+			where: { id: userId },
+			select: { stripeId: true },
+		}),
+	])
+	const subscriptionTier = await getSubscriptionTier(user.stripeId)
+	const dailyLimit = DAILY_SEND_LIMIT[subscriptionTier]
+	const sentInLastDay = dailyLimit
+		? await prisma.message.count({
+				where: {
+					recipient: { userId },
+					sentAt: { gte: new Date(Date.now() - 1000 * 60 * 60 * 23) },
+				},
+			})
+		: 0
+	const sendNow: { disabled: boolean; reason: string | null } =
+		subscriptionTier === 'none'
+			? { disabled: true, reason: 'Subscribe to send messages' }
+			: sentInLastDay >= dailyLimit
+				? { disabled: true, reason: "Today's limit reached" }
+				: { disabled: false, reason: null }
 
 	const startDate = getStartDate(
 		startDateFilter,
@@ -201,10 +223,12 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 		: null
 
 	const { userId: _userId, messages, ...recipientProps } = recipient
+	const displayTimeZone = hints.timeZone || recipient.timeZone
 
 	return json({
 		optedOut: Boolean(optOut),
 		recipient: recipientProps,
+		sendNow,
 		searchQuery,
 		startDateFilter,
 		endDateFilter,
@@ -227,6 +251,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 					earlierOrder: null,
 					laterOrder: null,
 					sendAtDisplay: null as string | null,
+					sendAtTime: null as string | null,
 				}
 				if (optOut) return base
 
@@ -240,15 +265,17 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 					const isLast = i === arr.length - 1
 					const earlierOrder = isFirst ? null : (oneBefore + twoBefore) / 2
 					const laterOrder = isLast ? null : (oneAfter + twoAfter) / 2
-					const sendAtDisplay = formatSendTime(
-						getSendTime(recipient.scheduleCron, { tz: recipient.timeZone }, i),
-						hints.timeZone || recipient.timeZone,
+					const sendAt = getSendTime(
+						recipient.scheduleCron,
+						{ tz: recipient.timeZone },
+						i,
 					)
 					return {
 						...base,
 						earlierOrder,
 						laterOrder,
-						sendAtDisplay,
+						sendAtDisplay: formatThreadDate(sendAt, displayTimeZone),
+						sendAtTime: formatThreadTime(sendAt, displayTimeZone),
 					}
 				} catch (error) {
 					return {
@@ -262,14 +289,8 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 			}),
 		pastMessages: pastPageMessages.map((m) => ({
 			id: m.id,
-			sentAtDisplay: m.sentAt!.toLocaleDateString('en-US', {
-				weekday: 'short',
-				year: 'numeric',
-				month: 'short',
-				day: 'numeric',
-				hour: 'numeric',
-				minute: 'numeric',
-			}),
+			sentAtDisplay: formatThreadDate(m.sentAt!, displayTimeZone),
+			sentAtTime: formatThreadTime(m.sentAt!, displayTimeZone),
 			sentAtIso: m.sentAt!.toISOString(),
 			content: m.content,
 		})),
@@ -450,12 +471,43 @@ async function updateMessageOrderAction({ formData }: MessageActionArgs) {
 	return json({ result: submission.reply() }, { status: 200 })
 }
 
+const bubbleClassName =
+	'flex w-full flex-col gap-3 rounded-[1.25rem] px-5 py-4 text-base leading-relaxed md:max-w-[35rem] md:px-6 md:py-5'
+
+/**
+ * Sizes a textarea to its content without JS: an invisible replica of the
+ * text sits in the same grid cell so the cell (and the textarea) grows with
+ * it. Give the wrapper and the textarea the same font and padding classes.
+ */
+function GrowWrap({
+	value,
+	className,
+	children,
+}: {
+	value: string
+	className?: string
+	children: ReactNode
+}) {
+	return (
+		<div
+			data-value={value}
+			className={cn(
+				"grid min-w-0 *:[grid-area:1/1/2/2] after:invisible after:whitespace-pre-wrap after:content-[attr(data-value)_'_'] after:[grid-area:1/1/2/2]",
+				className,
+			)}
+		>
+			{children}
+		</div>
+	)
+}
+
 export default function RecipientRoute() {
 	const data = useLoaderData<typeof loader>()
 	const newMessageFetcher = useFetcher<typeof action>()
 	const isCreating = newMessageFetcher.state !== 'idle'
 	const newMessageInputRef = useRef<HTMLTextAreaElement | null>(null)
 	const shouldClearMessageInput = useRef(false)
+	const [draft, setDraft] = useState('')
 	const [searchParams] = useSearchParams()
 	const loadMoreFetcher = useFetcher<typeof loader>()
 	const loadMoreData = loadMoreFetcher.data ?? null
@@ -482,6 +534,7 @@ export default function RecipientRoute() {
 		const hasErrors = Boolean(newMessageFetcher.data?.result?.error)
 		if (!hasErrors && newMessageInputRef.current) {
 			newMessageInputRef.current.value = ''
+			setDraft('')
 		}
 		shouldClearMessageInput.current = false
 	}, [newMessageFetcher.state, newMessageFetcher.data])
@@ -578,150 +631,150 @@ export default function RecipientRoute() {
 	const hasPastMessages = pastMessagesForDisplay.length > 0
 	const hasFutureMessages = data.futureMessages.length > 0
 	const hasAnyMessages = hasPastMessages || hasFutureMessages
-	const emptyThreadMessage = isPastFiltered
-		? 'No messages match your search.'
-		: 'No messages yet.'
-	const loadMoreLabel = pastNextCursor
-		? isLoadingMore
-			? 'Loading earlier messages...'
-			: 'Scroll up to load earlier messages.'
-		: 'Beginning of thread.'
+	const hasDraft = draft.trim().length > 0
+	const newMessageErrors = newMessageFetcher.data?.result?.error
+		? (newMessageFetcher.data.result.error.content ??
+			newMessageFetcher.data.result.error[''] ??
+			[])
+		: null
 
 	return (
-		<div className="flex flex-col gap-10">
-			{data.cronError ? (
-				<div className="border-destructive/40 bg-destructive/10 text-foreground-destructive rounded-2xl border p-4 text-sm">
-					<strong className="font-semibold">Invalid Schedule:</strong>{' '}
-					{data.cronError}{' '}
-					<Link to="edit" className="underline">
-						Update the schedule
-					</Link>
-				</div>
-			) : null}
-			<section className="space-y-4">
-				<div className="flex flex-wrap items-end justify-between gap-2">
-					<div>
-						<h2 className="text-foreground text-xl font-bold">Messages</h2>
-						<p className="text-muted-foreground text-sm">
-							{hasFutureMessages
-								? `${data.futureMessages.length} ${data.futureMessages.length === 1 ? 'message' : 'messages'} queued to send${hasPastMessages ? ', with your history above.' : '.'}`
-								: 'Nothing queued yet. Add a note below and it will go out on the next scheduled send.'}
-						</p>
+		<div className="flex min-h-0 flex-1 flex-col">
+			<div
+				ref={setScrollContainer}
+				className="relative flex min-h-0 flex-1 flex-col overflow-y-auto pt-5 md:pt-7"
+			>
+				{data.cronError ? (
+					<div className="border-destructive/40 bg-destructive/10 text-foreground-destructive mb-4 rounded-2xl border p-4 text-sm">
+						<strong className="font-semibold">Invalid schedule:</strong>{' '}
+						{data.cronError}{' '}
+						<Link to="edit" className="underline underline-offset-4">
+							Update the schedule
+						</Link>
 					</div>
-				</div>
-				<SearchBar status="idle" autoSubmit showDateFilter />
+				) : null}
 				{hasAnyMessages ? (
-					<div
-						ref={setScrollContainer}
-						className="thread-gradient border-border max-h-[65vh] overflow-y-auto rounded-[24px] border px-4 py-5 sm:px-5 sm:py-6"
-					>
-						{hasPastMessages || pastNextCursor ? (
-							<div className="text-muted-foreground flex flex-col items-center gap-2 text-xs font-semibold tracking-[0.2em] uppercase">
-								<span aria-live="polite">{loadMoreLabel}</span>
-							</div>
+					<>
+						{pastNextCursor ? (
+							<p
+								aria-live="polite"
+								className="text-subtle-foreground mb-4 text-center text-xs"
+							>
+								{isLoadingMore
+									? 'Loading earlier messages…'
+									: 'Scroll up to load earlier messages'}
+							</p>
 						) : null}
-						<ul className="flex flex-col gap-4 sm:gap-5">
+						<ul className="flex flex-col gap-3 pb-4 md:items-end md:gap-4">
 							{pastMessagesForDisplay.map((m) => (
-								<li key={m.id} className="flex flex-col items-end gap-1">
-									<div className="bg-message-bubble text-message-bubble-foreground max-w-[92%] rounded-[24px] px-4 py-3 text-sm leading-relaxed shadow-sm sm:max-w-[70%] sm:px-5 sm:py-4">
-										<p className="whitespace-pre-wrap">{m.content}</p>
-									</div>
-									<time
-										dateTime={m.sentAtIso}
-										className="text-muted-foreground text-xs font-medium"
-									>
-										{m.sentAtDisplay}
-									</time>
+								<li
+									key={m.id}
+									className={cn(
+										bubbleClassName,
+										'bg-sent text-sent-foreground md:w-fit',
+									)}
+								>
+									<p className="flex items-center gap-3 text-sm">
+										<Icon
+											name="check"
+											size="sm"
+											className="shrink-0"
+											aria-hidden="true"
+										/>
+										<span>
+											Sent on{' '}
+											<time dateTime={m.sentAtIso} title={m.sentAtTime}>
+												{m.sentAtDisplay}
+											</time>
+										</span>
+									</p>
+									<p className="whitespace-pre-wrap">{m.content}</p>
 								</li>
 							))}
 							{data.futureMessages.map((m) => (
-								<MessageForms key={m.id} message={m} />
+								<MessageForms key={m.id} message={m} sendNow={data.sendNow} />
 							))}
 						</ul>
-					</div>
+					</>
 				) : (
-					<div className="thread-gradient border-border flex flex-col items-center gap-3 rounded-[24px] border px-4 py-10 text-center text-sm sm:px-5 sm:py-12">
+					<div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 py-16 text-center">
 						<span className="bg-card text-muted-foreground flex h-12 w-12 items-center justify-center rounded-2xl shadow-sm">
 							<Icon name="message" size="md" aria-hidden="true" />
 						</span>
 						<p className="text-foreground font-semibold">
-							{emptyThreadMessage}
+							{isPastFiltered
+								? 'No messages match your search.'
+								: 'No messages yet.'}
 						</p>
-						{isPastFiltered ? (
-							<p className="text-muted-foreground max-w-sm">
-								Try a different search or clear the filters to see everything.
-							</p>
-						) : (
-							<>
-								<p className="text-muted-foreground max-w-sm">
-									Write a short note of thanks below. It will be sent at the
-									next scheduled time.
-								</p>
-								<Button
-									type="button"
-									variant="secondary"
-									size="sm"
-									onClick={() => newMessageInputRef.current?.focus()}
-								>
-									<Icon name="pencil-1" size="sm">
-										Write your first message
-									</Icon>
-								</Button>
-							</>
-						)}
+						<p className="text-muted-foreground max-w-sm text-sm">
+							{isPastFiltered
+								? 'Try a different search or clear the filters to see everything.'
+								: 'Write a short note of thanks below. It will be sent at the next scheduled time.'}
+						</p>
 					</div>
 				)}
-			</section>
-			<div className="flex flex-col gap-2">
-				<newMessageFetcher.Form
-					method="POST"
-					action="new"
-					className="border-border bg-card focus-within:border-ring focus-within:ring-ring rounded-[28px] border p-2 shadow-sm transition focus-within:ring-2"
-				>
+			</div>
+			<div className="shrink-0 pt-2 pb-4 md:pb-6">
+				<newMessageFetcher.Form method="POST" action="new">
 					<label htmlFor="new-message" className="sr-only">
 						Add a new message
 					</label>
-					<div className="flex items-end gap-2">
-						<textarea
-							id="new-message"
-							name="content"
-							ref={newMessageInputRef}
-							placeholder="Write a note of gratitude…"
-							className="text-foreground placeholder:text-muted-foreground min-h-[48px] flex-1 resize-none bg-transparent px-4 py-3 text-sm leading-relaxed focus-visible:outline-none"
-							rows={1}
-							required
-						/>
+					<div className="bg-field border-border focus-within:border-ring flex items-end gap-2 rounded-[1.75rem] border p-1 pl-3 shadow-[0_8px_24px_-12px_rgba(24,36,48,0.12)] transition-colors md:pl-2">
+						<GrowWrap
+							value={draft}
+							className="flex-1 self-center after:max-h-[12.5rem] after:px-3 after:py-3 after:text-sm after:leading-6"
+						>
+							<textarea
+								id="new-message"
+								name="content"
+								ref={newMessageInputRef}
+								placeholder="Aa"
+								rows={1}
+								required
+								onInput={(event) => setDraft(event.currentTarget.value)}
+								onKeyDown={(event) => {
+									if (
+										event.key === 'Enter' &&
+										!event.shiftKey &&
+										!event.nativeEvent.isComposing
+									) {
+										event.preventDefault()
+										event.currentTarget.form?.requestSubmit()
+									}
+								}}
+								className="text-field-foreground placeholder:text-subtle-foreground max-h-[12.5rem] min-h-12 w-full resize-none overflow-y-auto bg-transparent px-3 py-3 text-sm leading-6 focus-visible:outline-none"
+							/>
+						</GrowWrap>
 						<StatusButton
 							status={isCreating ? 'pending' : 'idle'}
 							type="submit"
 							variant="brand"
-							className="shrink-0 px-6"
+							disabled={!hasDraft || isCreating}
+							className="h-12 shrink-0 gap-2 px-5 text-sm"
 						>
-							<Icon name="send" size="sm">
-								Add
-							</Icon>
+							<Icon name="check" size="sm" aria-hidden="true" />
+							<span className="hidden sm:inline">Add to Queue</span>
+							<span className="sm:hidden">Add</span>
 						</StatusButton>
 					</div>
 				</newMessageFetcher.Form>
-				<p className="text-muted-foreground px-2 text-xs">
-					The newest message goes out first at the next scheduled send. You can
-					edit or send any queued message early from its menu.
-				</p>
-				{newMessageFetcher.data?.result?.error ? (
-					<ErrorList
-						errors={
-							newMessageFetcher.data.result.error.content ??
-							newMessageFetcher.data.result.error[''] ??
-							[]
-						}
-					/>
+				{newMessageErrors ? (
+					<div className="px-4 pt-2">
+						<ErrorList errors={newMessageErrors} />
+					</div>
 				) : null}
 			</div>
 		</div>
 	)
 }
 
-function MessageForms({ message }: { message: FutureMessage }) {
+function MessageForms({
+	message,
+	sendNow,
+}: {
+	message: FutureMessage
+	sendNow: LoaderData['sendNow']
+}) {
 	const updateContentFetcher = useFetcher<typeof updateMessageContentAction>()
 	const sendNowFetcher = useFetcher<typeof action>()
 	const deleteFetcher = useFetcher<typeof action>()
@@ -740,10 +793,16 @@ function MessageForms({ message }: { message: FutureMessage }) {
 		},
 		shouldRevalidate: 'onBlur',
 	})
-	const cardTone = 'bg-message-card'
-	const scheduleLabel = message.sendAtDisplay
-		? `Scheduled for ${message.sendAtDisplay}`
-		: 'Scheduled message'
+	const scheduleLabel = message.sendAtDisplay ? (
+		<>
+			Scheduled for{' '}
+			<time title={message.sendAtTime ?? undefined}>
+				{message.sendAtDisplay}
+			</time>
+		</>
+	) : (
+		'Scheduled message'
+	)
 	const sendErrors = getResultErrors(sendNowFetcher.data?.result)
 	const deleteErrors = getResultErrors(deleteFetcher.data?.result)
 	const updateIsPending = updateContentFetcher.state !== 'idle'
@@ -793,27 +852,37 @@ function MessageForms({ message }: { message: FutureMessage }) {
 		setConfirmDelete(false)
 	}
 
+	const errors = [
+		...(updateContentForm.errors ?? []),
+		...(updateContentFields.content.errors ?? []),
+		...(sendErrors ?? []),
+		...(deleteErrors ?? []),
+	]
+
 	return (
-		<li className="flex flex-col items-end gap-2">
+		<li className="flex w-full flex-col items-end gap-1 md:max-w-[35rem]">
 			<div
-				className={`text-message-card-foreground max-w-[92%] rounded-[24px] px-4 py-3 shadow-sm sm:max-w-[70%] sm:px-5 sm:py-4 ${cardTone}`}
+				className={cn(
+					bubbleClassName,
+					'bg-scheduled text-scheduled-foreground gap-2 pt-2.5 md:pt-3',
+				)}
 			>
-				<div className="text-message-card-foreground flex items-start justify-between gap-3 text-xs font-semibold">
-					<div className="flex min-w-0 items-center gap-2 pt-1.5">
+				<div className="flex items-center justify-between gap-3 text-sm">
+					<p className="flex min-w-0 items-center gap-3 py-1.5">
 						<Icon
 							name="clock"
 							size="sm"
 							className="shrink-0"
 							aria-hidden="true"
 						/>
-						<span className="opacity-90">{scheduleLabel}</span>
-					</div>
-					<div className="flex items-center gap-1">
+						<span>{scheduleLabel}</span>
+					</p>
+					<div className="-mr-3 flex shrink-0 items-center gap-0.5">
 						{showSaveButton ? (
 							<StatusButton
 								form={updateContentForm.id}
 								status={updateIsPending ? 'pending' : 'idle'}
-								className="h-9 w-9 gap-0"
+								className="h-9 w-9 gap-0 text-current"
 								size="icon"
 								variant="ghost-inverse"
 								type="submit"
@@ -833,7 +902,7 @@ function MessageForms({ message }: { message: FutureMessage }) {
 								<Button
 									variant="ghost-inverse"
 									size="icon"
-									className="h-9 w-9"
+									className="h-9 w-9 text-current hover:bg-white/15"
 									aria-label="Message actions"
 								>
 									<Icon name="dots-horizontal" size="sm" />
@@ -841,30 +910,59 @@ function MessageForms({ message }: { message: FutureMessage }) {
 							</DropdownMenuTrigger>
 							<DropdownMenuContent
 								align="end"
-								className="border-border/70 bg-card w-48 rounded-2xl p-2 shadow-lg"
+								sideOffset={2}
+								className="w-64 rounded-[1.25rem] p-2"
 							>
 								<DropdownMenuItem
-									className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold"
-									disabled={sendIsPending}
+									className="gap-3 px-3 py-2.5 text-sm"
+									disabled={sendIsPending || sendNow.disabled}
 									onSelect={handleSendNow}
 								>
-									<Icon name="send" size="sm" />
-									Send Now
+									<Icon
+										name="send"
+										size="sm"
+										className="text-muted-foreground shrink-0"
+										aria-hidden="true"
+									/>
+									<span className="flex flex-col">
+										Send Now
+										{sendNow.reason ? (
+											<span className="text-muted-foreground text-xs font-normal">
+												{sendNow.reason}
+											</span>
+										) : null}
+									</span>
 								</DropdownMenuItem>
 								<DropdownMenuItem
-									className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold"
+									className="gap-3 px-3 py-2.5 text-sm"
 									onSelect={handleEditMessage}
 								>
-									<Icon name="pencil-1" size="sm" />
+									<Icon
+										name="pencil-1"
+										size="sm"
+										className="text-muted-foreground shrink-0"
+										aria-hidden="true"
+									/>
 									Edit Message
 								</DropdownMenuItem>
-								<DropdownMenuSeparator className="bg-border/60" />
 								<DropdownMenuItem
-									className="text-foreground-destructive focus:text-foreground-destructive flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold"
+									className={cn(
+										'gap-3 px-3 py-2.5 text-sm',
+										confirmDelete &&
+											'text-foreground-destructive focus:text-foreground-destructive',
+									)}
 									disabled={deleteIsPending}
 									onSelect={handleDeleteSelect}
 								>
-									<Icon name={confirmDelete ? 'check' : 'trash'} size="sm" />
+									<Icon
+										name={confirmDelete ? 'check' : 'trash'}
+										size="sm"
+										className={cn(
+											'shrink-0',
+											confirmDelete ? '' : 'text-muted-foreground',
+										)}
+										aria-hidden="true"
+									/>
 									{confirmDelete ? 'Confirm delete' : 'Delete'}
 								</DropdownMenuItem>
 							</DropdownMenuContent>
@@ -879,29 +977,27 @@ function MessageForms({ message }: { message: FutureMessage }) {
 					<label htmlFor={updateContentFields.content.id} className="sr-only">
 						Message content
 					</label>
-					<textarea
-						{...textareaProps}
-						onInput={(event) => {
-							setCurrentContent(event.currentTarget.value)
-						}}
-						ref={textareaRef}
-						className="text-message-card-foreground placeholder:text-message-card-foreground/80 focus-visible:ring-message-card-foreground/70 mt-2 w-full resize-none rounded-lg bg-transparent px-1 text-sm leading-relaxed focus-visible:ring-2 focus-visible:outline-none"
-						rows={2}
-					/>
+					<GrowWrap
+						value={currentContent}
+						className="-mx-1 after:px-1 after:text-base after:leading-relaxed"
+					>
+						<textarea
+							{...textareaProps}
+							onInput={(event) => {
+								setCurrentContent(event.currentTarget.value)
+							}}
+							ref={textareaRef}
+							rows={1}
+							className="text-scheduled-foreground placeholder:text-scheduled-foreground/70 focus-visible:ring-scheduled-foreground/60 block w-full resize-none overflow-hidden rounded-lg bg-transparent px-1 text-base leading-relaxed focus-visible:ring-2 focus-visible:outline-none"
+						/>
+					</GrowWrap>
 				</updateContentFetcher.Form>
 			</div>
-			<div className="flex w-full max-w-[75%] flex-col gap-1 self-end empty:hidden sm:max-w-[65%]">
-				<ErrorList
-					id={updateContentForm.errorId}
-					errors={updateContentForm.errors}
-				/>
-				<ErrorList
-					id={updateContentFields.content.errorId}
-					errors={updateContentFields.content.errors}
-				/>
-				<ErrorList errors={sendErrors} />
-				<ErrorList errors={deleteErrors} />
-			</div>
+			{errors.length ? (
+				<div className="px-3">
+					<ErrorList id={updateContentForm.errorId} errors={errors} />
+				</div>
+			) : null}
 		</li>
 	)
 }
