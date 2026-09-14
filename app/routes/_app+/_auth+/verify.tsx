@@ -9,7 +9,11 @@ import {
 } from 'react-router'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
-import { AuthPage } from '#app/components/auth-page.tsx'
+import {
+	AuthActions,
+	AuthPage,
+	authPageHandle,
+} from '#app/components/auth-page.tsx'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { ErrorList, OTPField } from '#app/components/forms.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
@@ -39,6 +43,8 @@ export const VerifySchema = z.object({
 	[redirectToQueryParam]: z.string().optional(),
 })
 
+export const handle = authPageHandle
+
 export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData()
 	await checkHoneypot(formData)
@@ -55,8 +61,8 @@ export default function VerifyRoute() {
 	const type = parseWithZoddType.success ? parseWithZoddType.data : null
 
 	const checkPhoneNumber = {
-		title: 'Check your texts',
-		description: "We've texted you a code to verify your phone number.",
+		title: 'Check Your Texts',
+		description: "We've texted you a code to verify your phone number",
 	}
 
 	const headings: Record<
@@ -67,13 +73,13 @@ export default function VerifyRoute() {
 		'reset-password': checkPhoneNumber,
 		'change-phone-number': checkPhoneNumber,
 		'validate-recipient': {
-			title: 'Ask your recipient for the code',
+			title: 'Ask Your Recipient for the Code',
 			description:
-				"We've texted a verification code to the number you gave us. Let your recipient know what you're up to and ask them to share the code with you.",
+				"We've texted a verification code to the number you gave us. Ask your recipient to share it with you.",
 		},
 		'2fa': {
-			title: 'Check your authenticator app',
-			description: 'Enter the 6-digit code from your 2FA app to continue.',
+			title: 'Check Your Authenticator App',
+			description: 'Enter the 6-digit code from your 2FA app to continue',
 		},
 	}
 	const heading = type
@@ -107,19 +113,12 @@ export default function VerifyRoute() {
 	})
 
 	return (
-		<AuthPage
-			title={heading.title}
-			description={heading.description}
-			footer={
-				<p>
-					{type === '2fa' ? 'Having trouble?' : 'No text after 5 minutes?'}{' '}
-					<Link to={type ? resendRoutes[type] : '.'}>
-						{type === '2fa' ? 'Back to login' : 'Resend the code'}
-					</Link>
-				</p>
-			}
-		>
-			<Form method="POST" {...getFormProps(form)} className="space-y-8">
+		<AuthPage title={heading.title} description={heading.description}>
+			<Form
+				method="POST"
+				{...getFormProps(form)}
+				className="flex flex-1 flex-col"
+			>
 				<HoneypotInputs />
 				<ErrorList errors={form.errors} id={form.errorId} />
 				<OTPField
@@ -134,12 +133,11 @@ export default function VerifyRoute() {
 						...getInputProps(fields[codeQueryParam], { type: 'text' }),
 						autoComplete: 'one-time-code',
 						autoFocus: true,
-						containerClassName: 'justify-center gap-2 sm:gap-3',
+						containerClassName: 'justify-between md:justify-start gap-2 md:gap-3',
 					}}
 					errors={fields[codeQueryParam].errors}
-					groupClassName="gap-2 sm:gap-3"
-					showSeparator={false}
-					slotClassName="bg-card text-foreground h-11 w-11 rounded-full text-base font-semibold shadow-none sm:h-14 sm:w-14 sm:text-lg"
+					groupClassName="gap-2 md:gap-3"
+					slotClassName="h-11 w-11 text-base sm:h-14 sm:w-14 sm:text-lg"
 				/>
 				<input {...getInputProps(fields[typeQueryParam], { type: 'hidden' })} />
 				<input
@@ -150,19 +148,30 @@ export default function VerifyRoute() {
 						type: 'hidden',
 					})}
 				/>
-				<StatusButton
-					size="lg"
-					variant="brand"
-					className="w-full"
-					status={isPending ? 'pending' : (form.status ?? 'idle')}
-					type="submit"
-					disabled={isPending}
+				<AuthActions
+					aside={
+						<p className="text-muted-foreground">
+							{type === '2fa' ? 'Having trouble?' : 'No text after 5 minutes?'}{' '}
+							<Link
+								to={type ? resendRoutes[type] : '.'}
+								className="font-semibold"
+							>
+								{type === '2fa' ? 'Back to login' : 'Resend the Code'}
+							</Link>
+						</p>
+					}
 				>
-					<span className="inline-flex items-center gap-3">
+					<StatusButton
+						size="lg"
+						variant="brand"
+						status={isPending ? 'pending' : (form.status ?? 'idle')}
+						type="submit"
+						disabled={isPending}
+					>
 						Continue
 						<Icon name="arrow-right" size="sm" aria-hidden="true" />
-					</span>
-				</StatusButton>
+					</StatusButton>
+				</AuthActions>
 			</Form>
 		</AuthPage>
 	)

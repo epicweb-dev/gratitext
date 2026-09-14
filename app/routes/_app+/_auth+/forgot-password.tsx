@@ -15,10 +15,20 @@ import {
 } from 'react-router'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
-import { AuthPage } from '#app/components/auth-page.tsx'
+import {
+	AuthActions,
+	AuthPage,
+	authPageHandle,
+} from '#app/components/auth-page.tsx'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { ErrorList, Field, SelectField } from '#app/components/forms.tsx'
+import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
+import {
+	countryCodeLabel,
+	countryCodes,
+	defaultCountryCode,
+} from '#app/utils/country-codes.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { checkHoneypot } from '#app/utils/honeypot.server.ts'
 import { sendText } from '#app/utils/text.server.js'
@@ -30,13 +40,7 @@ const ForgotPasswordSchema = z.object({
 	phoneNumber: PhoneNumberSchema,
 })
 
-const countryCodes = [
-	{ label: 'United States (+1)', value: '+1' },
-	{ label: 'United Kingdom (+44)', value: '+44' },
-	{ label: 'Czech Republic (+420)', value: '+420' },
-	{ label: 'Canada (+1)', value: '+1' },
-	{ label: 'Australia (+61)', value: '+61' },
-]
+export const handle = authPageHandle
 
 function getIdentifier({
 	countryCode,
@@ -130,7 +134,7 @@ export default function ForgotPasswordRoute() {
 	const [form, fields] = useForm({
 		id: 'forgot-password-form',
 		constraint: getZodConstraint(ForgotPasswordSchema),
-		defaultValue: { countryCode: countryCodes[0]?.value ?? '+1' },
+		defaultValue: { countryCode: defaultCountryCode },
 		lastResult: forgotPassword.data?.result,
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: ForgotPasswordSchema })
@@ -140,28 +144,29 @@ export default function ForgotPasswordRoute() {
 
 	return (
 		<AuthPage
-			title="Forgot password?"
-			description="No worries. Enter the phone number on your account and we'll text you a reset code."
+			title="Forgot Password"
+			description="No worries, we'll send you reset instructions"
 			footer={
-				<p>
-					Remembered it? <Link to="/login">Back to login</Link>
-				</p>
+				<Link to="/login">
+					<Icon name="arrow-left" size="sm" aria-hidden="true" />
+					back to login
+				</Link>
 			}
 		>
 			<forgotPassword.Form
 				method="POST"
 				{...getFormProps(form)}
-				className="space-y-6"
+				className="flex flex-1 flex-col"
 			>
 				<HoneypotInputs />
-				<div className="grid gap-4 sm:grid-cols-[200px_1fr]">
+				<div className="grid gap-x-4 md:grid-cols-2">
 					<SelectField
 						labelProps={{ children: 'Country Code' }}
 						selectProps={{
 							...getSelectProps(fields.countryCode),
 							children: countryCodes.map((code) => (
-								<option key={`${code.value}-${code.label}`} value={code.value}>
-									{code.label}
+								<option key={`${code.value}-${code.name}`} value={code.value}>
+									{countryCodeLabel(code)}
 								</option>
 							)),
 						}}
@@ -174,27 +179,30 @@ export default function ForgotPasswordRoute() {
 						}}
 						inputProps={{
 							autoFocus: true,
-							...getInputProps(fields.phoneNumber, {
-								type: 'text',
-							}),
+							...getInputProps(fields.phoneNumber, { type: 'tel' }),
+							autoComplete: 'tel',
+							placeholder: '123 456 7890',
 						}}
 						errors={fields.phoneNumber.errors}
 					/>
 				</div>
 				<ErrorList errors={form.errors} id={form.errorId} />
-				<StatusButton
-					variant="brand"
-					className="w-full"
-					status={
-						forgotPassword.state === 'submitting'
-							? 'pending'
-							: (form.status ?? 'idle')
-					}
-					type="submit"
-					disabled={forgotPassword.state !== 'idle'}
-				>
-					Recover password
-				</StatusButton>
+				<AuthActions>
+					<StatusButton
+						variant="brand"
+						size="lg"
+						status={
+							forgotPassword.state === 'submitting'
+								? 'pending'
+								: (form.status ?? 'idle')
+						}
+						type="submit"
+						disabled={forgotPassword.state !== 'idle'}
+					>
+						Recover Password
+						<Icon name="arrow-right" size="sm" aria-hidden="true" />
+					</StatusButton>
+				</AuthActions>
 			</forgotPassword.Form>
 		</AuthPage>
 	)

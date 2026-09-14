@@ -10,9 +10,14 @@ import {
 	useActionData,
 	useLoaderData,
 } from 'react-router'
-import { AuthPage } from '#app/components/auth-page.tsx'
+import {
+	AuthActions,
+	AuthPage,
+	authPageHandle,
+} from '#app/components/auth-page.tsx'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
-import { ErrorList, Field } from '#app/components/forms.tsx'
+import { ErrorList, PasswordField } from '#app/components/forms.tsx'
+import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { requireAnonymous, resetUserPassword } from '#app/utils/auth.server.ts'
 import { useIsPending } from '#app/utils/misc.tsx'
@@ -69,6 +74,8 @@ export const meta: MetaFunction = () => {
 	return [{ title: 'Reset Password | GratiText' }]
 }
 
+export const handle = authPageHandle
+
 export default function ResetPasswordPage() {
 	const data = useLoaderData<typeof loader>()
 	const actionData = useActionData<typeof action>()
@@ -86,11 +93,15 @@ export default function ResetPasswordPage() {
 
 	return (
 		<AuthPage
-			title="Reset your password"
-			description={`Hi ${data.resetPasswordUsername}, let's set a new password.`}
+			title="Reset Your Password"
+			description={`Hi ${data.resetPasswordUsername}, let's set a new password`}
 		>
-			<Form method="POST" {...getFormProps(form)} className="space-y-6">
-				<Field
+			<Form
+				method="POST"
+				{...getFormProps(form)}
+				className="flex flex-1 flex-col"
+			>
+				<PasswordField
 					labelProps={{
 						htmlFor: fields.password.id,
 						children: 'New Password',
@@ -102,7 +113,7 @@ export default function ResetPasswordPage() {
 					}}
 					errors={fields.password.errors}
 				/>
-				<Field
+				<PasswordField
 					labelProps={{
 						htmlFor: fields.confirmPassword.id,
 						children: 'Confirm Password',
@@ -113,18 +124,19 @@ export default function ResetPasswordPage() {
 					}}
 					errors={fields.confirmPassword.errors}
 				/>
-
 				<ErrorList errors={form.errors} id={form.errorId} />
-
-				<StatusButton
-					variant="brand"
-					className="w-full"
-					status={isPending ? 'pending' : (form.status ?? 'idle')}
-					type="submit"
-					disabled={isPending}
-				>
-					Reset password
-				</StatusButton>
+				<AuthActions>
+					<StatusButton
+						variant="brand"
+						size="lg"
+						status={isPending ? 'pending' : (form.status ?? 'idle')}
+						type="submit"
+						disabled={isPending}
+					>
+						Reset Password
+						<Icon name="arrow-right" size="sm" aria-hidden="true" />
+					</StatusButton>
+				</AuthActions>
 			</Form>
 		</AuthPage>
 	)

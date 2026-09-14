@@ -4,7 +4,7 @@ import {
 	REGEXP_ONLY_DIGITS,
 	type OTPInputProps,
 } from 'input-otp'
-import React, { useId } from 'react'
+import React, { useId, useState } from 'react'
 import { cn } from '#app/utils/misc.tsx'
 import { Checkbox, type CheckboxProps } from './ui/checkbox.tsx'
 import { Icon } from './ui/icon.tsx'
@@ -86,6 +86,48 @@ export function Field({
 				{...inputProps}
 				className={cn('mt-3', inputProps.className)}
 			/>
+			<FieldErrorSlot errorId={errorId} errors={errors} />
+		</div>
+	)
+}
+
+export function PasswordField({
+	labelProps,
+	inputProps,
+	errors,
+	className,
+}: {
+	labelProps: React.LabelHTMLAttributes<HTMLLabelElement>
+	inputProps: React.ComponentProps<'input'>
+	errors?: ListOfErrors
+	className?: string
+}) {
+	const [visible, setVisible] = useState(false)
+	const fallbackId = useId()
+	const id = inputProps.id ?? fallbackId
+	const errorId = errors?.length ? `${id}-error` : undefined
+	return (
+		<div className={className}>
+			<Label htmlFor={id} {...labelProps} />
+			<div className="relative mt-3">
+				<Input
+					id={id}
+					aria-invalid={errorId ? true : undefined}
+					aria-describedby={errorId}
+					{...inputProps}
+					type={visible ? 'text' : 'password'}
+					className={cn('pr-14', inputProps.className)}
+				/>
+				<button
+					type="button"
+					onClick={() => setVisible((v) => !v)}
+					aria-label={visible ? 'Hide password' : 'Show password'}
+					aria-pressed={visible}
+					className="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute top-1/2 right-4 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full transition-colors focus-visible:ring-2 focus-visible:outline-none"
+				>
+					<Icon name={visible ? 'eye-off' : 'eye'} size="sm" aria-hidden="true" />
+				</button>
+			</div>
 			<FieldErrorSlot errorId={errorId} errors={errors} />
 		</div>
 	)

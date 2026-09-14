@@ -16,10 +16,20 @@ import {
 } from 'react-router'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
-import { AuthPage } from '#app/components/auth-page.tsx'
+import {
+	AuthActions,
+	AuthPage,
+	authPageHandle,
+} from '#app/components/auth-page.tsx'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { ErrorList, Field, SelectField } from '#app/components/forms.tsx'
+import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
+import {
+	countryCodeLabel,
+	countryCodes,
+	defaultCountryCode,
+} from '#app/utils/country-codes.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { checkHoneypot } from '#app/utils/honeypot.server.ts'
 import { useIsPending } from '#app/utils/misc.tsx'
@@ -32,13 +42,7 @@ const SignupSchema = z.object({
 	phoneNumber: PhoneNumberSchema,
 })
 
-const countryCodes = [
-	{ label: 'United States (+1)', value: '+1' },
-	{ label: 'United Kingdom (+44)', value: '+44' },
-	{ label: 'Czech Republic (+420)', value: '+420' },
-	{ label: 'Canada (+1)', value: '+1' },
-	{ label: 'Australia (+61)', value: '+61' },
-]
+export const handle = authPageHandle
 
 export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData()
@@ -120,7 +124,7 @@ export default function SignupRoute() {
 	const [form, fields] = useForm({
 		id: 'signup-form',
 		constraint: getZodConstraint(SignupSchema),
-		defaultValue: { countryCode: countryCodes[0]?.value ?? '+1' },
+		defaultValue: { countryCode: defaultCountryCode },
 		lastResult: actionData?.result,
 		onValidate({ formData }) {
 			const result = parseWithZod(formData, { schema: SignupSchema })
@@ -131,24 +135,28 @@ export default function SignupRoute() {
 
 	return (
 		<AuthPage
-			title="Create your account"
-			description="Enter your mobile number and we'll text you a code to get started. Your first 14 days are free."
+			title="Create and Nurture Lasting Bonds With Your Loved Ones"
+			description="Please enter your phone number along with your country code"
 			footer={
 				<p>
 					Already have an account? <Link to="/login">Log in</Link>
 				</p>
 			}
 		>
-			<Form method="POST" {...getFormProps(form)} className="space-y-6">
+			<Form
+				method="POST"
+				{...getFormProps(form)}
+				className="flex flex-1 flex-col"
+			>
 				<HoneypotInputs />
-				<div className="grid gap-4 sm:grid-cols-[200px_1fr]">
+				<div className="grid gap-x-4 md:grid-cols-2">
 					<SelectField
 						labelProps={{ children: 'Country Code' }}
 						selectProps={{
 							...getSelectProps(fields.countryCode),
 							children: countryCodes.map((code) => (
-								<option key={`${code.value}-${code.label}`} value={code.value}>
-									{code.label}
+								<option key={`${code.value}-${code.name}`} value={code.value}>
+									{countryCodeLabel(code)}
 								</option>
 							)),
 						}}
@@ -163,20 +171,24 @@ export default function SignupRoute() {
 							...getInputProps(fields.phoneNumber, { type: 'tel' }),
 							autoFocus: true,
 							autoComplete: 'tel',
+							placeholder: '123 456 7890',
 						}}
 						errors={fields.phoneNumber.errors}
 					/>
 				</div>
 				<ErrorList errors={form.errors} id={form.errorId} />
-				<StatusButton
-					variant="brand"
-					className="w-full"
-					status={isPending ? 'pending' : (form.status ?? 'idle')}
-					type="submit"
-					disabled={isPending}
-				>
-					Continue
-				</StatusButton>
+				<AuthActions>
+					<StatusButton
+						variant="brand"
+						size="lg"
+						status={isPending ? 'pending' : (form.status ?? 'idle')}
+						type="submit"
+						disabled={isPending}
+					>
+						Continue
+						<Icon name="arrow-right" size="sm" aria-hidden="true" />
+					</StatusButton>
+				</AuthActions>
 			</Form>
 		</AuthPage>
 	)

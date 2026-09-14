@@ -12,9 +12,19 @@ import {
 } from 'react-router'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
-import { AuthPage } from '#app/components/auth-page.tsx'
+import {
+	AuthActions,
+	AuthPage,
+	authPageHandle,
+} from '#app/components/auth-page.tsx'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
-import { CheckboxField, ErrorList, Field } from '#app/components/forms.tsx'
+import {
+	CheckboxField,
+	ErrorList,
+	Field,
+	PasswordField,
+} from '#app/components/forms.tsx'
+import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { login, requireAnonymous } from '#app/utils/auth.server.ts'
 import { checkHoneypot } from '#app/utils/honeypot.server.ts'
@@ -28,6 +38,8 @@ const LoginFormSchema = z.object({
 	redirectTo: z.string().optional(),
 	remember: z.boolean().optional(),
 })
+
+export const handle = authPageHandle
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	await requireAnonymous(request)
@@ -102,18 +114,22 @@ export default function LoginPage() {
 
 	return (
 		<AuthPage
-			title="Welcome back"
-			description="Log in to keep the gratitude flowing."
+			title="Stay Close, Even When Apart"
+			description="Please enter your username or phone number and password"
 			footer={
 				<p>
 					New here? <Link to={signupTo}>Create an account</Link>
 				</p>
 			}
 		>
-			<Form method="POST" {...getFormProps(form)} className="space-y-6">
+			<Form
+				method="POST"
+				{...getFormProps(form)}
+				className="flex flex-1 flex-col"
+			>
 				<HoneypotInputs />
 				<Field
-					labelProps={{ children: 'Username' }}
+					labelProps={{ children: 'Username or Phone Number' }}
 					inputProps={{
 						...getInputProps(fields.username, { type: 'text' }),
 						autoFocus: true,
@@ -121,49 +137,40 @@ export default function LoginPage() {
 					}}
 					errors={fields.username.errors}
 				/>
-
-				<Field
+				<PasswordField
 					labelProps={{ children: 'Password' }}
 					inputProps={{
-						...getInputProps(fields.password, {
-							type: 'password',
-						}),
+						...getInputProps(fields.password, { type: 'password' }),
 						autoComplete: 'current-password',
 					}}
 					errors={fields.password.errors}
 				/>
-
-				<div className="flex flex-wrap items-center justify-between gap-3">
-					<CheckboxField
-						labelProps={{
-							htmlFor: fields.remember.id,
-							children: 'Remember me',
-						}}
-						buttonProps={getInputProps(fields.remember, {
-							type: 'checkbox',
-						})}
-						errors={fields.remember.errors}
-					/>
-					<Link
-						to="/forgot-password"
-						className="text-foreground text-sm font-semibold underline-offset-4 hover:underline"
-					>
-						Forgot password?
-					</Link>
-				</div>
-
+				<CheckboxField
+					labelProps={{
+						htmlFor: fields.remember.id,
+						children: 'Remember me',
+					}}
+					buttonProps={getInputProps(fields.remember, {
+						type: 'checkbox',
+					})}
+					errors={fields.remember.errors}
+				/>
 				<input {...getInputProps(fields.redirectTo, { type: 'hidden' })} />
 				<ErrorList errors={form.errors} id={form.errorId} />
-
-				<StatusButton
-					variant="brand"
-					className="w-full"
-					status={isPending ? 'pending' : (form.status ?? 'idle')}
-					type="submit"
-					disabled={isPending}
+				<AuthActions
+					aside={<Link to="/forgot-password">Forgot Password?</Link>}
 				>
-					Log in
-				</StatusButton>
+					<StatusButton
+						variant="brand"
+						size="lg"
+						status={isPending ? 'pending' : (form.status ?? 'idle')}
+						type="submit"
+						disabled={isPending}
+					>
+						Log In
+						<Icon name="arrow-right" size="sm" aria-hidden="true" />
+					</StatusButton>
+				</AuthActions>
 			</Form>
 		</AuthPage>
 	)

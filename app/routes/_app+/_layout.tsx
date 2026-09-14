@@ -9,6 +9,7 @@ import {
 	type MetaFunction,
 	useFetcher,
 	useLoaderData,
+	useMatches,
 	useSubmit,
 } from 'react-router'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.js'
@@ -26,6 +27,7 @@ import { Wordmark } from '#app/components/wordmark.tsx'
 import { ThemeSwitch, useTheme } from '#app/routes/resources+/theme-switch.tsx'
 import { getUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
+import { cn } from '#app/utils/misc.tsx'
 import { getCustomerProducts } from '#app/utils/stripe.server.ts'
 import { makeTimings } from '#app/utils/timing.server.ts'
 import { useOptionalUser, useUser } from '#app/utils/user.ts'
@@ -78,11 +80,25 @@ export const headers: HeadersFunction = ({ loaderHeaders }) => {
 
 const supportEmail = 'support@gratitext.app'
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null
+}
+
 export default function Layout() {
 	const data = useLoaderData<typeof loader>()
 	const user = useOptionalUser()
+	const matches = useMatches()
+	const handles = matches.map((match) => match.handle).filter(isRecord)
+	// Auth pages are full-bleed beige on phones, so the header follows suit.
+	const heroTint = handles.some((handle) => handle.pageTint === 'hero')
+	const minimalChrome = handles.some((handle) => handle.chrome === 'minimal')
 	return (
-		<div className="bg-background text-foreground flex min-h-screen flex-col">
+		<div
+			className={cn(
+				'text-foreground flex min-h-screen flex-col',
+				heroTint ? 'bg-hero md:bg-background' : 'bg-background',
+			)}
+		>
 			<a
 				href="#main-content"
 				className="bg-primary text-primary-foreground sr-only rounded-full px-4 py-2 text-sm font-semibold focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100]"
@@ -104,7 +120,7 @@ export default function Layout() {
 								)}
 								<UserDropdown />
 							</>
-						) : (
+						) : minimalChrome ? null : (
 							<>
 								<Button asChild size="sm">
 									<Link to="/signup">Start 14-day FREE trial</Link>

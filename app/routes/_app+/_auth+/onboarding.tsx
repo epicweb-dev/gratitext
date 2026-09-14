@@ -14,8 +14,18 @@ import {
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { safeRedirect } from 'remix-utils/safe-redirect'
 import { z } from 'zod'
-import { AuthPage } from '#app/components/auth-page.tsx'
-import { CheckboxField, ErrorList, Field } from '#app/components/forms.tsx'
+import {
+	AuthActions,
+	AuthPage,
+	authPageHandle,
+} from '#app/components/auth-page.tsx'
+import {
+	CheckboxField,
+	ErrorList,
+	Field,
+	PasswordField,
+} from '#app/components/forms.tsx'
+import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { requireAnonymous, sessionKey, signup } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
@@ -126,6 +136,8 @@ export const meta: MetaFunction = () => {
 	return [{ title: 'Setup GratiText Account' }]
 }
 
+export const handle = authPageHandle
+
 export default function SignupRoute() {
 	const actionData = useActionData<typeof action>()
 	const isPending = useIsPending()
@@ -145,30 +157,36 @@ export default function SignupRoute() {
 
 	return (
 		<AuthPage
-			title="Almost there"
-			description="Your number is verified. Finish setting up your account."
+			title="Stay Connected, Stay Grateful"
+			description="Almost there! Finish creating your account"
 		>
-			<Form method="POST" {...getFormProps(form)} className="space-y-6">
+			<Form
+				method="POST"
+				{...getFormProps(form)}
+				className="flex flex-1 flex-col"
+			>
 				<HoneypotInputs />
-				<Field
-					labelProps={{ htmlFor: fields.name.id, children: 'Name' }}
-					inputProps={{
-						...getInputProps(fields.name, { type: 'text' }),
-						autoComplete: 'name',
-						autoFocus: true,
-					}}
-					errors={fields.name.errors}
-				/>
-				<Field
-					labelProps={{ htmlFor: fields.username.id, children: 'Username' }}
-					inputProps={{
-						...getInputProps(fields.username, { type: 'text' }),
-						autoComplete: 'username',
-						className: 'lowercase',
-					}}
-					errors={fields.username.errors}
-				/>
-				<Field
+				<div className="grid gap-x-4 md:grid-cols-2">
+					<Field
+						labelProps={{ htmlFor: fields.name.id, children: 'Name' }}
+						inputProps={{
+							...getInputProps(fields.name, { type: 'text' }),
+							autoComplete: 'name',
+							autoFocus: true,
+						}}
+						errors={fields.name.errors}
+					/>
+					<Field
+						labelProps={{ htmlFor: fields.username.id, children: 'Username' }}
+						inputProps={{
+							...getInputProps(fields.username, { type: 'text' }),
+							autoComplete: 'username',
+							className: 'lowercase',
+						}}
+						errors={fields.username.errors}
+					/>
+				</div>
+				<PasswordField
 					labelProps={{ htmlFor: fields.password.id, children: 'Password' }}
 					inputProps={{
 						...getInputProps(fields.password, { type: 'password' }),
@@ -176,7 +194,7 @@ export default function SignupRoute() {
 					}}
 					errors={fields.password.errors}
 				/>
-				<Field
+				<PasswordField
 					labelProps={{
 						htmlFor: fields.confirmPassword.id,
 						children: 'Confirm Password',
@@ -187,59 +205,64 @@ export default function SignupRoute() {
 					}}
 					errors={fields.confirmPassword.errors}
 				/>
-				<CheckboxField
-					labelProps={{
-						htmlFor: fields.agreeToTermsOfServiceAndPrivacyPolicy.id,
-						children: 'I agree to the Terms of Service and Privacy Policy',
-					}}
-					description={
-						<>
-							Read the{' '}
-							<Link
-								to="/tos"
-								target="_blank"
-								rel="noreferrer"
-								className="text-foreground font-semibold underline underline-offset-4"
-							>
-								Terms of Service
-							</Link>{' '}
-							and{' '}
-							<Link
-								to="/privacy"
-								target="_blank"
-								rel="noreferrer"
-								className="text-foreground font-semibold underline underline-offset-4"
-							>
-								Privacy Policy
-							</Link>
-							.
-						</>
-					}
-					buttonProps={getInputProps(
-						fields.agreeToTermsOfServiceAndPrivacyPolicy,
-						{ type: 'checkbox' },
-					)}
-					errors={fields.agreeToTermsOfServiceAndPrivacyPolicy.errors}
-				/>
-				<CheckboxField
-					labelProps={{
-						htmlFor: fields.remember.id,
-						children: 'Remember me',
-					}}
-					buttonProps={getInputProps(fields.remember, { type: 'checkbox' })}
-					errors={fields.remember.errors}
-				/>
+				<div className="flex flex-col gap-4 pt-1">
+					<CheckboxField
+						labelProps={{
+							htmlFor: fields.agreeToTermsOfServiceAndPrivacyPolicy.id,
+							children: 'Do you agree to our Terms of Service and Privacy Policy?',
+						}}
+						description={
+							<>
+								Read the{' '}
+								<Link
+									to="/tos"
+									target="_blank"
+									rel="noreferrer"
+									className="text-foreground font-semibold underline underline-offset-4"
+								>
+									Terms of Service
+								</Link>{' '}
+								and{' '}
+								<Link
+									to="/privacy"
+									target="_blank"
+									rel="noreferrer"
+									className="text-foreground font-semibold underline underline-offset-4"
+								>
+									Privacy Policy
+								</Link>
+								.
+							</>
+						}
+						buttonProps={getInputProps(
+							fields.agreeToTermsOfServiceAndPrivacyPolicy,
+							{ type: 'checkbox' },
+						)}
+						errors={fields.agreeToTermsOfServiceAndPrivacyPolicy.errors}
+					/>
+					<CheckboxField
+						labelProps={{
+							htmlFor: fields.remember.id,
+							children: 'Remember me',
+						}}
+						buttonProps={getInputProps(fields.remember, { type: 'checkbox' })}
+						errors={fields.remember.errors}
+					/>
+				</div>
 				<input {...getInputProps(fields.redirectTo, { type: 'hidden' })} />
 				<ErrorList errors={form.errors} id={form.errorId} />
-				<StatusButton
-					variant="brand"
-					className="w-full"
-					status={isPending ? 'pending' : (form.status ?? 'idle')}
-					type="submit"
-					disabled={isPending}
-				>
-					Create an Account
-				</StatusButton>
+				<AuthActions className="md:pt-6">
+					<StatusButton
+						variant="brand"
+						size="lg"
+						status={isPending ? 'pending' : (form.status ?? 'idle')}
+						type="submit"
+						disabled={isPending}
+					>
+						<Icon name="check" size="sm" aria-hidden="true" />
+						Create an Account
+					</StatusButton>
+				</AuthActions>
 			</Form>
 		</AuthPage>
 	)
