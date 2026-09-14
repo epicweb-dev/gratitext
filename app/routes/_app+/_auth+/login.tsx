@@ -29,11 +29,23 @@ import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { login, requireAnonymous } from '#app/utils/auth.server.ts'
 import { checkHoneypot } from '#app/utils/honeypot.server.ts'
 import { useIsPending } from '#app/utils/misc.tsx'
-import { PasswordSchema, UsernameSchema } from '#app/utils/user-validation.ts'
+import { PasswordSchema } from '#app/utils/user-validation.ts'
 import { handleNewSession } from './login.server.ts'
 
+// Accepts a username or a phone number in any common format; `login` tries
+// both, so this stays looser than `UsernameSchema`.
+const LoginIdentifierSchema = z
+	.string({ error: 'Username or phone number is required' })
+	.transform((value) => value.trim())
+	.pipe(
+		z
+			.string()
+			.min(3, { message: 'Username or phone number is too short' })
+			.max(30, { message: 'Username or phone number is too long' }),
+	)
+
 const LoginFormSchema = z.object({
-	username: UsernameSchema,
+	username: LoginIdentifierSchema,
 	password: PasswordSchema,
 	redirectTo: z.string().optional(),
 	remember: z.boolean().optional(),
