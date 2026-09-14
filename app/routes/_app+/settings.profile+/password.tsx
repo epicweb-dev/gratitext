@@ -4,12 +4,14 @@ import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import {
 	Form,
 	data as json,
+	Link,
 	type ActionFunctionArgs,
 	type LoaderFunctionArgs,
 	useActionData,
 } from 'react-router'
 import { z } from 'zod'
-import { ErrorList, Field } from '#app/components/forms.tsx'
+import { FormActions } from '#app/components/form-page.tsx'
+import { ErrorList, PasswordField } from '#app/components/forms.tsx'
 import { SettingsCard } from '#app/components/settings-card.tsx'
 import { ButtonLink } from '#app/components/ui/button.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
@@ -23,10 +25,8 @@ import { prisma } from '#app/utils/db.server.ts'
 import { useIsPending } from '#app/utils/misc.tsx'
 import { redirectWithToast } from '#app/utils/toast.server.ts'
 import { PasswordSchema } from '#app/utils/user-validation.ts'
-import { type BreadcrumbHandle } from './_layout.tsx'
 
-export const handle: BreadcrumbHandle & SEOHandle = {
-	breadcrumb: <Icon name="password">Password</Icon>,
+export const handle: SEOHandle = {
 	getSitemapEntries: () => null,
 }
 
@@ -123,52 +123,64 @@ export default function ChangePasswordRoute() {
 	})
 
 	return (
-		<SettingsCard
-			title="Change your password"
-			description="Choose something long and unique. You will stay signed in on this device."
-		>
-			<Form method="POST" {...getFormProps(form)}>
-				<div className="space-y-6">
-					<Field
-						labelProps={{ children: 'Current Password' }}
-						inputProps={{
-							...getInputProps(fields.currentPassword, { type: 'password' }),
-							autoComplete: 'current-password',
-						}}
-						errors={fields.currentPassword.errors}
-					/>
-					<Field
-						labelProps={{ children: 'New Password' }}
-						inputProps={{
-							...getInputProps(fields.newPassword, { type: 'password' }),
-							autoComplete: 'new-password',
-						}}
-						errors={fields.newPassword.errors}
-					/>
-					<Field
-						labelProps={{ children: 'Confirm New Password' }}
-						inputProps={{
-							...getInputProps(fields.confirmNewPassword, {
-								type: 'password',
-							}),
-							autoComplete: 'new-password',
-						}}
-						errors={fields.confirmNewPassword.errors}
-					/>
-					<ErrorList id={form.errorId} errors={form.errors} />
-					<div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-						<ButtonLink variant="secondary" to="..">
+		<SettingsCard title="Change Your Password" hideClose>
+			<Form
+				method="POST"
+				{...getFormProps(form)}
+				className="flex flex-1 flex-col"
+			>
+				<PasswordField
+					labelProps={{ children: 'Current Password' }}
+					inputProps={{
+						...getInputProps(fields.currentPassword, { type: 'password' }),
+						autoComplete: 'current-password',
+						autoFocus: true,
+						placeholder: 'Enter Your Current Password',
+					}}
+					errors={fields.currentPassword.errors}
+				/>
+				<PasswordField
+					labelProps={{ children: 'New Password' }}
+					inputProps={{
+						...getInputProps(fields.newPassword, { type: 'password' }),
+						autoComplete: 'new-password',
+						placeholder: 'Enter Your New Password',
+					}}
+					errors={fields.newPassword.errors}
+				/>
+				<PasswordField
+					labelProps={{ children: 'Confirm New Password' }}
+					inputProps={{
+						...getInputProps(fields.confirmNewPassword, {
+							type: 'password',
+						}),
+						autoComplete: 'new-password',
+						placeholder: 'Confirm Your New Password',
+					}}
+					errors={fields.confirmNewPassword.errors}
+				/>
+				<ErrorList id={form.errorId} errors={form.errors} />
+				<FormActions
+					aside={<Link to="/forgot-password">Forgot Password?</Link>}
+				>
+					{/* Phones already have the "go back" link at the top of the page. */}
+					<span className="hidden md:contents">
+						<ButtonLink variant="outline" size="lg" to="/settings/profile">
 							Cancel
 						</ButtonLink>
-						<StatusButton
-							type="submit"
-							status={isPending ? 'pending' : (form.status ?? 'idle')}
-							variant="brand"
-						>
-							Save password
-						</StatusButton>
-					</div>
-				</div>
+					</span>
+					<StatusButton
+						type="submit"
+						size="lg"
+						status={isPending ? 'pending' : (form.status ?? 'idle')}
+						variant="brand"
+						disabled={isPending}
+						className="gap-2"
+					>
+						<Icon name="check" size="sm" aria-hidden="true" />
+						Save
+					</StatusButton>
+				</FormActions>
 			</Form>
 		</SettingsCard>
 	)

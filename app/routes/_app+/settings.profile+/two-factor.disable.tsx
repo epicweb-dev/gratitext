@@ -14,11 +14,9 @@ import { requireUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { useDoubleCheck } from '#app/utils/misc.tsx'
 import { redirectWithToast } from '#app/utils/toast.server.ts'
-import { type BreadcrumbHandle } from './_layout.tsx'
 import { twoFAVerificationType } from './two-factor.tsx'
 
-export const handle: BreadcrumbHandle & SEOHandle = {
-	breadcrumb: <Icon name="lock-open-1">Disable</Icon>,
+export const handle: SEOHandle = {
 	getSitemapEntries: () => null,
 }
 
@@ -46,13 +44,14 @@ export default function TwoFactorDisableRoute() {
 	return (
 		<SettingsCard
 			title="Disable two-factor authentication"
+			backTo="/settings/profile/two-factor"
 			description="We do not recommend this. Without 2FA, anyone who learns your password can log in to your account."
 		>
 			<disable2FAFetcher.Form
 				method="POST"
 				className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-start"
 			>
-				<ButtonLink variant="secondary" to="..">
+				<ButtonLink variant="outline" to="..">
 					Keep 2FA on
 				</ButtonLink>
 				<StatusButton

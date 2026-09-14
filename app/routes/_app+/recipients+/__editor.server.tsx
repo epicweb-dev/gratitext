@@ -2,6 +2,7 @@ import { parseWithZod } from '@conform-to/zod/v4'
 import { invariant, invariantResponse } from '@epic-web/invariant'
 import { data as json, redirect, type ActionFunctionArgs } from 'react-router'
 import { requireUserId } from '#app/utils/auth.server.ts'
+import { combinePhoneNumber } from '#app/utils/country-codes.ts'
 import { getScheduleWindow } from '#app/utils/cron.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import {
@@ -152,11 +153,13 @@ export async function usertRecipientAction({
 	const {
 		id: recipientId,
 		name,
-		phoneNumber,
+		countryCode,
+		phoneNumber: nationalNumber,
 		scheduleCron,
 		timeZone,
 		disabled,
 	} = submission.value
+	const phoneNumber = combinePhoneNumber(countryCode, nationalNumber)
 
 	let scheduleData: { prevScheduledAt: Date; nextScheduledAt: Date }
 	try {

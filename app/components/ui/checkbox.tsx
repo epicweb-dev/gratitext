@@ -17,7 +17,7 @@ const Checkbox = React.forwardRef<
 	<CheckboxPrimitive.Root
 		ref={ref}
 		className={cn(
-			'peer border-input bg-card ring-offset-background focus-visible:ring-ring hover:border-primary data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground aria-[invalid]:border-input-invalid flex h-5 w-5 shrink-0 items-center justify-center rounded-md border shadow-sm transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
+			'peer border-input bg-field text-field-foreground ring-offset-background focus-visible:ring-ring hover:border-ring aria-[invalid]:border-input-invalid flex h-6 w-6 shrink-0 items-center justify-center rounded-md border transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50',
 			className,
 		)}
 		{...props}
@@ -25,7 +25,7 @@ const Checkbox = React.forwardRef<
 		<CheckboxPrimitive.Indicator
 			className={cn('flex items-center justify-center text-current')}
 		>
-			<svg viewBox="0 0 12 12" className="h-3 w-3" aria-hidden="true">
+			<svg viewBox="0 0 12 12" className="h-3.5 w-3.5" aria-hidden="true">
 				<path
 					d="M2.5 6.5 L5 9 L9.5 3.5"
 					stroke="currentColor"

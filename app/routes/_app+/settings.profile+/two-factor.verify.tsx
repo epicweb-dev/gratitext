@@ -15,7 +15,6 @@ import {
 import { z } from 'zod'
 import { ErrorList, OTPField } from '#app/components/forms.tsx'
 import { SettingsCard } from '#app/components/settings-card.tsx'
-import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
 import { isCodeValid } from '#app/routes/_app+/_auth+/verify.server.ts'
 import { requireUserId } from '#app/utils/auth.server.ts'
@@ -23,11 +22,9 @@ import { prisma } from '#app/utils/db.server.ts'
 import { getDomainUrl, useIsPending } from '#app/utils/misc.tsx'
 import { redirectWithToast } from '#app/utils/toast.server.ts'
 import { getTOTPAuthUri } from '#app/utils/totp.server.ts'
-import { type BreadcrumbHandle } from './_layout.tsx'
 import { twoFAVerificationType } from './two-factor.tsx'
 
-export const handle: BreadcrumbHandle & SEOHandle = {
-	breadcrumb: <Icon name="check">Verify</Icon>,
+export const handle: SEOHandle = {
 	getSitemapEntries: () => null,
 }
 
@@ -151,6 +148,8 @@ export default function TwoFactorRoute() {
 	return (
 		<SettingsCard
 			title="Set up your authenticator app"
+			backTo="/settings/profile/two-factor"
+			backLabel="Back to two-factor settings"
 			description="Follow these steps to finish enabling two-factor authentication."
 		>
 			<ol className="flex flex-col gap-8">
@@ -214,7 +213,7 @@ export default function TwoFactorRoute() {
 							<ErrorList id={form.errorId} errors={form.errors} />
 							<div className="mt-4 flex flex-col-reverse gap-3 sm:flex-row sm:justify-start">
 								<StatusButton
-									variant="secondary"
+									variant="outline"
 									status={
 										pendingIntent === 'cancel'
 											? 'pending'

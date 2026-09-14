@@ -1,216 +1,209 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
-@import '@fontsource-variable/inter';
-@import '@fontsource-variable/lora';
+@import '@fontsource/poppins/400.css';
+@import '@fontsource/poppins/500.css';
+@import '@fontsource/poppins/600.css';
+@import '@fontsource/poppins/700.css';
+@import '@fontsource-variable/fraunces/full.css';
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-	--palette-dark-navy: 210 33.3% 14.1%;
-	--palette-navy: 210 25% 25.1%;
-	--palette-storm-grey: 211 16.4% 39.4%;
-	--palette-cloud: 210 15.6% 52.2%;
-	--palette-smoke: 213 15.1% 85.7%;
-	--palette-green-900: 147 48.5% 19.8%;
-	--palette-green-700: 147 30.4% 31.6%;
-	--palette-green-500: 147 49% 38.4%;
-	--palette-green-300: 148 34.1% 64.9%;
-	--palette-green-100: 150 33.3% 92.9%;
-	--palette-chocolate: 8 100% 13.9%;
-	--palette-chestnut: 19 92.6% 32%;
-	--palette-hot-fire-red: 19 83.3% 53.1%;
-	--palette-fire-red: 19 100% 61%;
-	--palette-orange: 30 100% 63.9%;
-	--palette-sunny: 44 94.3% 58.8%;
-	--palette-rose-pink: 332 61.3% 69.6%;
-	--palette-dust-pink: 14 62% 80.4%;
-	--palette-beige: 35 43.6% 92.4%;
-	--palette-cream: 38 52.4% 95.9%;
-	--palette-lilac: 231 35.5% 81.8%;
-	--palette-baby-blue: 183 38% 80.4%;
-	--palette-blues: 212 65.4% 54.7%;
+	/* Figma "Colors" palette */
+	--palette-dark-navy: 210 33.3% 14.1%; /* #182430 */
+	--palette-navy: 210 25% 25.1%; /* #304050 */
+	--palette-storm-grey: 211 16.4% 39.4%; /* #546475 */
+	--palette-cloud: 210 15.6% 52.2%; /* #728598 */
+	--palette-smoke: 213 15.1% 85.7%; /* #D3D9E0 */
+	--palette-smoke-30: 210 15% 95%; /* #F0F2F4 */
+	--palette-green-900: 147 48.5% 19.8%; /* #1A4B30 */
+	--palette-green-700: 147 30.4% 31.6%; /* #38694E */
+	--palette-green-500: 147 49% 38.4%; /* #32925D */
+	--palette-green-300: 148 34.1% 64.9%; /* #87C4A3 */
+	--palette-green-100: 150 33.3% 92.9%; /* #E7F3ED */
+	--palette-chocolate: 8 100% 13.9%; /* #470900 */
+	--palette-chestnut: 19 92.6% 32%; /* #9D3606 */
+	--palette-hot-fire-red: 19 83.3% 53.1%; /* #EB6224 */
+	--palette-fire-red: 19 100% 61%; /* #FF7638 */
+	--palette-orange: 30 100% 63.9%; /* #FFA247 */
+	--palette-sunny: 44 94.3% 58.8%; /* #F9C433 */
+	--palette-rose-pink: 332 61.3% 69.6%; /* #E182AE */
+	--palette-dust-pink: 14 62% 80.4%; /* #ECBCAE */
+	--palette-beige: 35 43.6% 92.4%; /* #F4EDE3 */
+	--palette-cream: 38 52.4% 95.9%; /* #FAF6EF */
+	--palette-lilac: 231 35.5% 81.8%; /* #C0C5E1 */
+	--palette-baby-blue: 183 38% 80.4%; /* #BADEE0 */
+	--palette-blues: 212 65.4% 54.7%; /* #4086D7 */
+	--palette-white: 0 0% 100%;
 
-	/* prefixed with foreground because it should look good on the background */
-	--foreground-destructive: var(--palette-fire-red);
-
-	--background: var(--palette-cream);
+	--background: var(--palette-white);
 	--foreground: var(--palette-dark-navy);
+
+	/* cream form cards + the recipients page background */
+	--surface: var(--palette-cream);
+	--surface-foreground: var(--palette-dark-navy);
+	--surface-border: var(--palette-beige);
+
+	--card: var(--palette-white);
+	--card-foreground: var(--palette-dark-navy);
+
+	/* text inputs, selects, checkboxes */
+	--field: var(--palette-white);
+	--field-foreground: var(--palette-dark-navy);
+
+	--popover: var(--palette-white);
+	--popover-foreground: var(--palette-dark-navy);
 
 	--muted: var(--palette-beige);
 	--muted-foreground: var(--palette-storm-grey);
 
-	--muted-secondary: var(--palette-smoke);
-	--muted-secondary-foreground: var(--palette-cloud);
+	--subtle-foreground: var(--palette-cloud);
 
-	--popover: var(--palette-beige);
-	--popover-foreground: var(--palette-dark-navy);
-
-	--card: var(--palette-cream);
-	--card-foreground: var(--palette-dark-navy);
-
-	--border: var(--palette-smoke);
-	--input: var(--palette-smoke);
-	--input-invalid: var(--palette-fire-red);
+	--border: var(--palette-smoke-30);
+	--input: 213 15% 91%;
+	--input-invalid: var(--palette-hot-fire-red);
 
 	--primary: var(--palette-navy);
-	--primary-foreground: var(--palette-cream);
+	--primary-foreground: var(--palette-white);
 
-	--secondary: var(--palette-beige);
-	--secondary-foreground: var(--palette-navy);
+	--secondary: var(--palette-white);
+	--secondary-foreground: var(--palette-dark-navy);
 
-	--accent: var(--palette-green-100);
-	--accent-foreground: var(--palette-dark-navy);
-
-	--destructive: var(--palette-hot-fire-red);
-	--destructive-foreground: var(--palette-cream);
-
-	--ring: var(--palette-green-300);
-
-	--overlay: 0 0% 0%;
-	--inverse: var(--palette-cream);
-
-	--brand: var(--palette-green-500);
-	--brand-foreground: var(--palette-cream);
+	--brand: var(--palette-green-700);
+	--brand-foreground: var(--palette-white);
 	--brand-soft: var(--palette-green-300);
-	--brand-soft-foreground: var(--palette-dark-navy);
+	--brand-soft-foreground: var(--palette-white);
+	--brand-muted: var(--palette-green-100);
+	--brand-muted-foreground: var(--palette-green-700);
+
 	--warm: var(--palette-chestnut);
-	--warm-foreground: var(--palette-cream);
+	--warm-foreground: var(--palette-white);
+
+	--accent: var(--palette-chestnut);
+	--accent-foreground: var(--palette-white);
 
 	--warning: var(--palette-orange);
-	--warning-foreground: var(--palette-dark-navy);
+	--warning-foreground: var(--palette-white);
 
-	--banner-trial: var(--palette-sunny);
-	--banner-trial-foreground: var(--palette-dark-navy);
-	--banner-upgrade: var(--palette-green-300);
-	--banner-upgrade-foreground: var(--palette-dark-navy);
+	--destructive: var(--palette-hot-fire-red);
+	--destructive-foreground: var(--palette-white);
+	--foreground-destructive: var(--palette-hot-fire-red);
 
-	--price-basic: var(--palette-cloud);
-	--price-premium: var(--palette-chestnut);
+	--sent: var(--palette-green-500);
+	--sent-foreground: var(--palette-white);
+	--scheduled: var(--palette-blues);
+	--scheduled-foreground: var(--palette-white);
 
-	--hero-orb: var(--palette-baby-blue);
-	--hero-sparkle: var(--palette-orange);
+	--ring: var(--palette-green-300);
+	--overlay: 213 15% 85%;
+	--inverse: var(--palette-white);
 
-	--marketing-feature: var(--palette-green-700);
-	--marketing-feature-foreground: var(--palette-cream);
-	--marketing-feature-muted: var(--palette-green-100);
-	--marketing-feature-accent: var(--palette-sunny);
-	--marketing-feature-accent-secondary: var(--palette-orange);
-	--marketing-step-index: var(--palette-chestnut);
-
-	--marketing-cta: var(--palette-dust-pink);
-	--marketing-cta-foreground: var(--palette-chocolate);
-	--marketing-cta-accent: var(--palette-chestnut);
-
-	--message-bubble: var(--palette-green-500);
-	--message-bubble-foreground: var(--palette-cream);
-	--message-card: var(--palette-blues);
-	--message-card-foreground: var(--palette-cream);
+	--hero: var(--palette-beige);
+	--feature: var(--palette-green-700);
+	--feature-foreground: var(--palette-white);
+	--pricing: var(--palette-cream);
+	--cta: var(--palette-dust-pink);
+	--cta-foreground: var(--palette-chocolate);
 
 	--thread-gradient-start: var(--palette-cream);
-	--thread-gradient-mid: var(--palette-beige);
-	--thread-gradient-end: 0 0% 100%;
+	--thread-gradient-end: var(--palette-white);
 
-	--radius: 0.5rem;
+	--radius: 1.25rem;
 }
 
 .dark {
 	--background: var(--palette-dark-navy);
 	--foreground: var(--palette-cream);
 
-	/* prefixed with foreground because it should look good on the background */
-	--foreground-destructive: var(--palette-fire-red);
-
-	--muted: var(--palette-navy);
-	--muted-foreground: var(--palette-smoke);
-
-	--muted-secondary: var(--palette-storm-grey);
-	--muted-secondary-foreground: var(--palette-smoke);
-
-	--popover: var(--palette-navy);
-	--popover-foreground: var(--palette-cream);
+	--surface: var(--palette-navy);
+	--surface-foreground: var(--palette-cream);
+	--surface-border: var(--palette-navy);
 
 	--card: var(--palette-navy);
 	--card-foreground: var(--palette-cream);
 
-	--border: var(--palette-storm-grey);
-	--input: var(--palette-storm-grey);
+	--field: var(--palette-dark-navy);
+	--field-foreground: var(--palette-cream);
+
+	--popover: var(--palette-navy);
+	--popover-foreground: var(--palette-cream);
+
+	--muted: var(--palette-storm-grey);
+	--muted-foreground: var(--palette-smoke);
+
+	--subtle-foreground: var(--palette-cloud);
+
+	--border: 211 16% 32%;
+	--input: 211 16% 39%;
 	--input-invalid: var(--palette-fire-red);
 
 	--primary: var(--palette-sunny);
 	--primary-foreground: var(--palette-dark-navy);
 
-	--secondary: var(--palette-navy);
+	--secondary: var(--palette-dark-navy);
 	--secondary-foreground: var(--palette-cream);
 
-	--accent: var(--palette-green-500);
-	--accent-foreground: var(--palette-cream);
+	--brand: var(--palette-green-500);
+	--brand-foreground: var(--palette-white);
+	--brand-soft: var(--palette-green-900);
+	--brand-soft-foreground: var(--palette-green-300);
+	--brand-muted: var(--palette-green-900);
+	--brand-muted-foreground: var(--palette-green-300);
 
-	--destructive: var(--palette-fire-red);
-	--destructive-foreground: var(--palette-cream);
+	--warm: var(--palette-chestnut);
+	--warm-foreground: var(--palette-white);
 
-	--ring: var(--palette-green-300);
+	--accent: var(--palette-orange);
+	--accent-foreground: var(--palette-dark-navy);
 
-	--overlay: 0 0% 0%;
-	--inverse: var(--palette-cream);
-
-	--brand: var(--palette-green-300);
-	--brand-foreground: var(--palette-dark-navy);
-	--brand-soft: var(--palette-green-700);
-	--brand-soft-foreground: var(--palette-cream);
-	--warm: var(--palette-orange);
-	--warm-foreground: var(--palette-dark-navy);
-
-	--warning: var(--palette-sunny);
+	--warning: var(--palette-orange);
 	--warning-foreground: var(--palette-dark-navy);
 
-	--banner-trial: var(--palette-orange);
-	--banner-trial-foreground: var(--palette-dark-navy);
-	--banner-upgrade: var(--palette-green-500);
-	--banner-upgrade-foreground: var(--palette-cream);
+	--destructive: var(--palette-fire-red);
+	--destructive-foreground: var(--palette-white);
+	--foreground-destructive: var(--palette-fire-red);
 
-	--price-basic: var(--palette-sunny);
-	--price-premium: var(--palette-rose-pink);
+	--sent: var(--palette-green-500);
+	--sent-foreground: var(--palette-white);
+	--scheduled: var(--palette-blues);
+	--scheduled-foreground: var(--palette-white);
 
-	--hero-orb: var(--palette-navy);
-	--hero-sparkle: var(--palette-sunny);
+	--ring: var(--palette-green-300);
+	--overlay: 210 33% 8%;
+	--inverse: var(--palette-dark-navy);
 
-	--marketing-feature: var(--palette-green-900);
-	--marketing-feature-foreground: var(--palette-cream);
-	--marketing-feature-muted: var(--palette-green-300);
-	--marketing-feature-accent: var(--palette-sunny);
-	--marketing-feature-accent-secondary: var(--palette-orange);
-	--marketing-step-index: var(--palette-sunny);
-
-	--marketing-cta: var(--palette-navy);
-	--marketing-cta-foreground: var(--palette-cream);
-	--marketing-cta-accent: var(--palette-sunny);
-
-	--message-bubble: var(--palette-green-500);
-	--message-bubble-foreground: var(--palette-cream);
-	--message-card: var(--palette-blues);
-	--message-card-foreground: var(--palette-cream);
+	--hero: var(--palette-dark-navy);
+	--feature: var(--palette-green-900);
+	--feature-foreground: var(--palette-cream);
+	--pricing: var(--palette-navy);
+	--cta: var(--palette-dust-pink);
+	--cta-foreground: var(--palette-chestnut);
 
 	--thread-gradient-start: var(--palette-dark-navy);
-	--thread-gradient-mid: var(--palette-navy);
-	--thread-gradient-end: var(--palette-storm-grey);
+	--thread-gradient-end: var(--palette-dark-navy);
 }
 
 @theme inline {
-	--radius-sm: calc(var(--radius) - 4px);
-	--radius-md: calc(var(--radius) - 2px);
-	--radius-lg: var(--radius);
-	--radius-xl: calc(var(--radius) + 4px);
+	--radius-sm: calc(var(--radius) - 12px);
+	--radius-md: calc(var(--radius) - 8px);
+	--radius-lg: calc(var(--radius) - 4px);
+	--radius-xl: var(--radius);
+	--radius-2xl: calc(var(--radius) + 4px);
+	--radius-3xl: calc(var(--radius) + 12px);
 	--color-background: hsl(var(--background));
 	--color-foreground: hsl(var(--foreground));
-	--color-foreground-destructive: hsl(var(--foreground-destructive));
-	--color-muted: hsl(var(--muted));
-	--color-muted-foreground: hsl(var(--muted-foreground));
-	--color-muted-secondary: hsl(var(--muted-secondary));
-	--color-muted-secondary-foreground: hsl(var(--muted-secondary-foreground));
-	--color-popover: hsl(var(--popover));
-	--color-popover-foreground: hsl(var(--popover-foreground));
+	--color-surface: hsl(var(--surface));
+	--color-surface-foreground: hsl(var(--surface-foreground));
+	--color-surface-border: hsl(var(--surface-border));
 	--color-card: hsl(var(--card));
 	--color-card-foreground: hsl(var(--card-foreground));
+	--color-field: hsl(var(--field));
+	--color-field-foreground: hsl(var(--field-foreground));
+	--color-popover: hsl(var(--popover));
+	--color-popover-foreground: hsl(var(--popover-foreground));
+	--color-muted: hsl(var(--muted));
+	--color-muted-foreground: hsl(var(--muted-foreground));
+	--color-subtle-foreground: hsl(var(--subtle-foreground));
 	--color-border: hsl(var(--border));
 	--color-input: hsl(var(--input));
 	--color-input-invalid: hsl(var(--input-invalid));
@@ -218,96 +211,91 @@
 	--color-primary-foreground: hsl(var(--primary-foreground));
 	--color-secondary: hsl(var(--secondary));
 	--color-secondary-foreground: hsl(var(--secondary-foreground));
-	--color-accent: hsl(var(--accent));
-	--color-accent-foreground: hsl(var(--accent-foreground));
-	--color-destructive: hsl(var(--destructive));
-	--color-destructive-foreground: hsl(var(--destructive-foreground));
-	--color-ring: hsl(var(--ring));
-	--color-ring-invalid: hsl(var(--foreground-destructive));
-	--color-overlay: hsl(var(--overlay));
-	--color-inverse: hsl(var(--inverse));
 	--color-brand: hsl(var(--brand));
 	--color-brand-foreground: hsl(var(--brand-foreground));
 	--color-brand-soft: hsl(var(--brand-soft));
 	--color-brand-soft-foreground: hsl(var(--brand-soft-foreground));
+	--color-brand-muted: hsl(var(--brand-muted));
+	--color-brand-muted-foreground: hsl(var(--brand-muted-foreground));
 	--color-warm: hsl(var(--warm));
 	--color-warm-foreground: hsl(var(--warm-foreground));
+	--color-accent: hsl(var(--accent));
+	--color-accent-foreground: hsl(var(--accent-foreground));
 	--color-warning: hsl(var(--warning));
 	--color-warning-foreground: hsl(var(--warning-foreground));
-	--color-banner-trial: hsl(var(--banner-trial));
-	--color-banner-trial-foreground: hsl(var(--banner-trial-foreground));
-	--color-banner-upgrade: hsl(var(--banner-upgrade));
-	--color-banner-upgrade-foreground: hsl(var(--banner-upgrade-foreground));
-	--color-price-basic: hsl(var(--price-basic));
-	--color-price-premium: hsl(var(--price-premium));
-	--color-hero-orb: hsl(var(--hero-orb));
-	--color-hero-sparkle: hsl(var(--hero-sparkle));
-	--color-marketing-feature: hsl(var(--marketing-feature));
-	--color-marketing-feature-foreground: hsl(
-		var(--marketing-feature-foreground)
-	);
-	--color-marketing-feature-muted: hsl(var(--marketing-feature-muted));
-	--color-marketing-feature-accent: hsl(var(--marketing-feature-accent));
-	--color-marketing-feature-accent-secondary: hsl(
-		var(--marketing-feature-accent-secondary)
-	);
-	--color-marketing-step-index: hsl(var(--marketing-step-index));
-	--color-marketing-cta: hsl(var(--marketing-cta));
-	--color-marketing-cta-foreground: hsl(var(--marketing-cta-foreground));
-	--color-marketing-cta-accent: hsl(var(--marketing-cta-accent));
-	--color-message-bubble: hsl(var(--message-bubble));
-	--color-message-bubble-foreground: hsl(var(--message-bubble-foreground));
-	--color-message-card: hsl(var(--message-card));
-	--color-message-card-foreground: hsl(var(--message-card-foreground));
+	--color-destructive: hsl(var(--destructive));
+	--color-destructive-foreground: hsl(var(--destructive-foreground));
+	--color-foreground-destructive: hsl(var(--foreground-destructive));
+	--color-sent: hsl(var(--sent));
+	--color-sent-foreground: hsl(var(--sent-foreground));
+	--color-scheduled: hsl(var(--scheduled));
+	--color-scheduled-foreground: hsl(var(--scheduled-foreground));
+	--color-ring: hsl(var(--ring));
+	--color-ring-invalid: hsl(var(--foreground-destructive));
+	--color-overlay: hsl(var(--overlay));
+	--color-inverse: hsl(var(--inverse));
+	--color-hero: hsl(var(--hero));
+	--color-feature: hsl(var(--feature));
+	--color-feature-foreground: hsl(var(--feature-foreground));
+	--color-pricing: hsl(var(--pricing));
+	--color-cta: hsl(var(--cta));
+	--color-cta-foreground: hsl(var(--cta-foreground));
+	--color-palette-sunny: hsl(var(--palette-sunny));
+	--color-palette-orange: hsl(var(--palette-orange));
+	--color-palette-fire-red: hsl(var(--palette-fire-red));
+	--color-palette-rose-pink: hsl(var(--palette-rose-pink));
+	--color-palette-dust-pink: hsl(var(--palette-dust-pink));
+	--color-palette-lilac: hsl(var(--palette-lilac));
+	--color-palette-baby-blue: hsl(var(--palette-baby-blue));
+	--color-palette-blues: hsl(var(--palette-blues));
+	--color-palette-green-500: hsl(var(--palette-green-500));
+	--color-palette-chestnut: hsl(var(--palette-chestnut));
+	--color-palette-beige: hsl(var(--palette-beige));
+	--color-palette-cream: hsl(var(--palette-cream));
+	--color-palette-navy: hsl(var(--palette-navy));
+	--color-palette-dark-navy: hsl(var(--palette-dark-navy));
 }
 
 @theme {
 	--font-sans:
-		'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
-		Roboto, 'Helvetica Neue', Arial, sans-serif;
-	--font-serif:
-		'Lora Variable', ui-serif, Georgia, Cambria, 'Times New Roman', serif;
-	--text-mega: 5rem;
-	--text-mega--line-height: 5.25rem;
-	--text-mega--font-weight: 700;
+		'Poppins', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+		'Helvetica Neue', Arial, sans-serif;
+	--font-display:
+		'Fraunces Variable', ui-serif, Georgia, Cambria, 'Times New Roman', serif;
+	--font-serif: var(--font-display);
+	/* Figma text styles (Fraunces headlines, Poppins body) */
 	--text-h1: 3.5rem;
-	--text-h1--line-height: 3.875rem;
+	--text-h1--line-height: 1.1;
 	--text-h1--font-weight: 700;
 	--text-h2: 2.5rem;
-	--text-h2--line-height: 3rem;
+	--text-h2--line-height: 1.15;
 	--text-h2--font-weight: 700;
 	--text-h3: 2rem;
-	--text-h3--line-height: 2.25rem;
+	--text-h3--line-height: 1.2;
 	--text-h3--font-weight: 700;
-	--text-h4: 1.75rem;
-	--text-h4--line-height: 2.25rem;
+	--text-h4: 1.5rem;
+	--text-h4--line-height: 1.25;
 	--text-h4--font-weight: 700;
-	--text-h5: 1.5rem;
-	--text-h5--line-height: 2rem;
+	--text-h5: 1.25rem;
+	--text-h5--line-height: 1.3;
 	--text-h5--font-weight: 700;
-	--text-h6: 1rem;
-	--text-h6--line-height: 1.25rem;
+	--text-h6: 1.125rem;
+	--text-h6--line-height: 1.3;
 	--text-h6--font-weight: 700;
-	--text-body-2xl: 2rem;
-	--text-body-2xl--line-height: 2.25rem;
-	--text-body-xl: 1.75rem;
-	--text-body-xl--line-height: 2.25rem;
-	--text-body-lg: 1.5rem;
-	--text-body-lg--line-height: 2rem;
-	--text-body-md: 1.25rem;
-	--text-body-md--line-height: 1.75rem;
-	--text-body-sm: 1rem;
-	--text-body-sm--line-height: 1.25rem;
-	--text-body-xs: 0.875rem;
-	--text-body-xs--line-height: 1.125rem;
+	--text-body-lg: 1.125rem;
+	--text-body-lg--line-height: 1.6;
+	--text-body-md: 1rem;
+	--text-body-md--line-height: 1.6;
+	--text-body-sm: 0.875rem;
+	--text-body-sm--line-height: 1.5;
+	--text-body-xs: 0.8125rem;
+	--text-body-xs--line-height: 1.4;
 	--text-body-2xs: 0.75rem;
-	--text-body-2xs--line-height: 1rem;
-	--text-caption: 1.125rem;
-	--text-caption--line-height: 1.5rem;
-	--text-caption--font-weight: 600;
-	--text-button: 0.75rem;
-	--text-button--line-height: 1rem;
-	--text-button--font-weight: 700;
+	--text-body-2xs--line-height: 1.35;
+	--text-label: 0.75rem;
+	--text-label--line-height: 1rem;
+	--text-label--font-weight: 600;
+	--text-label--letter-spacing: 0.06em;
 	--animate-caret-blink: caret-blink 1.25s ease-out infinite;
 
 	@keyframes caret-blink {
@@ -327,6 +315,7 @@
 @utility container {
 	margin-inline: auto;
 	width: 100%;
+	max-width: 1216px;
 	padding-inline: 1.25rem;
 
 	@media (width >= 640px) {
@@ -335,22 +324,31 @@
 		}
 	}
 
-	@media (width >= 1536px) {
+	@media (width >= 1024px) {
 		& {
-			max-width: 1400px;
+			padding-inline: 2.75rem;
 		}
 	}
 }
 
-@layer utilities {
-	.thread-gradient {
-		background-image: linear-gradient(
-			90deg,
-			hsl(var(--thread-gradient-start)),
-			hsl(var(--thread-gradient-mid)) 45%,
-			hsl(var(--thread-gradient-end)) 100%
-		);
-	}
+/* Fraunces "Black Soft" headline style from the Figma text styles. */
+@utility font-display {
+	font-family: var(--font-display);
+	font-weight: 900;
+	font-variation-settings:
+		'SOFT' 100,
+		'WONK' 0,
+		'opsz' 144;
+	letter-spacing: -0.005em;
+}
+
+/* Cream-to-white wash behind the message thread on the recipient page. */
+@utility thread-gradient {
+	background-image: linear-gradient(
+		90deg,
+		hsl(var(--thread-gradient-start)),
+		hsl(var(--thread-gradient-end)) 100%
+	);
 }
 
 @layer base {
@@ -370,6 +368,10 @@
 		scroll-padding-top: 6rem;
 		-webkit-font-smoothing: antialiased;
 		text-rendering: optimizeLegibility;
+	}
+
+	body {
+		font-family: var(--font-sans);
 	}
 
 	/* Links and native controls that lack their own ring still get a visible focus indicator. */
