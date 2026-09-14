@@ -65,11 +65,12 @@ const plans = [
  * Paper plane and its dashed flight path, traced from the design at 1440px.
  * Coordinates are relative to the "How it works" container: x from the
  * container's left padding edge, y from the top of the heading. The path
- * starts at the plane's tail so the two always meet.
+ * ends where it meets the tail's edge in the design, on the same straight
+ * run as the last few dashes, so the two always meet without a kink.
  */
-const PLANE = { x: 1009, y: 136, width: 117, height: 93 }
+const PLANE = { x: 1009, y: 135, width: 158, height: 102 }
 const TRAIL_PATH =
-	'M1049 204C1045 203 1040 198 1025 200C1011 202 982 209 962 216C942 223 921 230 904 242C887 254 870 271 862 289C855 308 854 333 859 353C864 373 878 401 893 408C908 415 941 410 950 397C959 385 956 352 948 333C940 315 921 298 904 286C887 274 865 266 844 260C824 254 803 250 781 249C760 248 736 250 715 254C694 258 673 264 653 273C633 282 614 293 597 306C580 319 564 334 549 350C534 366 520 383 508 402C496 421 486 441 477 462C468 483 461 505 455 527C449 549 446 571 442 593C438 615 437 639 432 661C428 683 423 706 415 727C407 748 399 768 386 786C374 804 358 822 340 835C323 848 303 859 281 865C260 871 229 871 211 870C193 870 189 868 172 862C155 856 131 846 111 836C92 826 74 812 55 800C37 788 19 776 0 765C-19 754 -41 741 -57 733C-73 725 -91 720 -98 717'
+	'M1046 196C1039 197 1032 199 1025 200C1011 202 982 209 962 216C942 223 921 230 904 242C887 254 870 271 862 289C855 308 854 333 859 353C864 373 878 401 893 408C908 415 941 410 950 397C959 385 956 352 948 333C940 315 921 298 904 286C887 274 865 266 844 260C824 254 803 250 781 249C760 248 736 250 715 254C694 258 673 264 653 273C633 282 614 293 597 306C580 319 564 334 549 350C534 366 520 383 508 402C496 421 486 441 477 462C468 483 461 505 455 527C449 549 446 571 442 593C438 615 437 639 432 661C428 683 423 706 415 727C407 748 399 768 386 786C374 804 358 822 340 835C323 848 303 859 281 865C260 871 229 871 211 870C193 870 189 868 172 862C155 856 131 846 111 836C92 826 74 812 55 800C37 788 19 776 0 765C-19 754 -41 741 -57 733C-73 725 -91 720 -98 717'
 // The drawing spans from 120px left of the container to its right edge.
 const TRAIL_VIEWBOX = { x: -120, y: 100, width: 1336, height: 800 }
 
@@ -248,7 +249,8 @@ export default function Index() {
 								key={step.title}
 								className={cn(
 									'mx-auto flex max-w-[21rem] flex-col items-center text-center md:max-w-[20.5rem]',
-									index % 3 === 1 && 'md:-mt-[7.75rem]',
+									// Only stagger where the plane's loop leaves room for it.
+									index % 3 === 1 && 'lg:-mt-[7.75rem]',
 								)}
 							>
 								<span className="font-display text-accent text-[2.5rem] leading-none md:text-[4rem] lg:text-[5rem]">
