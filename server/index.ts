@@ -268,10 +268,19 @@ const getHost = (req: { get: (key: string) => string | undefined }) =>
 // fly is our proxy
 app.set('trust proxy', true)
 
-// ensure HTTPS only (X-Forwarded-Proto comes from Fly)
+// The apex domain also points at this app, but sessions are cookie-scoped
+// per host and search engines should see one origin, so send it to www.
+const APEX_HOST = 'gratitext.app'
+const CANONICAL_HOST = `www.${APEX_HOST}`
+
+// ensure HTTPS and the canonical host (X-Forwarded-Proto comes from Fly)
 app.use((req, res, next) => {
 	const proto = req.get('X-Forwarded-Proto')
 	const host = getHost(req)
+	if (host === APEX_HOST) {
+		res.redirect(301, `https://${CANONICAL_HOST}${req.originalUrl}`)
+		return
+	}
 	if (proto === 'http') {
 		res.set('X-Forwarded-Proto', 'https')
 		res.redirect(`https://${host}${req.originalUrl}`)
