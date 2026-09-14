@@ -388,40 +388,47 @@ export default function Index() {
 								Create your account today and
 								<br className="hidden md:block" /> get 2 weeks for free!
 							</h2>
-							<Form
-								method="GET"
-								action="/signup"
-								className="relative mx-auto mt-8 max-w-[26rem]"
-							>
-								<label htmlFor="cta-phone" className="sr-only">
-									Your Phone Number
-								</label>
-								<input
-									id="cta-phone"
-									name="phoneNumber"
-									type="tel"
-									autoComplete="tel"
-									placeholder="Your Phone Number"
-									className={cn(
-										inputClassName,
-										'bg-inverse text-foreground dark:bg-card h-14 border-transparent pr-16 md:h-[3.75rem] md:pr-36',
-									)}
-								/>
-								<Button
-									type="submit"
-									variant="brand"
-									className="absolute top-1/2 right-2 h-10 w-10 -translate-y-1/2 px-0 md:h-11 md:w-auto md:px-6"
-								>
-									<span className="hidden md:inline">Get Started</span>
-									<Icon
-										name="arrow-right"
-										size="sm"
-										aria-hidden="true"
-										className="md:hidden"
-									/>
-									<span className="sr-only md:hidden">Get Started</span>
+							{user ? (
+								<Button asChild variant="brand" size="lg" className="mt-8">
+									<Link to={getStartedTo}>Go to your recipients</Link>
 								</Button>
-							</Form>
+							) : (
+								// Signup reads `phoneNumber` from the query string to prefill.
+								<Form
+									method="GET"
+									action="/signup"
+									className="relative mx-auto mt-8 max-w-[26rem]"
+								>
+									<label htmlFor="cta-phone" className="sr-only">
+										Your Phone Number
+									</label>
+									<input
+										id="cta-phone"
+										name="phoneNumber"
+										type="tel"
+										autoComplete="tel"
+										placeholder="Your Phone Number"
+										className={cn(
+											inputClassName,
+											'bg-inverse text-foreground dark:bg-card h-14 border-transparent pr-16 md:h-[3.75rem] md:pr-36',
+										)}
+									/>
+									<Button
+										type="submit"
+										variant="brand"
+										className="absolute top-1/2 right-2 h-10 w-10 -translate-y-1/2 px-0 md:h-11 md:w-auto md:px-6"
+									>
+										<span className="hidden md:inline">Get Started</span>
+										<Icon
+											name="arrow-right"
+											size="sm"
+											aria-hidden="true"
+											className="md:hidden"
+										/>
+										<span className="sr-only md:hidden">Get Started</span>
+									</Button>
+								</Form>
+							)}
 						</div>
 					</div>
 				</div>

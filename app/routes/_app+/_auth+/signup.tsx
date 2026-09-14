@@ -9,10 +9,12 @@ import {
 	data as json,
 	redirect,
 	type ActionFunctionArgs,
+	type LoaderFunctionArgs,
 	type MetaFunction,
 	Form,
 	Link,
 	useActionData,
+	useLoaderData,
 } from 'react-router'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
@@ -29,6 +31,8 @@ import {
 	countryCodeLabel,
 	countryCodes,
 	defaultCountryCode,
+	OTHER_COUNTRY_CODE,
+	splitPhoneNumber,
 } from '#app/utils/country-codes.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { checkHoneypot } from '#app/utils/honeypot.server.ts'
@@ -43,6 +47,28 @@ const SignupSchema = z.object({
 })
 
 export const handle = authPageHandle
+
+/**
+ * The landing page's "Get started" form sends the visitor here with the
+ * number they typed, so it is used to prefill the form.
+ */
+export async function loader({ request }: LoaderFunctionArgs) {
+	const typed = new URL(request.url).searchParams.get('phoneNumber')?.trim()
+	const defaultValue: { countryCode: string; phoneNumber?: string } = {
+		countryCode: defaultCountryCode,
+	}
+	if (typed) {
+		const split = typed.startsWith('+') ? splitPhoneNumber(typed) : null
+		// Only split when the dial code is one the select can show.
+		if (split && split.countryCode !== OTHER_COUNTRY_CODE) {
+			defaultValue.countryCode = split.countryCode
+			defaultValue.phoneNumber = split.national
+		} else {
+			defaultValue.phoneNumber = typed
+		}
+	}
+	return json({ defaultValue })
+}
 
 export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData()
@@ -118,13 +144,14 @@ export const meta: MetaFunction = () => {
 }
 
 export default function SignupRoute() {
+	const { defaultValue } = useLoaderData<typeof loader>()
 	const actionData = useActionData<typeof action>()
 	const isPending = useIsPending()
 
 	const [form, fields] = useForm({
 		id: 'signup-form',
 		constraint: getZodConstraint(SignupSchema),
-		defaultValue: { countryCode: defaultCountryCode },
+		defaultValue,
 		lastResult: actionData?.result,
 		onValidate({ formData }) {
 			const result = parseWithZod(formData, { schema: SignupSchema })
