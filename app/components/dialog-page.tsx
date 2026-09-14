@@ -1,6 +1,7 @@
 import { type ReactNode, useCallback, useRef } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useFocusTrap } from '#app/utils/focus-trap.ts'
+import { useMediaQuery } from '#app/utils/media-query.ts'
 import { cn } from '#app/utils/misc.tsx'
 import { Icon } from './ui/icon.tsx'
 
@@ -32,10 +33,9 @@ export function DialogPage({
 	const close = useCallback(() => {
 		void navigate(backTo)
 	}, [navigate, backTo])
-	// Only trap focus when the dialog is actually floating (md and up).
-	const isDesktop =
-		typeof window !== 'undefined' &&
-		window.matchMedia('(min-width: 768px)').matches
+	// The panel is only a modal when it floats over the page (md and up); on
+	// phones it is an ordinary page and the header stays usable.
+	const isDesktop = useMediaQuery('(min-width: 768px)')
 	useFocusTrap(panelRef, isDesktop, close)
 
 	return (
@@ -48,8 +48,8 @@ export function DialogPage({
 			/>
 			<div
 				ref={panelRef}
-				role="dialog"
-				aria-modal="true"
+				role={isDesktop ? 'dialog' : undefined}
+				aria-modal={isDesktop ? 'true' : undefined}
 				aria-labelledby="dialog-page-title"
 				tabIndex={-1}
 				className={cn(
