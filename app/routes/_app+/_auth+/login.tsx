@@ -12,12 +12,12 @@ import {
 } from 'react-router'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
-import {
-	AuthActions,
-	AuthPage,
-	authPageHandle,
-} from '#app/components/auth-page.tsx'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
+import {
+	FormActions,
+	FormPage,
+	authPageHandle,
+} from '#app/components/form-page.tsx'
 import {
 	CheckboxField,
 	ErrorList,
@@ -113,7 +113,7 @@ export default function LoginPage() {
 		: '/signup'
 
 	return (
-		<AuthPage
+		<FormPage
 			title="Stay Close, Even When Apart"
 			description="Please enter your username or phone number and password"
 			footer={
@@ -157,7 +157,7 @@ export default function LoginPage() {
 				/>
 				<input {...getInputProps(fields.redirectTo, { type: 'hidden' })} />
 				<ErrorList errors={form.errors} id={form.errorId} />
-				<AuthActions
+				<FormActions
 					aside={<Link to="/forgot-password">Forgot Password?</Link>}
 				>
 					<StatusButton
@@ -170,9 +170,9 @@ export default function LoginPage() {
 						Log In
 						<Icon name="arrow-right" size="sm" aria-hidden="true" />
 					</StatusButton>
-				</AuthActions>
+				</FormActions>
 			</Form>
-		</AuthPage>
+		</FormPage>
 	)
 }
 

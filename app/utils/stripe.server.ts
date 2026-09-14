@@ -87,6 +87,18 @@ export async function getCustomerProducts(customerId: string) {
 	return productsData
 }
 
+export type SubscriptionTier = 'none' | 'basic' | 'premium'
+
+export async function getSubscriptionTier(
+	stripeId: string | null | undefined,
+): Promise<SubscriptionTier> {
+	if (!stripeId) return 'none'
+	const { products } = await getCustomerProducts(stripeId)
+	if (products.includes('premium')) return 'premium'
+	if (products.includes('basic')) return 'basic'
+	return 'none'
+}
+
 const BillingPortalSessionSchema = z.object({
 	url: z.string(),
 })

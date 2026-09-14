@@ -10,12 +10,12 @@ import {
 	useActionData,
 	useLoaderData,
 } from 'react-router'
-import {
-	AuthActions,
-	AuthPage,
-	authPageHandle,
-} from '#app/components/auth-page.tsx'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
+import {
+	FormActions,
+	FormPage,
+	authPageHandle,
+} from '#app/components/form-page.tsx'
 import { ErrorList, PasswordField } from '#app/components/forms.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
@@ -92,7 +92,7 @@ export default function ResetPasswordPage() {
 	})
 
 	return (
-		<AuthPage
+		<FormPage
 			title="Reset Your Password"
 			description={`Hi ${data.resetPasswordUsername}, let's set a new password`}
 		>
@@ -125,7 +125,7 @@ export default function ResetPasswordPage() {
 					errors={fields.confirmPassword.errors}
 				/>
 				<ErrorList errors={form.errors} id={form.errorId} />
-				<AuthActions>
+				<FormActions>
 					<StatusButton
 						variant="brand"
 						size="lg"
@@ -136,9 +136,9 @@ export default function ResetPasswordPage() {
 						Reset Password
 						<Icon name="arrow-right" size="sm" aria-hidden="true" />
 					</StatusButton>
-				</AuthActions>
+				</FormActions>
 			</Form>
-		</AuthPage>
+		</FormPage>
 	)
 }
 

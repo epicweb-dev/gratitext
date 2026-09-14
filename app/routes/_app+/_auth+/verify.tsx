@@ -9,12 +9,12 @@ import {
 } from 'react-router'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
-import {
-	AuthActions,
-	AuthPage,
-	authPageHandle,
-} from '#app/components/auth-page.tsx'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
+import {
+	FormActions,
+	FormPage,
+	authPageHandle,
+} from '#app/components/form-page.tsx'
 import { ErrorList, OTPField } from '#app/components/forms.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
@@ -113,7 +113,7 @@ export default function VerifyRoute() {
 	})
 
 	return (
-		<AuthPage title={heading.title} description={heading.description}>
+		<FormPage title={heading.title} description={heading.description}>
 			<Form
 				method="POST"
 				{...getFormProps(form)}
@@ -133,7 +133,8 @@ export default function VerifyRoute() {
 						...getInputProps(fields[codeQueryParam], { type: 'text' }),
 						autoComplete: 'one-time-code',
 						autoFocus: true,
-						containerClassName: 'justify-between md:justify-start gap-2 md:gap-3',
+						containerClassName:
+							'justify-between md:justify-start gap-2 md:gap-3',
 					}}
 					errors={fields[codeQueryParam].errors}
 					groupClassName="gap-2 md:gap-3"
@@ -148,7 +149,7 @@ export default function VerifyRoute() {
 						type: 'hidden',
 					})}
 				/>
-				<AuthActions
+				<FormActions
 					aside={
 						<p className="text-muted-foreground">
 							{type === '2fa' ? 'Having trouble?' : 'No text after 5 minutes?'}{' '}
@@ -171,9 +172,9 @@ export default function VerifyRoute() {
 						Continue
 						<Icon name="arrow-right" size="sm" aria-hidden="true" />
 					</StatusButton>
-				</AuthActions>
+				</FormActions>
 			</Form>
-		</AuthPage>
+		</FormPage>
 	)
 }
 

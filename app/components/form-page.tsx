@@ -8,22 +8,29 @@ import { cn } from '#app/utils/misc.tsx'
  */
 export const authPageHandle = { pageTint: 'hero', chrome: 'minimal' } as const
 
-export function AuthPage({
+/** Dashboard forms keep the normal header but share the auth page shell. */
+export const formPageHandle = { pageTint: 'hero' } as const
+
+export function FormPage({
 	title,
 	description,
 	children,
 	footer,
+	as = 'main',
 }: {
 	title: string
 	description?: ReactNode
 	children: ReactNode
 	footer?: ReactNode
+	/** Use `div` when an ancestor route already renders the `main` landmark. */
+	as?: 'main' | 'div'
 }) {
+	const Wrapper = as
 	return (
-		<main className="bg-hero md:bg-background flex flex-1 flex-col pt-10 pb-6 md:pt-20 md:pb-24">
+		<Wrapper className="bg-hero md:bg-background flex flex-1 flex-col pt-10 pb-6 md:pt-20 md:pb-24">
 			<div className="container flex flex-1 flex-col md:max-w-[52rem] md:flex-none">
 				<div className="text-center">
-					<h1 className="font-display text-foreground text-[1.875rem] leading-[1.15] text-balance md:text-h2">
+					<h1 className="font-display text-foreground md:text-h2 text-[1.875rem] leading-[1.15] text-balance">
 						{title}
 					</h1>
 					{description ? (
@@ -36,12 +43,12 @@ export function AuthPage({
 					{children}
 				</div>
 				{footer ? (
-					<div className="text-muted-foreground [&_a]:text-foreground mt-6 text-center text-sm [&_a]:inline-flex [&_a]:items-center [&_a]:gap-2 [&_a]:font-medium [&_a]:underline-offset-4 hover:[&_a]:underline md:mt-8">
+					<div className="text-muted-foreground [&_a]:text-foreground mt-6 text-center text-sm md:mt-8 [&_a]:inline-flex [&_a]:items-center [&_a]:gap-2 [&_a]:font-medium [&_a]:underline-offset-4 hover:[&_a]:underline">
 						{footer}
 					</div>
 				) : null}
 			</div>
-		</main>
+		</Wrapper>
 	)
 }
 
@@ -50,7 +57,7 @@ export function AuthPage({
  * primary action on the right. On phones the action becomes a full-width
  * button anchored to the bottom of the screen, as in the mobile designs.
  */
-export function AuthActions({
+export function FormActions({
 	aside,
 	children,
 	className,

@@ -28,7 +28,10 @@ import { ThemeSwitch, useTheme } from '#app/routes/resources+/theme-switch.tsx'
 import { getUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { cn } from '#app/utils/misc.tsx'
-import { getCustomerProducts } from '#app/utils/stripe.server.ts'
+import {
+	getSubscriptionTier,
+	type SubscriptionTier,
+} from '#app/utils/stripe.server.ts'
 import { makeTimings } from '#app/utils/timing.server.ts'
 import { useOptionalUser, useUser } from '#app/utils/user.ts'
 
@@ -62,11 +65,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		: null
 
 	return json(
-		{
-			isSubscribed: user?.stripeId
-				? Boolean((await getCustomerProducts(user.stripeId)).products.length)
-				: false,
-		},
+		{ subscriptionTier: await getSubscriptionTier(user?.stripeId) },
 		{ headers: { 'Server-Timing': timings.toString() } },
 	)
 }
@@ -89,14 +88,19 @@ export default function Layout() {
 	const user = useOptionalUser()
 	const matches = useMatches()
 	const handles = matches.map((match) => match.handle).filter(isRecord)
-	// Auth pages are full-bleed beige on phones, so the header follows suit.
-	const heroTint = handles.some((handle) => handle.pageTint === 'hero')
+	// Auth pages are full-bleed beige on phones and the dashboard sits on cream,
+	// so the header and footer follow the page colour.
+	const pageTint = handles.find((handle) => handle.pageTint)?.pageTint
 	const minimalChrome = handles.some((handle) => handle.chrome === 'minimal')
 	return (
 		<div
 			className={cn(
 				'text-foreground flex min-h-screen flex-col',
-				heroTint ? 'bg-hero md:bg-background' : 'bg-background',
+				pageTint === 'hero'
+					? 'bg-hero md:bg-background'
+					: pageTint === 'surface'
+						? 'bg-surface'
+						: 'bg-background',
 			)}
 		>
 			<a
@@ -111,14 +115,15 @@ export default function Layout() {
 					<div className="hidden items-center gap-3 md:flex">
 						{user ? (
 							<>
-								{data.isSubscribed ? null : (
-									<Button asChild size="sm">
+								{data.subscriptionTier === 'basic' ? (
+									<Button asChild variant="warning" size="sm">
 										<Link to="/settings/profile/subscription">
-											Start 14-day FREE trial
+											<Icon name="upgrade" size="xs" aria-hidden="true" />
+											Upgrade to 10 Messages a Day
 										</Link>
 									</Button>
-								)}
-								<UserDropdown />
+								) : null}
+								<UserDropdown subscriptionTier={data.subscriptionTier} />
 							</>
 						) : minimalChrome ? null : (
 							<>
@@ -133,7 +138,7 @@ export default function Layout() {
 						<ThemeSwitch />
 					</div>
 					<div className="md:hidden">
-						<MobileMenu isSubscribed={data.isSubscribed} />
+						<MobileMenu subscriptionTier={data.subscriptionTier} />
 					</div>
 				</div>
 			</header>
@@ -193,7 +198,11 @@ export default function Layout() {
 	)
 }
 
-function UserDropdown() {
+function UserDropdown({
+	subscriptionTier,
+}: {
+	subscriptionTier: SubscriptionTier
+}) {
 	const user = useUser()
 	const submit = useSubmit()
 	const formRef = useRef<HTMLFormElement>(null)
@@ -222,16 +231,21 @@ function UserDropdown() {
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuPortal>
-				<DropdownMenuContent sideOffset={8} align="end" className="w-56">
-					<div className="px-3 pt-2 pb-2">
-						<p className="text-foreground truncate text-sm font-semibold">
-							{displayName}
-						</p>
-						<p className="text-muted-foreground truncate text-xs">
-							@{user.username}
-						</p>
-					</div>
-					<DropdownMenuSeparator />
+				<DropdownMenuContent sideOffset={8} align="end" className="w-60">
+					{subscriptionTier === 'premium' ? null : (
+						<>
+							<DropdownMenuItem asChild>
+								<Link prefetch="intent" to="/settings/profile/subscription">
+									<Icon className="text-body-md" name="upgrade">
+										{subscriptionTier === 'basic'
+											? 'Upgrade to Premium Account'
+											: 'Start 14-day FREE Trial'}
+									</Icon>
+								</Link>
+							</DropdownMenuItem>
+							<DropdownMenuSeparator />
+						</>
+					)}
 					<DropdownMenuItem asChild>
 						<Link prefetch="intent" to={`/users/${user.username}`}>
 							<Icon className="text-body-md" name="avatar">
@@ -248,8 +262,8 @@ function UserDropdown() {
 					</DropdownMenuItem>
 					<DropdownMenuItem asChild>
 						<Link prefetch="intent" to="/settings/profile">
-							<Icon className="text-body-md" name="settings">
-								Settings
+							<Icon className="text-body-md" name="options">
+								Account Settings
 							</Icon>
 						</Link>
 					</DropdownMenuItem>
@@ -265,7 +279,7 @@ function UserDropdown() {
 						}}
 					>
 						<Form action="/logout" method="POST" ref={formRef}>
-							<Icon className="text-body-md" name="exit">
+							<Icon className="text-body-md" name="log out">
 								<button type="submit">Logout</button>
 							</Icon>
 						</Form>
@@ -283,7 +297,11 @@ export function ErrorBoundary() {
 const mobileRowClassName =
 	'text-foreground hover:bg-surface flex w-full items-center gap-4 rounded-xl px-2 py-3.5 text-left text-base font-medium transition-colors'
 
-function MobileMenu({ isSubscribed }: { isSubscribed: boolean }) {
+function MobileMenu({
+	subscriptionTier,
+}: {
+	subscriptionTier: SubscriptionTier
+}) {
 	const [open, setOpen] = useState(false)
 	const user = useOptionalUser()
 	const theme = useTheme()
@@ -393,7 +411,7 @@ function MobileMenu({ isSubscribed }: { isSubscribed: boolean }) {
 						<div className="mt-3">
 							{user ? (
 								<>
-									{isSubscribed ? null : (
+									{subscriptionTier === 'premium' ? null : (
 										<Button
 											asChild
 											size="lg"
@@ -402,7 +420,9 @@ function MobileMenu({ isSubscribed }: { isSubscribed: boolean }) {
 										>
 											<Link to="/settings/profile/subscription" onClick={close}>
 												<Icon name="star" size="sm" aria-hidden="true" />
-												Start 14-day FREE Trial
+												{subscriptionTier === 'basic'
+													? 'Upgrade to Premium Account'
+													: 'Start 14-day FREE Trial'}
 											</Link>
 										</Button>
 									)}
@@ -436,7 +456,12 @@ function MobileMenu({ isSubscribed }: { isSubscribed: boolean }) {
 								</>
 							) : (
 								<>
-									<Button asChild size="lg" variant="warning" className="w-full">
+									<Button
+										asChild
+										size="lg"
+										variant="warning"
+										className="w-full"
+									>
 										<Link to="/signup" onClick={close}>
 											<Icon name="star" size="sm" aria-hidden="true" />
 											Start 14-day FREE Trial

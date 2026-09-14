@@ -15,10 +15,10 @@ import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { safeRedirect } from 'remix-utils/safe-redirect'
 import { z } from 'zod'
 import {
-	AuthActions,
-	AuthPage,
+	FormActions,
+	FormPage,
 	authPageHandle,
-} from '#app/components/auth-page.tsx'
+} from '#app/components/form-page.tsx'
 import {
 	CheckboxField,
 	ErrorList,
@@ -156,7 +156,7 @@ export default function SignupRoute() {
 	})
 
 	return (
-		<AuthPage
+		<FormPage
 			title="Stay Connected, Stay Grateful"
 			description="Almost there! Finish creating your account"
 		>
@@ -209,7 +209,8 @@ export default function SignupRoute() {
 					<CheckboxField
 						labelProps={{
 							htmlFor: fields.agreeToTermsOfServiceAndPrivacyPolicy.id,
-							children: 'Do you agree to our Terms of Service and Privacy Policy?',
+							children:
+								'Do you agree to our Terms of Service and Privacy Policy?',
 						}}
 						description={
 							<>
@@ -251,7 +252,7 @@ export default function SignupRoute() {
 				</div>
 				<input {...getInputProps(fields.redirectTo, { type: 'hidden' })} />
 				<ErrorList errors={form.errors} id={form.errorId} />
-				<AuthActions className="md:pt-6">
+				<FormActions className="md:pt-6">
 					<StatusButton
 						variant="brand"
 						size="lg"
@@ -262,8 +263,8 @@ export default function SignupRoute() {
 						<Icon name="check" size="sm" aria-hidden="true" />
 						Create an Account
 					</StatusButton>
-				</AuthActions>
+				</FormActions>
 			</Form>
-		</AuthPage>
+		</FormPage>
 	)
 }

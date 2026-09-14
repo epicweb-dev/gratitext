@@ -16,12 +16,12 @@ import {
 } from 'react-router'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
-import {
-	AuthActions,
-	AuthPage,
-	authPageHandle,
-} from '#app/components/auth-page.tsx'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
+import {
+	FormActions,
+	FormPage,
+	authPageHandle,
+} from '#app/components/form-page.tsx'
 import { ErrorList, Field, SelectField } from '#app/components/forms.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
@@ -134,7 +134,7 @@ export default function SignupRoute() {
 	})
 
 	return (
-		<AuthPage
+		<FormPage
 			title="Create and Nurture Lasting Bonds With Your Loved Ones"
 			description="Please enter your phone number along with your country code"
 			footer={
@@ -177,7 +177,7 @@ export default function SignupRoute() {
 					/>
 				</div>
 				<ErrorList errors={form.errors} id={form.errorId} />
-				<AuthActions>
+				<FormActions>
 					<StatusButton
 						variant="brand"
 						size="lg"
@@ -188,9 +188,9 @@ export default function SignupRoute() {
 						Continue
 						<Icon name="arrow-right" size="sm" aria-hidden="true" />
 					</StatusButton>
-				</AuthActions>
+				</FormActions>
 			</Form>
-		</AuthPage>
+		</FormPage>
 	)
 }
 

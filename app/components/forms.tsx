@@ -125,7 +125,11 @@ export function PasswordField({
 					aria-pressed={visible}
 					className="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute top-1/2 right-4 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full transition-colors focus-visible:ring-2 focus-visible:outline-none"
 				>
-					<Icon name={visible ? 'eye-off' : 'eye'} size="sm" aria-hidden="true" />
+					<Icon
+						name={visible ? 'eye-off' : 'eye'}
+						size="sm"
+						aria-hidden="true"
+					/>
 				</button>
 			</div>
 			<FieldErrorSlot errorId={errorId} errors={errors} />

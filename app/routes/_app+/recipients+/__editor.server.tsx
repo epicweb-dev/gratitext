@@ -19,6 +19,7 @@ import { type VerificationTypes } from '../_auth+/verify.tsx'
 import {
 	DeleteRecipientSchema,
 	RecipientEditorSchema,
+	combinePhoneNumber,
 	deleteRecipientActionIntent,
 	sendVerificationActionIntent,
 	upsertRecipientActionIntent,
@@ -152,11 +153,13 @@ export async function usertRecipientAction({
 	const {
 		id: recipientId,
 		name,
-		phoneNumber,
+		countryCode,
+		phoneNumber: nationalNumber,
 		scheduleCron,
 		timeZone,
 		disabled,
 	} = submission.value
+	const phoneNumber = combinePhoneNumber(countryCode, nationalNumber)
 
 	let scheduleData: { prevScheduledAt: Date; nextScheduledAt: Date }
 	try {

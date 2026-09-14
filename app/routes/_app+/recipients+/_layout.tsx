@@ -1,5 +1,6 @@
 import {
 	data as json,
+	Link,
 	type LoaderFunctionArgs,
 	Outlet,
 	useLoaderData,
@@ -8,6 +9,7 @@ import {
 	ErrorMessage,
 	GeneralErrorBoundary,
 } from '#app/components/error-boundary.tsx'
+import { Button } from '#app/components/ui/button.tsx'
 import { requireUserId } from '#app/utils/auth.server.js'
 import { CronParseError, getScheduleWindow } from '#app/utils/cron.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
@@ -16,7 +18,7 @@ import {
 	NEXT_SCHEDULE_SENTINEL_DATE,
 	PREV_SCHEDULE_SENTINEL_DATE,
 } from '#app/utils/schedule-constants.server.ts'
-import { getCustomerProducts } from '#app/utils/stripe.server.ts'
+import { getSubscriptionTier } from '#app/utils/stripe.server.ts'
 
 function formatScheduleDisplay(date: Date, timeZone: string) {
 	const formatter = new Intl.DateTimeFormat('en-US', {
@@ -35,8 +37,18 @@ function formatScheduleDisplay(date: Date, timeZone: string) {
 	const minute = getPart('minute') ?? '00'
 	const dayPeriod = getPart('dayPeriod') ?? ''
 	const timeZoneName = getPart('timeZoneName') ?? ''
-	return `Every ${weekday} at ${hour}:${minute} ${dayPeriod} ${timeZoneName}`.trim()
+	const time = minute === '00' ? hour : `${hour}:${minute}`
+	return {
+		weekday,
+		time: `${time} ${dayPeriod}`.trim(),
+		timeZoneName,
+	}
 }
+
+export type ScheduleDisplay =
+	| { kind: 'paused' }
+	| { kind: 'error'; message: string }
+	| { kind: 'weekly'; weekday: string; time: string; timeZoneName: string }
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const userId = await requireUserId(request)
@@ -168,11 +180,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	}
 
 	const recipientsWithDisplay = sortedRecipients.map((recipient) => {
-		const scheduleDisplay = recipient.disabled
-			? 'Paused'
+		const scheduleDisplay: ScheduleDisplay = recipient.disabled
+			? { kind: 'paused' }
 			: recipient.cronError
-				? 'Schedule issue'
-				: formatScheduleDisplay(recipient.nextScheduledAt, recipient.timeZone)
+				? { kind: 'error', message: recipient.cronError }
+				: {
+						kind: 'weekly',
+						...formatScheduleDisplay(
+							recipient.nextScheduledAt,
+							recipient.timeZone,
+						),
+					}
 		const { nextScheduledAt, ...rest } = recipient
 		return { ...rest, scheduleDisplay }
 	})
@@ -181,14 +199,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		where: { id: userId },
 		select: { stripeId: true },
 	})
-	const productsData = user.stripeId
-		? await getCustomerProducts(user.stripeId)
-		: { products: [], cancelAt: null }
-	const subscriptionStatus = productsData.products.includes('premium')
-		? 'premium'
-		: productsData.products.includes('basic')
-			? 'basic'
-			: 'none'
+	const subscriptionStatus = await getSubscriptionTier(user.stripeId)
 
 	return json({ recipients: recipientsWithDisplay, subscriptionStatus })
 }
@@ -204,8 +215,29 @@ export default function RecipientsLayout() {
 	const { recipients, subscriptionStatus } = useLoaderData<typeof loader>()
 
 	return (
-		<div className="container flex min-h-0 flex-grow flex-col pt-8 pb-16 md:pt-10">
+		<main className="flex min-h-0 flex-grow flex-col">
+			{subscriptionStatus === 'none' ? <TrialBanner /> : null}
 			<Outlet context={{ recipients, subscriptionStatus }} />
+		</main>
+	)
+}
+
+function TrialBanner() {
+	return (
+		<div className="bg-warning text-warning-foreground">
+			<div className="container flex flex-col items-center justify-center gap-3 py-3 text-center text-sm font-medium md:h-[4.5rem] md:flex-row md:gap-4 md:py-0">
+				<p>Upgrade to start sending your scheduled messages.</p>
+				<Button
+					asChild
+					variant="inverse"
+					size="xs"
+					className="h-9 px-4 text-xs"
+				>
+					<Link to="/settings/profile/subscription">
+						Start my 14 Day FREE Trial
+					</Link>
+				</Button>
+			</div>
 		</div>
 	)
 }

@@ -4,168 +4,145 @@ import { ButtonLink } from '#app/components/ui/button.tsx'
 import { Icon } from '#app/components/ui/icon.tsx'
 import { type loader as rootLoader } from '#app/root.tsx'
 import { cn } from '#app/utils/misc.tsx'
-import { type RecipientsOutletContext } from './_layout.tsx'
+import {
+	type RecipientsOutletContext,
+	type ScheduleDisplay,
+} from './_layout.tsx'
 
-export const handle: SEOHandle = {
+export const handle: SEOHandle & { pageTint: 'surface' } = {
 	getSitemapEntries: () => null,
+	pageTint: 'surface',
 }
 
 const gridColumns =
-	'md:grid-cols-[minmax(180px,1.3fr)_minmax(200px,1.3fr)_minmax(120px,0.9fr)_auto]'
+	'md:grid-cols-[minmax(7rem,0.9fr)_minmax(9rem,1.4fr)_minmax(10rem,1.5fr)_minmax(8rem,1.2fr)_auto]'
 
 export default function RecipientsIndexRoute() {
-	const { recipients, subscriptionStatus } =
-		useOutletContext<RecipientsOutletContext>()
+	const { recipients } = useOutletContext<RecipientsOutletContext>()
 	const hasRecipients = recipients.length > 0
-	const showTrialBanner = subscriptionStatus === 'none'
-	const showUpgradeBanner = subscriptionStatus === 'basic'
 	return (
-		<div className="flex flex-col gap-8">
-			{showTrialBanner ? (
-				<PlanBanner
-					tone="trial"
-					message="Start your free trial to begin sending messages."
-					cta="Start your free trial"
-				/>
-			) : null}
-			{showUpgradeBanner ? (
-				<PlanBanner
-					tone="upgrade"
-					message="On Basic you can send one message a day. Premium unlocks up to ten."
-					cta="Upgrade to Premium"
-				/>
-			) : null}
-			<div className="flex flex-wrap items-end justify-between gap-4">
-				<div>
-					<h1 className="text-foreground font-serif text-3xl font-semibold sm:text-4xl">
-						Recipients
-					</h1>
-					<p className="text-muted-foreground mt-1 text-sm sm:text-base">
-						The people you send gratitude to, and when they hear from you.
-					</p>
-				</div>
-				{hasRecipients ? (
-					<ButtonLink to="new" variant="brand" className="gap-2">
-						<Icon name="plus" size="sm" aria-hidden="true" />
-						Add recipient
-					</ButtonLink>
-				) : null}
+		<div className="container flex flex-1 flex-col pt-7 pb-10 md:pt-10 md:pb-6">
+			<div className="flex items-center justify-between gap-4">
+				<h1 className="font-display text-foreground md:text-h2 text-[2rem] leading-none">
+					Recipients
+				</h1>
+				<ButtonLink
+					to="new"
+					variant="brand"
+					className="h-14 w-14 p-0 md:h-12 md:w-auto md:px-5"
+				>
+					<Icon name="plus" size="sm" aria-hidden="true" />
+					<span className="sr-only md:not-sr-only">Add New Recipient</span>
+				</ButtonLink>
 			</div>
 
 			{hasRecipients ? (
-				<div className="md:border-border md:bg-card md:rounded-[32px] md:border md:shadow-sm">
+				<>
 					<div
 						className={cn(
-							'border-border text-muted-foreground hidden gap-4 border-b px-8 py-4 text-xs font-semibold tracking-[0.2em] uppercase md:grid',
+							'text-subtle-foreground text-label mt-8 hidden gap-4 px-2 pb-3 uppercase md:grid',
 							gridColumns,
 						)}
 					>
-						<span>Recipient</span>
+						<span>Recipient Name</span>
+						<span>Phone Number</span>
 						<span>Schedule</span>
-						<span>Queued</span>
+						<span>Prepared Messages</span>
 						<span className="sr-only">Actions</span>
 					</div>
-					<ul className="md:divide-border space-y-3 md:space-y-0 md:divide-y">
+					<ul className="bg-card md:dark:bg-background md:dark:border-border flex flex-col gap-3 md:min-h-[24rem] md:flex-none md:rounded-[1.5rem] md:px-6 md:pb-6 md:dark:border">
 						{recipients.map((recipient) => {
 							const messageCount = recipient.messageCount
-							const messageText = `${messageCount} ${messageCount === 1 ? 'message' : 'messages'}`
 							const queueEmpty = messageCount === 0
-							const scheduleTone = recipient.disabled
-								? 'text-muted-foreground'
-								: recipient.cronError
-									? 'text-foreground-destructive'
-									: 'text-foreground'
+							const countLabel = `${messageCount} ${messageCount === 1 ? 'message' : 'messages'}`
 							return (
 								<li
 									key={recipient.id}
 									className={cn(
-										'border-border bg-card hover:border-brand/40 md:hover:bg-muted/40 relative flex flex-col gap-3 rounded-[24px] border px-5 py-4 shadow-sm transition-colors md:grid md:items-center md:gap-4 md:rounded-none md:border-0 md:bg-transparent md:px-8 md:py-5 md:shadow-none',
+										'bg-card relative flex flex-col gap-4 rounded-[1.25rem] px-6 py-5 md:grid md:min-h-[5.5rem] md:items-center md:gap-4 md:rounded-none md:border-b md:bg-transparent md:px-0 md:py-3 md:last:border-b-0 md:dark:bg-transparent',
 										gridColumns,
 									)}
 								>
-									<div className="min-w-0">
+									<div className="flex items-start justify-between gap-3 md:contents">
 										<Link
 											to={recipient.id}
 											prefetch="intent"
-											className="text-foreground block truncate text-lg font-semibold after:absolute after:inset-0 after:content-[''] md:text-base"
+											className="text-foreground min-w-0 truncate text-lg font-semibold after:absolute after:inset-0 after:content-[''] md:pl-6 md:text-sm md:after:hidden"
 										>
 											{recipient.name}
 										</Link>
-										<p className="text-muted-foreground truncate text-sm">
+										<p className="text-foreground hidden min-w-0 truncate text-sm md:block">
 											{recipient.phoneNumber}
 										</p>
+										<ButtonLink
+											to={`${recipient.id}/edit`}
+											variant="outline"
+											size="icon"
+											className="relative z-10 shrink-0 md:hidden"
+											aria-label={`Manage ${recipient.name}`}
+										>
+											<Icon name="pencil-1" size="sm" aria-hidden="true" />
+										</ButtonLink>
 									</div>
-									<div className="flex items-center gap-2 text-sm">
+									<p className="text-foreground flex min-w-0 items-center gap-3 text-base md:text-sm">
 										<Icon
 											name="clock"
 											size="sm"
 											aria-hidden="true"
-											className="text-muted-foreground shrink-0"
+											className="text-muted-foreground shrink-0 md:hidden"
 										/>
-										<span className={cn('font-medium', scheduleTone)}>
-											{recipient.scheduleDisplay}
-										</span>
-									</div>
-									<div className="flex items-center gap-2 text-sm">
-										{queueEmpty ? (
-											<span className="bg-warning/15 text-warning-foreground inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold">
-												<Icon
-													name="exclamation-circle-outline"
-													size="xs"
-													aria-hidden="true"
-												/>
-												Nothing queued
-											</span>
-										) : (
-											<>
-												<Icon
-													name="message"
-													size="sm"
-													aria-hidden="true"
-													className="text-muted-foreground shrink-0"
-												/>
-												<span className="text-foreground font-medium">
-													{messageText}
-												</span>
-											</>
+										<Schedule display={recipient.scheduleDisplay} />
+									</p>
+									<p
+										className={cn(
+											'flex min-w-0 items-center gap-3 text-base md:text-sm',
+											queueEmpty
+												? 'text-foreground-destructive'
+												: 'text-foreground',
 										)}
+									>
+										<Icon
+											name="message"
+											size="sm"
+											aria-hidden="true"
+											className="text-muted-foreground shrink-0 md:hidden"
+										/>
+										<span>
+											{countLabel}
+											<span className="md:hidden"> prepared</span>
+										</span>
+										{queueEmpty ? (
+											<span
+												className="bg-destructive/20 text-foreground-destructive inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[0.7rem] font-bold"
+												aria-label="No messages prepared"
+											>
+												!
+											</span>
+										) : null}
+									</p>
+									<div className="hidden justify-end md:flex md:pr-2">
+										<ButtonLink
+											to={`${recipient.id}/edit`}
+											variant="outline"
+											className="relative z-10 h-12 px-5 text-xs"
+										>
+											<Icon name="pencil-1" size="xs" aria-hidden="true" />
+											Manage
+										</ButtonLink>
 									</div>
-									<div className="text-muted-foreground hidden items-center justify-end gap-1 text-sm font-semibold md:flex">
-										Open
-										<Icon name="chevron-right" size="sm" aria-hidden="true" />
-									</div>
-									<Icon
-										name="chevron-right"
-										size="sm"
-										aria-hidden="true"
-										className="text-muted-foreground absolute top-5 right-5 md:hidden"
-									/>
 								</li>
 							)
 						})}
 					</ul>
-				</div>
+				</>
 			) : (
-				<div className="border-border bg-card flex flex-col items-center gap-5 rounded-[32px] border px-6 py-16 text-center shadow-sm">
-					<span className="bg-accent text-accent-foreground flex h-14 w-14 items-center justify-center rounded-2xl">
-						<Icon name="avatar" size="lg" aria-hidden="true" />
-					</span>
-					<div className="max-w-sm">
-						<p className="text-foreground text-xl font-bold">
-							Add your first recipient
-						</p>
-						<p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-							Start with someone you're grateful for. You'll pick a schedule,
-							then queue up notes for them to receive.
-						</p>
-					</div>
-					<ButtonLink
-						to="new"
-						variant="brand"
-						className="w-full gap-2 sm:w-auto"
-					>
-						<Icon name="plus" size="sm" aria-hidden="true" />
-						Add recipient
+				<div className="bg-card md:dark:bg-background md:dark:border-border mt-8 flex flex-1 flex-col items-center justify-center gap-5 rounded-[1.5rem] px-6 py-24 text-center md:min-h-[27rem] md:flex-none md:dark:border">
+					<h2 className="font-display text-foreground text-xl md:text-[1.375rem]">
+						Start By Adding Your First Recipient
+					</h2>
+					<ButtonLink to="new" variant="outline" className="h-12 px-5 text-xs">
+						Add New Recipient
+						<Icon name="plus" size="xs" aria-hidden="true" />
 					</ButtonLink>
 				</div>
 			)}
@@ -173,37 +150,28 @@ export default function RecipientsIndexRoute() {
 	)
 }
 
-function PlanBanner({
-	tone,
-	message,
-	cta,
-}: {
-	tone: 'trial' | 'upgrade'
-	message: string
-	cta: string
-}) {
-	return (
-		<div
-			className={cn(
-				'flex flex-col gap-3 rounded-[20px] px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between',
-				tone === 'trial'
-					? 'bg-banner-trial text-banner-trial-foreground'
-					: 'bg-banner-upgrade text-banner-upgrade-foreground',
-			)}
-		>
-			<p className="flex items-center gap-2 font-semibold">
-				<Icon name="star" size="sm" aria-hidden="true" />
-				{message}
-			</p>
-			<Link
-				to="/settings/profile/subscription"
-				className="inline-flex items-center gap-1 font-semibold underline underline-offset-4"
-			>
-				{cta}
-				<Icon name="arrow-right" size="xs" aria-hidden="true" />
-			</Link>
-		</div>
-	)
+function Schedule({ display }: { display: ScheduleDisplay }) {
+	switch (display.kind) {
+		case 'paused':
+			return <span className="text-muted-foreground">Paused</span>
+		case 'error':
+			return (
+				<span className="text-foreground-destructive" title={display.message}>
+					Schedule issue
+				</span>
+			)
+		case 'weekly':
+			return (
+				<span className="truncate">
+					Every <strong className="font-semibold">{display.weekday}</strong> at{' '}
+					{display.time} {display.timeZoneName}
+				</span>
+			)
+		default: {
+			const exhaustive: never = display
+			return exhaustive
+		}
+	}
 }
 
 export const meta: MetaFunction<null, { root: typeof rootLoader }> = ({
