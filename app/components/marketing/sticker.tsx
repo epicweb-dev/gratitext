@@ -21,7 +21,10 @@ export function FlowerSticker({
 	const r = 50
 	// lobes sit on a ring and touch their neighbours so the gaps read as petals
 	const orbit = 30
-	const lobeRadius = Math.min(r - orbit, orbit * Math.sin(Math.PI / lobes) * 1.18)
+	const lobeRadius = Math.min(
+		r - orbit,
+		orbit * Math.sin(Math.PI / lobes) * 1.18,
+	)
 	const circles = Array.from({ length: lobes }, (_, i) => {
 		const angle = (i / lobes) * Math.PI * 2 - Math.PI / 2
 		return {

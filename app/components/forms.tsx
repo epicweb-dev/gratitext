@@ -41,7 +41,7 @@ export function ErrorList({
 }
 
 /** Reserves the error row below a control so layouts do not jump. */
-function FieldErrorSlot({
+export function FieldErrorSlot({
 	errorId,
 	errors,
 	align = 'right',

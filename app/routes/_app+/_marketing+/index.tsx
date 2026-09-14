@@ -27,7 +27,8 @@ const steps = [
 	},
 	{
 		title: 'Write a Personal Message',
-		description: 'Craft meaningful messages that will be sent to your loved ones.',
+		description:
+			'Craft meaningful messages that will be sent to your loved ones.',
 	},
 	{
 		title: 'Message Sent',
@@ -91,7 +92,7 @@ export default function Index() {
 					<div className="order-2 text-center md:order-1 md:text-left">
 						<h1
 							id="hero-heading"
-							className="font-display text-foreground text-[2.625rem] leading-[1.08] md:text-h1"
+							className="font-display text-foreground md:text-h1 text-[2.625rem] leading-[1.08]"
 						>
 							Thoughtful
 							<br />
@@ -162,18 +163,18 @@ export default function Index() {
 						smiles
 					</span>
 				</FlowerSticker>
-				<div className="container relative text-center">
+				<div className="relative container text-center">
 					<h2
 						id="own-words-heading"
-						className="font-display mx-auto max-w-2xl text-[2rem] leading-[1.15] md:text-h2"
+						className="font-display md:text-h2 mx-auto max-w-2xl text-[2rem] leading-[1.15]"
 					>
 						Messages written
 						<br />
 						by you… Not by AI.
 					</h2>
 					<p className="mx-auto mt-6 max-w-md text-base leading-relaxed md:max-w-lg md:text-[0.9375rem]">
-						Our platform schedules and delivers personal heartfelt messages
-						from you, making it easy to stay connected and nurture your most
+						Our platform schedules and delivers personal heartfelt messages from
+						you, making it easy to stay connected and nurture your most
 						important relationships.
 					</p>
 				</div>
@@ -184,7 +185,7 @@ export default function Index() {
 				aria-labelledby="how-it-works-heading"
 				className="bg-background relative scroll-mt-24 pt-28 pb-28 md:pt-40 md:pb-44"
 			>
-				<div className="container relative">
+				<div className="relative container">
 					<img
 						src="/images/paper-plane.png"
 						alt=""
@@ -209,7 +210,7 @@ export default function Index() {
 					<div className="relative mx-auto max-w-2xl text-center">
 						<h2
 							id="how-it-works-heading"
-							className="font-display text-foreground text-[2rem] leading-[1.15] md:text-h2"
+							className="font-display text-foreground md:text-h2 text-[2rem] leading-[1.15]"
 						>
 							How does
 							<br />
@@ -217,8 +218,8 @@ export default function Index() {
 						</h2>
 						<p className="text-muted-foreground mx-auto mt-5 max-w-xs text-base leading-relaxed md:max-w-lg md:text-[0.9375rem]">
 							Whether it's a simple thank you or a meaningful reminder of your
-							affection, GratiText helps you make a lasting impact on the
-							people you care about.
+							affection, GratiText helps you make a lasting impact on the people
+							you care about.
 						</p>
 					</div>
 					<ol className="relative mt-16 grid gap-14 md:mt-28 md:grid-cols-3 md:gap-x-10 md:gap-y-20">
@@ -267,16 +268,16 @@ export default function Index() {
 						<div className="relative mx-auto max-w-xl pt-8 text-center md:pt-4">
 							<h2
 								id="pricing-heading"
-								className="font-display text-foreground text-[2rem] leading-[1.15] md:text-h2"
+								className="font-display text-foreground md:text-h2 text-[2rem] leading-[1.15]"
 							>
 								Affordable
 								<br />
 								pricing plans
 							</h2>
 							<p className="text-muted-foreground mx-auto mt-5 max-w-xs text-base leading-relaxed md:max-w-lg md:text-[0.9375rem]">
-								Whether it's a simple thank you or a meaningful reminder of
-								your affection, GratiText helps you make a lasting impact on
-								the people you care about.
+								Whether it's a simple thank you or a meaningful reminder of your
+								affection, GratiText helps you make a lasting impact on the
+								people you care about.
 							</p>
 						</div>
 					</div>
@@ -303,9 +304,7 @@ export default function Index() {
 									{plan.summary}
 								</p>
 								<p className="col-start-2 row-start-1 flex items-start justify-end leading-none md:col-start-3 md:justify-start">
-									<span className="font-display text-base md:text-lg">
-										$
-									</span>
+									<span className="font-display text-base md:text-lg">$</span>
 									<span className="font-display text-[1.75rem] md:text-[2.25rem]">
 										{plan.dollars}
 									</span>
@@ -326,7 +325,10 @@ export default function Index() {
 				</div>
 			</section>
 
-			<section aria-labelledby="cta-heading" className="bg-pricing pb-14 md:pb-16">
+			<section
+				aria-labelledby="cta-heading"
+				className="bg-pricing pb-14 md:pb-16"
+			>
 				<div className="container">
 					<div className="bg-cta text-cta-foreground relative isolate overflow-hidden rounded-[1.75rem] px-6 py-24 md:min-h-[30rem] md:rounded-[2rem] md:px-12 md:py-28">
 						<img

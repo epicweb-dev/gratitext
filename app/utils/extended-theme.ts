@@ -1,3 +1,9 @@
+/**
+ * Mirror of the design tokens declared in `app/styles/tailwind.css`. Tailwind
+ * v4 reads the CSS directly; this object only teaches `tailwind-merge` (see
+ * `cn()`) which class names are colours, radii and text styles so conflicting
+ * utilities dedupe correctly.
+ */
 export const extendedTheme = {
 	colors: {
 		border: 'hsl(var(--border))',
@@ -13,6 +19,15 @@ export const extendedTheme = {
 		foreground: {
 			DEFAULT: 'hsl(var(--foreground))',
 			destructive: 'hsl(var(--foreground-destructive))',
+		},
+		surface: {
+			DEFAULT: 'hsl(var(--surface))',
+			foreground: 'hsl(var(--surface-foreground))',
+			border: 'hsl(var(--surface-border))',
+		},
+		field: {
+			DEFAULT: 'hsl(var(--field))',
+			foreground: 'hsl(var(--field-foreground))',
 		},
 		primary: {
 			DEFAULT: 'hsl(var(--primary))',
@@ -30,10 +45,7 @@ export const extendedTheme = {
 			DEFAULT: 'hsl(var(--muted))',
 			foreground: 'hsl(var(--muted-foreground))',
 		},
-		'muted-secondary': {
-			DEFAULT: 'hsl(var(--muted-secondary))',
-			foreground: 'hsl(var(--muted-secondary-foreground))',
-		},
+		'subtle-foreground': 'hsl(var(--subtle-foreground))',
 		accent: {
 			DEFAULT: 'hsl(var(--accent))',
 			foreground: 'hsl(var(--accent-foreground))',
@@ -56,6 +68,10 @@ export const extendedTheme = {
 			DEFAULT: 'hsl(var(--brand-soft))',
 			foreground: 'hsl(var(--brand-soft-foreground))',
 		},
+		'brand-muted': {
+			DEFAULT: 'hsl(var(--brand-muted))',
+			foreground: 'hsl(var(--brand-muted-foreground))',
+		},
 		warm: {
 			DEFAULT: 'hsl(var(--warm))',
 			foreground: 'hsl(var(--warm-foreground))',
@@ -64,80 +80,61 @@ export const extendedTheme = {
 			DEFAULT: 'hsl(var(--warning))',
 			foreground: 'hsl(var(--warning-foreground))',
 		},
-		'banner-trial': {
-			DEFAULT: 'hsl(var(--banner-trial))',
-			foreground: 'hsl(var(--banner-trial-foreground))',
+		sent: {
+			DEFAULT: 'hsl(var(--sent))',
+			foreground: 'hsl(var(--sent-foreground))',
 		},
-		'banner-upgrade': {
-			DEFAULT: 'hsl(var(--banner-upgrade))',
-			foreground: 'hsl(var(--banner-upgrade-foreground))',
+		scheduled: {
+			DEFAULT: 'hsl(var(--scheduled))',
+			foreground: 'hsl(var(--scheduled-foreground))',
 		},
-		'price-basic': 'hsl(var(--price-basic))',
-		'price-premium': 'hsl(var(--price-premium))',
-		'hero-orb': 'hsl(var(--hero-orb))',
-		'hero-sparkle': 'hsl(var(--hero-sparkle))',
-		'marketing-feature': {
-			DEFAULT: 'hsl(var(--marketing-feature))',
-			foreground: 'hsl(var(--marketing-feature-foreground))',
-			muted: 'hsl(var(--marketing-feature-muted))',
-			accent: 'hsl(var(--marketing-feature-accent))',
-			'accent-secondary': 'hsl(var(--marketing-feature-accent-secondary))',
+		hero: 'hsl(var(--hero))',
+		feature: {
+			DEFAULT: 'hsl(var(--feature))',
+			foreground: 'hsl(var(--feature-foreground))',
 		},
-		'marketing-step-index': 'hsl(var(--marketing-step-index))',
-		'marketing-cta': {
-			DEFAULT: 'hsl(var(--marketing-cta))',
-			foreground: 'hsl(var(--marketing-cta-foreground))',
-			accent: 'hsl(var(--marketing-cta-accent))',
+		pricing: 'hsl(var(--pricing))',
+		cta: {
+			DEFAULT: 'hsl(var(--cta))',
+			foreground: 'hsl(var(--cta-foreground))',
 		},
-		'message-bubble': {
-			DEFAULT: 'hsl(var(--message-bubble))',
-			foreground: 'hsl(var(--message-bubble-foreground))',
-		},
-		'message-card': {
-			DEFAULT: 'hsl(var(--message-card))',
-			foreground: 'hsl(var(--message-card-foreground))',
+		palette: {
+			sunny: 'hsl(var(--palette-sunny))',
+			orange: 'hsl(var(--palette-orange))',
+			'fire-red': 'hsl(var(--palette-fire-red))',
+			'rose-pink': 'hsl(var(--palette-rose-pink))',
+			'dust-pink': 'hsl(var(--palette-dust-pink))',
+			lilac: 'hsl(var(--palette-lilac))',
+			'baby-blue': 'hsl(var(--palette-baby-blue))',
+			blues: 'hsl(var(--palette-blues))',
+			'green-500': 'hsl(var(--palette-green-500))',
+			chestnut: 'hsl(var(--palette-chestnut))',
+			beige: 'hsl(var(--palette-beige))',
+			cream: 'hsl(var(--palette-cream))',
+			navy: 'hsl(var(--palette-navy))',
+			'dark-navy': 'hsl(var(--palette-dark-navy))',
 		},
 	},
 	borderRadius: {
-		lg: 'var(--radius)',
-		md: 'calc(var(--radius) - 2px)',
-		sm: 'calc(var(--radius) - 4px)',
+		sm: 'calc(var(--radius) - 12px)',
+		md: 'calc(var(--radius) - 8px)',
+		lg: 'calc(var(--radius) - 4px)',
+		xl: 'var(--radius)',
+		'2xl': 'calc(var(--radius) + 4px)',
+		'3xl': 'calc(var(--radius) + 12px)',
 	},
 	fontSize: {
-		// 1rem = 16px
-		/** 80px size / 84px high / bold */
-		mega: ['5rem', { lineHeight: '5.25rem', fontWeight: '700' }],
-		/** 56px size / 62px high / bold */
-		h1: ['3.5rem', { lineHeight: '3.875rem', fontWeight: '700' }],
-		/** 40px size / 48px high / bold */
-		h2: ['2.5rem', { lineHeight: '3rem', fontWeight: '700' }],
-		/** 32px size / 36px high / bold */
-		h3: ['2rem', { lineHeight: '2.25rem', fontWeight: '700' }],
-		/** 28px size / 36px high / bold */
-		h4: ['1.75rem', { lineHeight: '2.25rem', fontWeight: '700' }],
-		/** 24px size / 32px high / bold */
-		h5: ['1.5rem', { lineHeight: '2rem', fontWeight: '700' }],
-		/** 16px size / 20px high / bold */
-		h6: ['1rem', { lineHeight: '1.25rem', fontWeight: '700' }],
-
-		/** 32px size / 36px high / normal */
-		'body-2xl': ['2rem', { lineHeight: '2.25rem' }],
-		/** 28px size / 36px high / normal */
-		'body-xl': ['1.75rem', { lineHeight: '2.25rem' }],
-		/** 24px size / 32px high / normal */
-		'body-lg': ['1.5rem', { lineHeight: '2rem' }],
-		/** 20px size / 28px high / normal */
-		'body-md': ['1.25rem', { lineHeight: '1.75rem' }],
-		/** 16px size / 20px high / normal */
-		'body-sm': ['1rem', { lineHeight: '1.25rem' }],
-		/** 14px size / 18px high / normal */
-		'body-xs': ['0.875rem', { lineHeight: '1.125rem' }],
-		/** 12px size / 16px high / normal */
-		'body-2xs': ['0.75rem', { lineHeight: '1rem' }],
-
-		/** 18px size / 24px high / semibold */
-		caption: ['1.125rem', { lineHeight: '1.5rem', fontWeight: '600' }],
-		/** 12px size / 16px high / bold */
-		button: ['0.75rem', { lineHeight: '1rem', fontWeight: '700' }],
+		h1: ['3.5rem', { lineHeight: '1.1', fontWeight: '700' }],
+		h2: ['2.5rem', { lineHeight: '1.15', fontWeight: '700' }],
+		h3: ['2rem', { lineHeight: '1.2', fontWeight: '700' }],
+		h4: ['1.5rem', { lineHeight: '1.25', fontWeight: '700' }],
+		h5: ['1.25rem', { lineHeight: '1.3', fontWeight: '700' }],
+		h6: ['1.125rem', { lineHeight: '1.3', fontWeight: '700' }],
+		'body-lg': ['1.125rem', { lineHeight: '1.6' }],
+		'body-md': ['1rem', { lineHeight: '1.6' }],
+		'body-sm': ['0.875rem', { lineHeight: '1.5' }],
+		'body-xs': ['0.8125rem', { lineHeight: '1.4' }],
+		'body-2xs': ['0.75rem', { lineHeight: '1.35' }],
+		label: ['0.75rem', { lineHeight: '1rem', fontWeight: '600' }],
 	},
 } as const

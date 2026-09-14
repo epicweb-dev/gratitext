@@ -1,34 +1,41 @@
 import { type ReactNode } from 'react'
-import { cn } from '#app/utils/misc.tsx'
+import { SettingsOverview } from '#app/routes/_app+/settings.profile+/__overview.tsx'
+import { DialogPage } from './dialog-page.tsx'
 
+/**
+ * Account settings sub-pages: a dialog floating over the (inert) settings
+ * overview on desktop, and a plain page with a back link on phones.
+ */
 export function SettingsCard({
 	title,
 	description,
 	children,
+	backTo = '/settings/profile',
+	backLabel,
+	hideClose,
 	className,
-	headingId = 'settings-card-heading',
 }: {
 	title: string
 	description?: ReactNode
 	children: ReactNode
+	backTo?: string
+	backLabel?: string
+	hideClose?: boolean
 	className?: string
-	headingId?: string
 }) {
 	return (
-		<section
-			aria-labelledby={headingId}
-			className={cn(
-				'border-border bg-card rounded-[32px] border p-6 shadow-sm sm:p-8',
-				className,
-			)}
-		>
-			<h1 id={headingId} className="text-foreground text-2xl font-bold">
-				{title}
-			</h1>
-			{description ? (
-				<div className="text-muted-foreground mt-2 text-sm">{description}</div>
-			) : null}
-			<div className="mt-6">{children}</div>
-		</section>
+		<>
+			<SettingsOverview inert className="hidden md:flex" />
+			<DialogPage
+				title={title}
+				description={description}
+				backTo={backTo}
+				backLabel={backLabel}
+				hideClose={hideClose}
+				className={className}
+			>
+				{children}
+			</DialogPage>
+		</>
 	)
 }

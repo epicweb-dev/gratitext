@@ -75,7 +75,7 @@ export default function TwoFactorRoute() {
 						not be able to log in.
 					</p>
 					<div>
-						<ButtonLink variant="secondary" to="disable">
+						<ButtonLink variant="outline" to="disable">
 							<Icon name="lock-open-1" size="sm" aria-hidden="true" />
 							Disable 2FA
 						</ButtonLink>

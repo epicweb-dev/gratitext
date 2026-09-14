@@ -23,7 +23,12 @@ import {
 import { ButtonLink } from '#app/components/ui/button.tsx'
 import { Icon } from '#app/components/ui/icon.js'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
-import { countryCodeLabel, countryCodes } from '#app/utils/country-codes.ts'
+import {
+	countryCodeLabel,
+	countryCodes,
+	OTHER_COUNTRY_CODE,
+	splitPhoneNumber,
+} from '#app/utils/country-codes.ts'
 import { validateCronString } from '#app/utils/cron.ts'
 import { cn, useDoubleCheck, useIsPending } from '#app/utils/misc.tsx'
 import { type Recipient } from '#app/utils/prisma-generated.server/client.ts'
@@ -44,8 +49,6 @@ import {
 export const deleteRecipientActionIntent = 'delete-recipient'
 export const upsertRecipientActionIntent = 'upsert-recipient'
 export const sendVerificationActionIntent = 'send-verification'
-
-const OTHER_COUNTRY_CODE = 'other'
 
 export const RecipientEditorSchema = z.object({
 	id: z.string().optional(),
@@ -75,24 +78,6 @@ export const DeleteRecipientSchema = z.object({
 	intent: z.literal('delete-recipient'),
 	recipientId: z.string(),
 })
-
-/** Joins the country-code select with the national number the user typed. */
-export function combinePhoneNumber(countryCode: string, phoneNumber: string) {
-	const trimmed = phoneNumber.replace(/[\s().-]/g, '')
-	if (countryCode === OTHER_COUNTRY_CODE) return trimmed
-	return `${countryCode}${trimmed.replace(/^\+/, '')}`
-}
-
-function splitPhoneNumber(phoneNumber: string) {
-	const match = [...countryCodes]
-		.sort((a, b) => b.value.length - a.value.length)
-		.find((code) => phoneNumber.startsWith(code.value))
-	if (!match) return { countryCode: OTHER_COUNTRY_CODE, national: phoneNumber }
-	return {
-		countryCode: match.value,
-		national: phoneNumber.slice(match.value.length),
-	}
-}
 
 export type ReservedDays = Partial<Record<WeekdayValue, string>>
 

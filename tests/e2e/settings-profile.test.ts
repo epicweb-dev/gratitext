@@ -20,14 +20,16 @@ test('Users can update their basic info', async ({ page, login }) => {
 
 	const newUserData = createUser()
 
+	await page.getByRole('link', { name: /edit your name/i }).click()
+
 	const nameInput = page.getByRole('textbox', { name: /your name/i })
 	await nameInput.waitFor({ state: 'visible' })
 	await nameInput.fill(newUserData.name)
 
 	await page.getByRole('button', { name: /^save/i }).click()
 
-	// Wait for save to complete
-	await page.waitForLoadState('networkidle').catch(() => {})
+	await expect(page.getByText(/name updated/i)).toBeVisible({ timeout: 15000 })
+	await expect(nameInput).toHaveValue(newUserData.name)
 })
 
 test('Users can update their password', async ({ page, login }) => {
@@ -91,10 +93,10 @@ test('Users can change their phone number', async ({ page, login }) => {
 
 	await page.waitForLoadState('domcontentloaded')
 
-	const newPhoneInput = page.getByRole('textbox', { name: /new phone number/i })
+	const newPhoneInput = page.getByRole('textbox', { name: /^phone number/i })
 	await newPhoneInput.waitFor({ state: 'visible' })
 	await newPhoneInput.fill(newPhoneNumber)
-	await page.getByRole('button', { name: /send confirmation/i }).click()
+	await page.getByRole('button', { name: /send verification code/i }).click()
 
 	await expect(page.getByText(/check your texts/i)).toBeVisible({
 		timeout: 15000,

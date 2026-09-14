@@ -45,7 +45,9 @@ export function WaveEdge({
 			preserveAspectRatio="none"
 			className={cn(
 				'pointer-events-none absolute left-0 h-6 w-full fill-current sm:h-8 md:h-10',
-				edge === 'top' ? 'top-0 -translate-y-full' : 'bottom-0 translate-y-full rotate-180',
+				edge === 'top'
+					? 'top-0 -translate-y-full'
+					: 'bottom-0 translate-y-full rotate-180',
 				className,
 			)}
 		>

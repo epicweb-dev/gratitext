@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import {
 	Form,
 	Link,
@@ -27,6 +27,7 @@ import { Wordmark } from '#app/components/wordmark.tsx'
 import { ThemeSwitch, useTheme } from '#app/routes/resources+/theme-switch.tsx'
 import { getUserId } from '#app/utils/auth.server.ts'
 import { prisma } from '#app/utils/db.server.ts'
+import { useFocusTrap } from '#app/utils/focus-trap.ts'
 import { cn } from '#app/utils/misc.tsx'
 import {
 	getSubscriptionTier,
@@ -37,15 +38,6 @@ import { useOptionalUser, useUser } from '#app/utils/user.ts'
 
 const siteDescription =
 	'GratiText helps you send thoughtful, personal gratitude texts to the people you love on a schedule you choose.'
-
-const focusableSelector = [
-	'a[href]',
-	'button:not([disabled])',
-	'input:not([disabled]):not([type="hidden"])',
-	'select:not([disabled])',
-	'textarea:not([disabled])',
-	'[tabindex]:not([tabindex="-1"])',
-].join(',')
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
 	return [
@@ -320,57 +312,12 @@ function MobileMenu({
 	const themeLabel =
 		theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'
 	const themeIcon = theme === 'dark' ? 'sun' : 'moon'
-	const close = () => setOpen(false)
+	const close = useCallback(() => setOpen(false), [])
 	const triggerRef = useRef<HTMLButtonElement>(null)
 	const panelRef = useRef<HTMLDivElement>(null)
 
-	// The panel is announced as a modal dialog, so it has to behave like one:
-	// move focus into it on open, keep Tab cycling inside it, and hand focus
-	// back to the trigger when it closes.
-	useEffect(() => {
-		if (!open) return
-		const panel = panelRef.current
-		const trigger = triggerRef.current
-		if (!panel) return
-		const getFocusable = () =>
-			Array.from(panel.querySelectorAll<HTMLElement>(focusableSelector)).filter(
-				(element) => !element.hasAttribute('disabled'),
-			)
-
-		panel.focus({ preventScroll: true })
-
-		const onKeyDown = (event: KeyboardEvent) => {
-			if (event.key === 'Escape') {
-				event.preventDefault()
-				setOpen(false)
-				return
-			}
-			if (event.key !== 'Tab') return
-			const focusable = getFocusable()
-			if (focusable.length === 0) {
-				event.preventDefault()
-				return
-			}
-			const first = focusable[0]!
-			const last = focusable[focusable.length - 1]!
-			const active = document.activeElement
-			const activeIndex = focusable.findIndex((element) => element === active)
-			if (event.shiftKey) {
-				if (activeIndex <= 0) {
-					event.preventDefault()
-					last.focus()
-				}
-			} else if (activeIndex === -1 || activeIndex === focusable.length - 1) {
-				event.preventDefault()
-				first.focus()
-			}
-		}
-		document.addEventListener('keydown', onKeyDown)
-		return () => {
-			document.removeEventListener('keydown', onKeyDown)
-			if (trigger?.isConnected) trigger.focus({ preventScroll: true })
-		}
-	}, [open])
+	// The panel is announced as a modal dialog, so it has to behave like one.
+	useFocusTrap(panelRef, open, close)
 
 	return (
 		<>
