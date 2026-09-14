@@ -87,6 +87,8 @@ export default function Layout() {
 	// Chat-style pages fill the viewport and scroll internally, so the footer
 	// is dropped and the height is pinned instead of allowed to grow.
 	const fillViewport = handles.some((handle) => handle.layout === 'fill')
+	// The landing page ends on its cream pricing band, and the footer sits on it.
+	const footerTint = handles.find((handle) => handle.footerTint)?.footerTint
 	return (
 		<div
 			className={cn(
@@ -141,19 +143,23 @@ export default function Layout() {
 			<div id="main-content" className="flex min-h-0 flex-1 flex-col">
 				<Outlet />
 			</div>
-			{fillViewport ? null : <Footer />}
+			{fillViewport ? null : (
+				<Footer
+					className={footerTint === 'pricing' ? 'bg-pricing' : undefined}
+				/>
+			)}
 		</div>
 	)
 }
 
-function Footer() {
+function Footer({ className }: { className?: string }) {
 	return (
-		<footer className="mt-auto">
-			<div className="container flex flex-col items-center gap-6 py-10 text-center md:flex-row md:items-center md:justify-between md:text-left">
-				<div className="flex flex-col items-center gap-6 md:flex-row md:gap-10">
-					<Wordmark className="text-xl" />
+		<footer className={cn('mt-auto', className)}>
+			<div className="container flex flex-col items-center gap-7 py-12 text-center md:flex-row md:items-center md:justify-between md:gap-6 md:py-10 md:text-left">
+				<div className="flex flex-col items-center gap-7 md:flex-row md:gap-10">
+					<Wordmark className="text-[1.625rem] md:text-[1.375rem]" />
 					<nav aria-label="Footer">
-						<ul className="flex flex-col items-center gap-5 text-sm font-semibold md:flex-row md:gap-8">
+						<ul className="flex flex-col items-center gap-6 text-base font-semibold md:flex-row md:gap-8 md:text-[0.9375rem]">
 							<li>
 								<a
 									href={`mailto:${supportEmail}`}
@@ -174,7 +180,7 @@ function Footer() {
 						</ul>
 					</nav>
 				</div>
-				<ul className="text-muted-foreground flex flex-col items-center gap-5 text-sm md:flex-row md:gap-8">
+				<ul className="text-muted-foreground flex flex-col items-center gap-6 text-base md:flex-row md:gap-8 md:text-[0.9375rem]">
 					<li>All Rights Reserved</li>
 					<li>
 						<Link
