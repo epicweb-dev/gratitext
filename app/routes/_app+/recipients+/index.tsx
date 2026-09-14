@@ -50,7 +50,7 @@ export default function RecipientsIndexRoute() {
 						<span>Prepared Messages</span>
 						<span className="sr-only">Actions</span>
 					</div>
-					<ul className="bg-card md:dark:bg-background md:dark:border-border flex flex-col gap-3 md:min-h-[24rem] md:flex-none md:rounded-[1.5rem] md:px-6 md:pb-6 md:dark:border">
+					<ul className="md:bg-card md:dark:bg-background md:dark:border-border flex flex-col gap-3 md:flex-none md:rounded-[1.5rem] md:px-6 md:pb-6 md:dark:border">
 						{recipients.map((recipient) => {
 							const messageCount = recipient.messageCount
 							const queueEmpty = messageCount === 0

@@ -138,23 +138,23 @@ export default function Index() {
 				<FlowerSticker
 					lobes={7}
 					rotate={-12}
-					className="absolute -top-16 left-[7%] z-10 w-[9.5rem] md:-top-24 md:left-[13%] md:w-[15rem]"
-					shapeClassName="fill-card drop-shadow-[0_6px_12px_rgba(24,36,48,0.06)]"
+					className="absolute -bottom-14 left-[2%] z-10 w-[11.5rem] md:-top-24 md:bottom-auto md:left-[13%] md:w-[15rem]"
+					shapeClassName="fill-palette-cream drop-shadow-[0_6px_12px_rgba(24,36,48,0.06)]"
 				>
-					<span className="text-palette-green-500 text-[1.1rem] md:text-[1.75rem]">
+					<span className="text-palette-green-500 text-[1.35rem] md:text-[1.75rem]">
 						you are all
 					</span>
-					<span className="text-palette-blues text-[1.1rem] md:text-[1.75rem]">
+					<span className="text-palette-blues text-[1.35rem] md:text-[1.75rem]">
 						kinds of
 					</span>
-					<span className="text-palette-rose-pink text-[1.1rem] md:text-[1.75rem]">
+					<span className="text-palette-rose-pink text-[1.35rem] md:text-[1.75rem]">
 						awesome
 					</span>
 				</FlowerSticker>
 				<FlowerSticker
 					lobes={6}
 					rotate={-8}
-					className="absolute right-[6%] -bottom-24 z-10 w-[8.5rem] md:right-[11%] md:-bottom-24 md:w-[14rem]"
+					className="absolute right-[3%] -bottom-24 z-10 w-[10rem] md:right-[11%] md:-bottom-24 md:w-[14rem]"
 					shapeClassName="fill-palette-dust-pink dark:fill-palette-chestnut"
 				>
 					<span className="text-palette-chestnut dark:text-palette-dust-pink text-[1.35rem] md:text-[2.1rem]">
