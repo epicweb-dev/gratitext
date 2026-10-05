@@ -605,12 +605,14 @@ export default function RecipientRoute() {
 
 			const params = new URLSearchParams(searchParams)
 			params.set('cursor', pastNextCursor)
-			const queryString = params.toString()
+			// Without `index`, React Router sends the fetch to the parent
+			// `$recipientId` layout loader, which has no past messages.
+			params.set('index', '')
 			pendingScrollRef.current = {
 				height: container.scrollHeight,
 				top: container.scrollTop,
 			}
-			void loadMoreFetcher.load(queryString ? `?${queryString}` : '.')
+			void loadMoreFetcher.load(`?${params.toString()}`)
 		},
 		[pastNextCursor, loadMoreFetcher, searchParams],
 	)
@@ -731,11 +733,13 @@ export default function RecipientRoute() {
 								placeholder="Aa"
 								rows={1}
 								required
+								enterKeyHint="enter"
+								aria-keyshortcuts="Control+Enter Meta+Enter"
 								onInput={(event) => setDraft(event.currentTarget.value)}
 								onKeyDown={(event) => {
 									if (
 										event.key === 'Enter' &&
-										!event.shiftKey &&
+										(event.metaKey || event.ctrlKey) &&
 										!event.nativeEvent.isComposing
 									) {
 										event.preventDefault()
