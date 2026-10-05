@@ -30,26 +30,30 @@ regular schedule.
 
 See also [.cursor/CLOUD.md](.cursor/CLOUD.md) for the command quick reference.
 
+### Environment install
+
+`.cursor/environment.json` runs `.cursor/install.sh`. It installs Node 24 (nvm)
+and Bun, puts them on the login-shell `PATH` via
+`/etc/profile.d/gratitext-toolchain.sh`, runs `bun install` and
+`bun run setup:env`, seeds a fresh database, and installs Playwright Chromium.
+Rerun `bash .cursor/install.sh` if anything is missing.
+
 ### Node and Bun on the VM
 
-The default `node` on Cursor Cloud VMs may be `/exec-daemon/node` (older than the
-repo’s `^24` requirement). Use nvm Node 24 and Bun on your `PATH` before running
-scripts, for example:
+The default `node` on Cursor Cloud VMs may be `/exec-daemon/node` (older than
+the repo’s `^24` requirement). If `node -v` is not 24 in your shell, load the
+toolchain before running scripts:
 
 ```bash
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-nvm use 24
-export PATH="$HOME/.nvm/versions/node/v24.16.0/bin:$HOME/.bun/bin:$PATH"
+. /etc/profile.d/gratitext-toolchain.sh
 ```
-
-Install Bun once if missing: `curl -fsSL https://bun.sh/install | bash`
 
 ### First-time database setup
 
-After `bun install`, run `bun run setup:env` (copies `.env.example`, migrates
-SQLite, generates Prisma client). Optional full local bootstrap:
-`bun run setup:local` (build, seed, Playwright Chromium).
+The install step already does this. Manually: after `bun install`, run
+`bun run setup:env` (copies `.env.example`, migrates SQLite, generates Prisma
+client). Optional full local bootstrap: `bun run setup:local` (build, seed,
+Playwright Chromium).
 
 ### Dev server
 

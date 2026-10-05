@@ -1,0 +1,4 @@
+{
+	"name": "GratiText",
+	"install": "bash .cursor/install.sh"
+}
